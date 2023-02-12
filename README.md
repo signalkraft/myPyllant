@@ -1,6 +1,6 @@
 # myPyllant
 
-![PyPI](https://img.shields.io/pypi/v/myPyllant)
+[![PyPI](https://img.shields.io/pypi/v/myPyllant)](https://pypi.org/project/myPyllant/)
 
 A Python library to interact with the API behind the myVAILLANT app.
 
