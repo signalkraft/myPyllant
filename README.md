@@ -1,6 +1,6 @@
 # myPyllant
 
-![myPyllant](![](https://raw.githubusercontent.com/signalkraft/myPyllant/main/images/demo.png))
+![myPyllant](![](https://raw.githubusercontent.com/signalkraft/myPyllant/main/logo.png))
 
 A Python library to interact with the API behind the myVAILLANT app.
 
