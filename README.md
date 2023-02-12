@@ -4,6 +4,8 @@
 
 A Python library to interact with the API behind the myVAILLANT app.
 
+Not affiliated with Vaillant, the developers take no responsibility for anything that happens to your Vaillant devices because of this library.
+
 ![myPyllant](https://raw.githubusercontent.com/signalkraft/myPyllant/main/logo.png)
 
 ## Install and test
@@ -53,3 +55,6 @@ if __name__ == "__main__":
     asyncio.run(main(args.user, args.password))
 
 ```
+
+## Development
+
