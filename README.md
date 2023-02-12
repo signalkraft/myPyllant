@@ -56,5 +56,11 @@ if __name__ == "__main__":
 
 ```
 
-## Development
+## Notes
 
+* Auth is loosely based on https://github.com/TA2k/ioBroker.vaillant
+* Most API endpoints are reverse-engineered from the myVaillant app, using https://github.com/mitmproxy/mitmproxy
+* Tested on a Vaillant aroTHERM plus heatpump with sensoCOMFORT VRC 720 and sensoNET VR 921
+* I'm happy to accept PRs, if you can test them yourself
+
+Logo based on [Hase Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/hase) & [Ouroboros Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/ouroboros).
