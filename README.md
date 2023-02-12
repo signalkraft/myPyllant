@@ -1,8 +1,10 @@
 # myPyllant
 
-![myPyllant](https://raw.githubusercontent.com/signalkraft/myPyllant/main/logo.png)
+![PyPI](https://img.shields.io/pypi/v/myPyllant)
 
 A Python library to interact with the API behind the myVAILLANT app.
+
+![myPyllant](https://raw.githubusercontent.com/signalkraft/myPyllant/main/logo.png)
 
 ## Install and test
 
