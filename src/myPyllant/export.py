@@ -4,8 +4,8 @@ import argparse
 import asyncio
 import json
 
-from myPyllant.services import get_systems, get_session, get_devices_by_system
-from myPyllant.session import login
+from myPyllant.api import MyPyllantAPI
+
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API.")
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
@@ -19,13 +19,12 @@ parser.add_argument(
 
 
 async def main(user, password, data=False):
-    try:
-        await login(user, password)
-        async for system in get_systems():
+    async with MyPyllantAPI(user, password) as api:
+        async for system in api.get_systems():
             if data:
                 data_list = [
                     d.dict()
-                    async for d in get_devices_by_system(system, get_buckets=True)
+                    async for d in api.get_devices_by_system(system, get_buckets=True)
                 ]
                 print(
                     json.dumps(
@@ -36,8 +35,6 @@ async def main(user, password, data=False):
                 )
             else:
                 print(json.dumps(system.dict(), indent=2, default=str))
-    finally:
-        await get_session().close()
 
 
 if __name__ == "__main__":
