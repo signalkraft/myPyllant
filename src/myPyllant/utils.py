@@ -3,16 +3,18 @@ import string
 import random
 import hashlib
 import base64
-
-
-snake_pattern = re.compile(r"(?<!^)(?=[A-Z])")
-
-
-def to_snake(s):
-    return snake_pattern.sub("_", s).lower()
+from datetime import datetime
 
 
 def dict_to_snake_case(d):
+    """
+    Convert {'camelCase': value} to {'camel_case': value} recursively
+    """
+
+    snake_pattern = re.compile(r"(?<!^)(?=[A-Z])")
+    def to_snake(s):
+        return snake_pattern.sub("_", s).lower()
+
     if isinstance(d, list):
         return [dict_to_snake_case(i) if isinstance(i, (dict, list)) else i for i in d]
     return {
@@ -38,3 +40,17 @@ def generate_code() -> tuple[str, str]:
     code_challenge = b64.decode("utf-8").replace("=", "")
 
     return (code_verifier, code_challenge)
+
+
+def datetime_format(date: datetime, with_microseconds=False) -> str:
+    """
+    Some endpoints need three digits of microseconds, some don't :shrug:
+    """
+    if with_microseconds:
+        return date.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+    else:
+        return date.strftime("%Y-%m-%dT%H:%M:%S") + "Z"
+
+
+def datetime_parse(date_string: str) -> datetime:
+    return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")

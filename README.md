@@ -12,7 +12,8 @@ Not affiliated with Vaillant, the developers take no responsibility for anything
 
 ```shell
 pip install myPyllant
-python3 -m myPyllant.export username password (--data)
+python3 -m myPyllant.export user password
+# See python3 -m myPyllant.export -h for more options
 ```
 
 The `--data` argument exports historical data of the devices in your system.

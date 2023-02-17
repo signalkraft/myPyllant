@@ -1,7 +1,54 @@
 from typing import Any, Dict, List
 import datetime
+from enum import Enum
 
 from pydantic import BaseModel
+
+
+class MyPyllantEnum(Enum):
+    def __str__(self):
+        """
+        Return 'HOUR' instead of 'DeviceDataBucketResolution.HOUR'
+        """
+        return self.value
+    
+    @property
+    def display_value(self):
+        return self.value.replace('_', ' ').title()
+
+
+class DeviceDataBucketResolution(MyPyllantEnum):
+    HOUR = 'HOUR'
+    DAY = 'DAY'
+    MONTH = 'MONTH'
+
+
+class ZoneHeatingOperatingMode(MyPyllantEnum):
+    MANUAL = 'MANUAL'
+    TIME_CONTROLLED = 'TIME_CONTROLLED'
+    OFF = 'OFF'
+
+
+class ZoneCurrentSpecialFunction(MyPyllantEnum):
+    NONE = 'NONE'
+    QUICK_VETO = 'QUICK_VETO'
+    HOLIDAY = 'HOLIDAY'
+
+
+class ZoneHeatingState(MyPyllantEnum):
+    IDLE = 'IDLE'
+    HEATING_UP = 'HEATING_UP'
+
+
+class DHWCurrentSpecialFunction(MyPyllantEnum):
+    CYLINDER_BOOST = 'CYLINDER_BOOST'
+    REGULAR = 'REGULAR'
+
+
+class DHWOperationMode(MyPyllantEnum):
+    MANUAL = 'MANUAL'
+    TIME_CONTROLLED = 'TIME_CONTROLLED'
+    OFF = 'OFF'
 
 
 class Zone(BaseModel):
@@ -10,11 +57,11 @@ class Zone(BaseModel):
     index: int
     active: bool
     current_room_temperature: float
-    current_special_function: str
+    current_special_function: ZoneCurrentSpecialFunction
     desired_room_temperature_setpoint: float
     manual_mode_setpoint: float
-    heating_operation_mode: str
-    heating_state: str
+    heating_operation_mode: ZoneHeatingOperatingMode
+    heating_state: ZoneHeatingState
     humidity: float
     set_back_temperature: float
     time_windows: dict
@@ -37,10 +84,10 @@ class DomesticHotWater(BaseModel):
     system_id: str
     index: int
     current_dhw_tank_temperature: float
-    current_special_function: str
+    current_special_function: DHWCurrentSpecialFunction
     max_set_point: float
     min_set_point: float
-    operation_mode: str
+    operation_mode: DHWOperationMode
     set_point: float
     time_windows: dict
 
@@ -102,4 +149,28 @@ class Device(BaseModel):
     first_data: datetime.datetime
     last_data: datetime.datetime
     operational_data: dict = {}
-    data: list = []
+    data: List['DeviceData'] = []
+
+    @property
+    def name_display(self):
+        return self.name if self.name else self.product_name.title()
+
+
+class DeviceDataBucket(BaseModel):
+    start_date: datetime.datetime
+    end_date: datetime.datetime
+    value: float
+
+
+class DeviceData(BaseModel):
+    device: Device | None
+    start_date: datetime.datetime | None
+    end_date: datetime.datetime | None
+    resolution: DeviceDataBucketResolution | None
+    operation_mode: str
+    energy_type: str | None
+    value_type: str | None
+    data: List[DeviceDataBucket] = []
+
+
+Device.update_forward_refs()

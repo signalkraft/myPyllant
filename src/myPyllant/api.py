@@ -4,8 +4,8 @@ from typing import AsyncGenerator
 
 import aiohttp
 
-from myPyllant.models import Circuit, Device, DomesticHotWater, System, Zone
-from myPyllant.utils import dict_to_snake_case, generate_code, random_string
+from myPyllant.models import Device, DeviceData, DomesticHotWater, System, Zone, DeviceDataBucketResolution, ZoneHeatingOperatingMode, DHWOperationMode
+from myPyllant.utils import dict_to_snake_case, generate_code, random_string, datetime_format
 
 
 login_url = "https://vaillant-prod.okta.com/api/v1/authn"
@@ -170,7 +170,8 @@ class MyPyllantAPI(object):
                 yield system
 
     async def get_devices_by_system(
-        self, system: System, get_buckets: bool = False
+        self,
+        system: System,
     ) -> AsyncGenerator[int, Device]:
         for device_raw in system.current_system.values():
             if not (isinstance(device_raw, dict) and "device_uuid" in device_raw):
@@ -189,29 +190,50 @@ class MyPyllantAPI(object):
                 )
                 device.name = device_info.get("name", "")
 
-            if get_buckets:
-                for data in device.data:
-                    querystring = {
-                        "resolution": "DAY",
-                        "operationMode": data["operation_mode"],
-                        "energyType": data["value_type"],
-                        "startDate": data["from"],
-                        "endDate": data["to"],
-                    }
-                    device_buckets_url = f"{base_api_url}/emf/v2/{system.id}/devices/{device.device_uuid}/buckets?{urlencode(querystring)}"
-                    async with self.aiohttp_session.get(
-                        device_buckets_url, headers=self.get_authorized_headers()
-                    ) as device_buckets_resp:
-                        data["buckets"] = dict_to_snake_case(
-                            (await device_buckets_resp.json())["data"]
-                        )
             yield device
+
+    async def get_data_by_device(
+        self,
+        device: Device,
+        data_resolution: DeviceDataBucketResolution = DeviceDataBucketResolution.DAY,
+        data_from: datetime.datetime | None = None,
+        data_to: datetime.datetime | None = None,
+    ) -> AsyncGenerator[int, DeviceData]:
+        for data in device.data:
+            start_date = datetime_format(data_from) if data_from else data["from"]
+            end_date = datetime_format(data_to) if data_to else data["to"]
+            querystring = {
+                "resolution": str(data_resolution),
+                "operationMode": data.operation_mode,
+                "energyType": data.value_type,
+                "startDate": start_date,
+                "endDate": end_date,
+            }
+            device_buckets_url = f"{base_api_url}/emf/v2/{device.system.id}/devices/{device.device_uuid}/buckets?{urlencode(querystring)}"
+            async with self.aiohttp_session.get(
+                device_buckets_url, headers=self.get_authorized_headers()
+            ) as device_buckets_resp:
+                yield DeviceData(device=device, **dict_to_snake_case(
+                    (await device_buckets_resp.json())
+                ))
+
+    async def set_zone_heating_operating_mode(
+        self, zone: Zone, mode: ZoneHeatingOperatingMode
+    ):
+        url = f"{base_api_url}/systems/{zone.system_id}/zones/{zone.index}/heatingOperationMode"
+        return await self.aiohttp_session.post(
+            url,
+            json={
+                "heatingOperationMode": str(ZoneHeatingOperatingMode(mode)),
+            },
+            headers=self.get_authorized_headers(),
+        )
 
     async def quick_veto_zone_temperature(
         self, zone: Zone, temperature: float, duration_hours: int
     ):
         url = f"{base_api_url}/systems/{zone.system_id}/zones/{zone.index}/quickVeto"
-        return await self.aiohttp_session.patch(
+        return await self.aiohttp_session.post(
             url,
             json={
                 "desiredRoomTemperatureSetpoint": temperature,
@@ -241,8 +263,8 @@ class MyPyllantAPI(object):
         assert start < end
         url = f"{base_api_url}/systems/{system.id}/holiday"
         data = {
-            "holidayStartDateTime": start.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
-            "holidayEndDateTime": end.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
+            "holidayStartDateTime": datetime_format(start, with_microseconds=True),
+            "holidayEndDateTime": datetime_format(end, with_microseconds=True),
         }
         return await self.aiohttp_session.post(
             url, json=data, headers=self.get_authorized_headers()
@@ -269,3 +291,15 @@ class MyPyllantAPI(object):
     async def cancel_hot_water_boost(self, domestic_hot_water: DomesticHotWater):
         url = f"{base_api_url}/systems/{domestic_hot_water.system_id}/domesticHotWater/{domestic_hot_water.index}/boost"
         return await self.aiohttp_session.delete(url, headers=self.get_authorized_headers())
+
+    async def set_domestic_hot_water_operation_mode(
+        self, domestic_hot_water: DomesticHotWater, mode: DHWOperationMode
+    ):
+        url = f"{base_api_url}/systems/{domestic_hot_water.system_id}/domesticHotWater/{domestic_hot_water.index}/operationMode"
+        return await self.aiohttp_session.post(
+            url,
+            json={
+                "operationMode": str(DHWOperationMode(mode)),
+            },
+            headers=self.get_authorized_headers(),
+        )
