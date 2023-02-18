@@ -1,6 +1,5 @@
 [project]
 name = "myPyllant"
-version = "0.0.8"
 authors = [
   { name="Philipp", email="pd@signalkraft.com" },
 ]
@@ -16,11 +15,15 @@ dependencies = [
   "aiohttp>=3.8.0",
   "pydantic>=1.10.0",
 ]
+dynamic = ["version"]
 
 [project.urls]
 "Homepage" = "https://github.com/signalkraft/myPyllant"
 "Bug Tracker" = "https://github.com/signalkraft/myPyllant/issues"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
