@@ -15,9 +15,11 @@ async def main(user, password):
         async for system in api.get_systems():
             print(await api.set_holiday(system, datetime.now()))
             print(
-                await (await api.set_holiday(
-                    system, datetime.now(), datetime.now() + timedelta(days=1)
-                )).json()
+                await (
+                    await api.set_holiday(
+                        system, datetime.now(), datetime.now() + timedelta(days=1)
+                    )
+                ).json()
             )
             print(await api.cancel_holiday(system))
             print(await api.boost_domestic_hot_water(system.domestic_hot_water[0]))

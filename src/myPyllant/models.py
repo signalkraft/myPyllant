@@ -1,8 +1,12 @@
-from typing import Any, Dict, List
+import logging
+from typing import Any, Dict, List, Mapping
 import datetime
 from enum import Enum
 
 from pydantic import BaseModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class MyPyllantEnum(Enum):
@@ -11,44 +15,44 @@ class MyPyllantEnum(Enum):
         Return 'HOUR' instead of 'DeviceDataBucketResolution.HOUR'
         """
         return self.value
-    
+
     @property
     def display_value(self):
-        return self.value.replace('_', ' ').title()
+        return self.value.replace("_", " ").title()
 
 
 class DeviceDataBucketResolution(MyPyllantEnum):
-    HOUR = 'HOUR'
-    DAY = 'DAY'
-    MONTH = 'MONTH'
+    HOUR = "HOUR"
+    DAY = "DAY"
+    MONTH = "MONTH"
 
 
 class ZoneHeatingOperatingMode(MyPyllantEnum):
-    MANUAL = 'MANUAL'
-    TIME_CONTROLLED = 'TIME_CONTROLLED'
-    OFF = 'OFF'
+    MANUAL = "MANUAL"
+    TIME_CONTROLLED = "TIME_CONTROLLED"
+    OFF = "OFF"
 
 
 class ZoneCurrentSpecialFunction(MyPyllantEnum):
-    NONE = 'NONE'
-    QUICK_VETO = 'QUICK_VETO'
-    HOLIDAY = 'HOLIDAY'
+    NONE = "NONE"
+    QUICK_VETO = "QUICK_VETO"
+    HOLIDAY = "HOLIDAY"
 
 
 class ZoneHeatingState(MyPyllantEnum):
-    IDLE = 'IDLE'
-    HEATING_UP = 'HEATING_UP'
+    IDLE = "IDLE"
+    HEATING_UP = "HEATING_UP"
 
 
 class DHWCurrentSpecialFunction(MyPyllantEnum):
-    CYLINDER_BOOST = 'CYLINDER_BOOST'
-    REGULAR = 'REGULAR'
+    CYLINDER_BOOST = "CYLINDER_BOOST"
+    REGULAR = "REGULAR"
 
 
 class DHWOperationMode(MyPyllantEnum):
-    MANUAL = 'MANUAL'
-    TIME_CONTROLLED = 'TIME_CONTROLLED'
-    OFF = 'OFF'
+    MANUAL = "MANUAL"
+    TIME_CONTROLLED = "TIME_CONTROLLED"
+    OFF = "OFF"
 
 
 class Zone(BaseModel):
@@ -107,22 +111,49 @@ class System(BaseModel):
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
-        zones = self.system_control_state["control_state"]["zones"]
-        circuits = self.system_control_state["control_state"]["circuits"]
-        domestic_hot_water = self.system_control_state["control_state"][
-            "domestic_hot_water"
-        ]
-        self.zones = [Zone(system_id=self.id, **z) for z in zones]
-        self.circuits = [Circuit(system_id=self.id, **c) for c in circuits]
+        self.zones = [Zone(system_id=self.id, **z) for z in self._raw_zones]
+        self.circuits = [Circuit(system_id=self.id, **c) for c in self._raw_circuits]
         self.domestic_hot_water = [
-            DomesticHotWater(system_id=self.id, **d) for d in domestic_hot_water
+            DomesticHotWater(system_id=self.id, **d) for d in self._raw_domestic_hot_water
         ]
+
+    @property
+    def _raw_zones(self):
+        try:
+            return self.system_control_state["control_state"].get("zones", [])
+        except KeyError as e:
+            logger.error('Could not get zones from system control state', exc_info=e)
+            return []
+
+    @property
+    def _raw_circuits(self):
+        try:
+            return self.system_control_state["control_state"].get("circuits", [])
+        except KeyError as e:
+            logger.error('Could not get circuits from system control state', exc_info=e)
+            return []
+
+    @property
+    def _raw_domestic_hot_water(self):
+        try:
+            return self.system_control_state["control_state"].get("domestic_hot_water", [])
+        except KeyError as e:
+            logger.error('Could not get domestic hot water from system control state', exc_info=e)
+            return []
 
     @property
     def outdoor_temperature(self):
         return self.system_control_state["control_state"]["general"][
             "outdoor_temperature"
         ]
+
+    @property
+    def status_online(self) -> bool | None:
+        return self.status['online'] if 'online' in self.status else None
+
+    @property
+    def status_error(self) -> bool | None:
+        return self.status['error'] if 'error' in self.status else None
 
     @property
     def water_pressure(self):
@@ -132,7 +163,11 @@ class System(BaseModel):
 
     @property
     def mode(self):
-        return self.system_control_state["control_state"]["general"]["system_mode"]
+        try:
+            return self.system_control_state["control_state"]["general"]["system_mode"]
+        except KeyError as e:
+            logger.error('Could not get mode from system control state', exc_info=e)
+            return None
 
 
 class Device(BaseModel):
@@ -149,7 +184,7 @@ class Device(BaseModel):
     first_data: datetime.datetime
     last_data: datetime.datetime
     operational_data: dict = {}
-    data: List['DeviceData'] = []
+    data: List["DeviceData"] = []
 
     @property
     def name_display(self):
@@ -163,7 +198,14 @@ class DeviceDataBucket(BaseModel):
 
 
 class DeviceData(BaseModel):
+    def __init__(self, device: Device = None, **data: Mapping) -> None:
+        data['data_from'] = data.pop('from') if 'from' in data else None
+        data['data_to'] = data.pop('to') if 'to' in data else None
+        super().__init__(device=device, **data)
+
     device: Device | None
+    data_from: datetime.datetime | None
+    data_to: datetime.datetime | None
     start_date: datetime.datetime | None
     end_date: datetime.datetime | None
     resolution: DeviceDataBucketResolution | None

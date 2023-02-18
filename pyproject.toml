@@ -1,6 +1,6 @@
 [project]
 name = "myPyllant"
-version = "0.0.6"
+version = "0.0.8"
 authors = [
   { name="Philipp", email="pd@signalkraft.com" },
 ]

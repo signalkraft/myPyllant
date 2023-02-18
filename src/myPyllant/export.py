@@ -12,12 +12,18 @@ from myPyllant.models import DeviceDataBucketResolution
 parser = argparse.ArgumentParser(description="Export data from myVaillant API.")
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
 parser.add_argument("password", help="Password for the myVaillant app")
-parser.add_argument("-d", "--data", action=argparse.BooleanOptionalAction, help="Export historical device data")
+parser.add_argument(
+    "-d",
+    "--data",
+    action=argparse.BooleanOptionalAction,
+    help="Export historical device data",
+)
 parser.add_argument(
     "-r",
     "--resolution",
     type=DeviceDataBucketResolution,
     choices=DeviceDataBucketResolution,
+    default=DeviceDataBucketResolution.DAY,
     help="Export historical device data (energy useage, etc.) in this resolution",
 )
 parser.add_argument(
@@ -39,7 +45,17 @@ async def main(user, password, data=False, resolution=None, start=None, end=None
         async for system in api.get_systems():
             if data:
                 data_list = [
-                    {'device': d.dict() | {'data': [d async for d in api.get_data_by_device(d, resolution, start, end)]}}
+                    {
+                        "device": d.dict()
+                        | {
+                            "data": [
+                                d
+                                async for d in api.get_data_by_device(
+                                    d, resolution, start, end
+                                )
+                            ]
+                        }
+                    }
                     async for d in api.get_devices_by_system(system)
                 ]
                 print(

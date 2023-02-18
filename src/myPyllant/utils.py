@@ -12,6 +12,7 @@ def dict_to_snake_case(d):
     """
 
     snake_pattern = re.compile(r"(?<!^)(?=[A-Z])")
+
     def to_snake(s):
         return snake_pattern.sub("_", s).lower()
 
