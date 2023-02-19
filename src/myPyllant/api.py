@@ -296,8 +296,13 @@ class MyPyllantAPI:
         )
 
     async def set_holiday(
-        self, system: System, start: datetime.datetime, end: datetime.datetime = None
+        self,
+        system: System,
+        start: datetime.datetime = None,
+        end: datetime.datetime = None,
     ):
+        if not start:
+            start = datetime.datetime.now()
         if not end:
             # Set away for a long time if no end date is set
             end = start + datetime.timedelta(days=365)
