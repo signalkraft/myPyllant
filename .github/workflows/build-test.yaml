@@ -22,6 +22,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
       - uses: pre-commit/action@v3.0.0
+      - name: set pythonpath
+        run: |
+          echo "PYTHONPATH=${PYTHONPATH}:${PWD}/src" >> $GITHUB_ENV
       - name: Test with pytest
         run: |
           python3 tests/generate_test_data.py ${{ secrets.MYVAILLANT_USER }} ${{ secrets.MYVAILLANT_PASSWORD }}
