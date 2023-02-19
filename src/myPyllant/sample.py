@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 
 from myPyllant.api import MyPyllantAPI
 
-
 parser = argparse.ArgumentParser(description="Export data from myVaillant API   .")
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
 parser.add_argument("password", help="Password for the myVaillant app")

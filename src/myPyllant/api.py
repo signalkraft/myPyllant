@@ -1,25 +1,25 @@
+from collections.abc import AsyncGenerator
 import datetime
 import logging
-from urllib.parse import urlencode, urlparse, parse_qs
-from typing import AsyncGenerator
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
 
 from myPyllant.models import (
     Device,
     DeviceData,
+    DeviceDataBucketResolution,
+    DHWOperationMode,
     DomesticHotWater,
     System,
     Zone,
-    DeviceDataBucketResolution,
     ZoneHeatingOperatingMode,
-    DHWOperationMode,
 )
 from myPyllant.utils import (
+    datetime_format,
     dict_to_snake_case,
     generate_code,
     random_string,
-    datetime_format,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ login_headers = {
 }
 
 
-class MyPyllantAPI(object):
+class MyPyllantAPI:
     username: str = None
     password: str = None
     aiohttp_session = None

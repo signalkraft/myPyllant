@@ -1,10 +1,10 @@
-import logging
-from typing import Any, Dict, List, Mapping
+from collections.abc import Mapping
 import datetime
 from enum import Enum
+import logging
+from typing import Any, Dict, List
 
 from pydantic import BaseModel
-
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class Circuit(BaseModel):
     min_flow_temperature_setpoint: float
     mixer_circuit_type_external: str
     set_back_mode_enabled: bool
-    zones: List = []
+    zones: list = []
 
 
 class DomesticHotWater(BaseModel):
@@ -98,16 +98,16 @@ class DomesticHotWater(BaseModel):
 
 class System(BaseModel):
     id: str
-    status: Dict[str, bool]
-    devices: List[Dict]
-    current_system: Dict = {}
-    system_configuration: Dict = {}
-    system_control_state: Dict = {}
-    gateway: Dict = {}
+    status: dict[str, bool]
+    devices: list[dict]
+    current_system: dict = {}
+    system_configuration: dict = {}
+    system_control_state: dict = {}
+    gateway: dict = {}
     has_ownership: bool
-    zones: List[Zone] = []
-    circuits: List[Circuit] = []
-    domestic_hot_water: List[DomesticHotWater] = []
+    zones: list[Zone] = []
+    circuits: list[Circuit] = []
+    domestic_hot_water: list[DomesticHotWater] = []
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
@@ -175,8 +175,8 @@ class Device(BaseModel):
     device_uuid: str
     name: str = ""
     product_name: str
-    diagnostic_trouble_codes: List = []
-    properties: List = []
+    diagnostic_trouble_codes: list = []
+    properties: list = []
     ebus_id: str
     article_number: str
     device_serial_number: str
@@ -184,7 +184,7 @@ class Device(BaseModel):
     first_data: datetime.datetime
     last_data: datetime.datetime
     operational_data: dict = {}
-    data: List["DeviceData"] = []
+    data: list["DeviceData"] = []
 
     @property
     def name_display(self):
@@ -212,7 +212,7 @@ class DeviceData(BaseModel):
     operation_mode: str
     energy_type: str | None
     value_type: str | None
-    data: List[DeviceDataBucket] = []
+    data: list[DeviceDataBucket] = []
 
 
 Device.update_forward_refs()

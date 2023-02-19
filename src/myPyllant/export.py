@@ -8,7 +8,6 @@ import json
 from myPyllant.api import MyPyllantAPI
 from myPyllant.models import DeviceDataBucketResolution
 
-
 parser = argparse.ArgumentParser(description="Export data from myVaillant API.")
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
 parser.add_argument("password", help="Password for the myVaillant app")
@@ -24,7 +23,7 @@ parser.add_argument(
     type=DeviceDataBucketResolution,
     choices=DeviceDataBucketResolution,
     default=DeviceDataBucketResolution.DAY,
-    help="Export historical device data (energy useage, etc.) in this resolution",
+    help="Export historical device data (energy usage, etc.) in this resolution",
 )
 parser.add_argument(
     "-s",
