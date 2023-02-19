@@ -263,7 +263,7 @@ class MyPyllantAPI:
         return await self.aiohttp_session.post(
             url,
             json={
-                "heatingOperationMode": str(ZoneHeatingOperatingMode(mode)),
+                "heatingOperationMode": str(mode),
             },
             headers=self.get_authorized_headers(),
         )
@@ -359,7 +359,7 @@ class MyPyllantAPI:
         return await self.aiohttp_session.post(
             url,
             json={
-                "operationMode": str(DHWOperationMode(mode)),
+                "operationMode": str(mode),
             },
             headers=self.get_authorized_headers(),
         )
