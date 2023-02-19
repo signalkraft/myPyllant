@@ -5,3 +5,4 @@ pydantic==1.10.5
 pytest-aiohttp==1.0.4
 pytest-cov==4.0.0
 pre-commit==3.0.4
+build==0.10.0
