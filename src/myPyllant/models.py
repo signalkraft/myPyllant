@@ -114,7 +114,8 @@ class System(BaseModel):
         self.zones = [Zone(system_id=self.id, **z) for z in self._raw_zones]
         self.circuits = [Circuit(system_id=self.id, **c) for c in self._raw_circuits]
         self.domestic_hot_water = [
-            DomesticHotWater(system_id=self.id, **d) for d in self._raw_domestic_hot_water
+            DomesticHotWater(system_id=self.id, **d)
+            for d in self._raw_domestic_hot_water
         ]
 
     @property
@@ -122,7 +123,7 @@ class System(BaseModel):
         try:
             return self.system_control_state["control_state"].get("zones", [])
         except KeyError as e:
-            logger.error('Could not get zones from system control state', exc_info=e)
+            logger.error("Could not get zones from system control state", exc_info=e)
             return []
 
     @property
@@ -130,15 +131,19 @@ class System(BaseModel):
         try:
             return self.system_control_state["control_state"].get("circuits", [])
         except KeyError as e:
-            logger.error('Could not get circuits from system control state', exc_info=e)
+            logger.error("Could not get circuits from system control state", exc_info=e)
             return []
 
     @property
     def _raw_domestic_hot_water(self):
         try:
-            return self.system_control_state["control_state"].get("domestic_hot_water", [])
+            return self.system_control_state["control_state"].get(
+                "domestic_hot_water", []
+            )
         except KeyError as e:
-            logger.error('Could not get domestic hot water from system control state', exc_info=e)
+            logger.error(
+                "Could not get domestic hot water from system control state", exc_info=e
+            )
             return []
 
     @property
@@ -149,11 +154,11 @@ class System(BaseModel):
 
     @property
     def status_online(self) -> bool | None:
-        return self.status['online'] if 'online' in self.status else None
+        return self.status["online"] if "online" in self.status else None
 
     @property
     def status_error(self) -> bool | None:
-        return self.status['error'] if 'error' in self.status else None
+        return self.status["error"] if "error" in self.status else None
 
     @property
     def water_pressure(self):
@@ -166,7 +171,7 @@ class System(BaseModel):
         try:
             return self.system_control_state["control_state"]["general"]["system_mode"]
         except KeyError as e:
-            logger.error('Could not get mode from system control state', exc_info=e)
+            logger.error("Could not get mode from system control state", exc_info=e)
             return None
 
 
@@ -199,8 +204,8 @@ class DeviceDataBucket(BaseModel):
 
 class DeviceData(BaseModel):
     def __init__(self, device: Device = None, **data: Mapping) -> None:
-        data['data_from'] = data.pop('from') if 'from' in data else None
-        data['data_to'] = data.pop('to') if 'to' in data else None
+        data["data_from"] = data.pop("from") if "from" in data else None
+        data["data_to"] = data.pop("to") if "to" in data else None
         super().__init__(device=device, **data)
 
     device: Device | None

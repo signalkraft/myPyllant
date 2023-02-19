@@ -27,3 +27,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "vcs"
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+addopts = "--cov=src"
+asyncio_mode = "auto"
+testpaths = [
+    "tests",
+]

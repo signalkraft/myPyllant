@@ -4,6 +4,7 @@ import argparse
 import asyncio
 from datetime import datetime
 import json
+import sys
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.models import DeviceDataBucketResolution
@@ -57,7 +58,7 @@ async def main(user, password, data=False, resolution=None, start=None, end=None
                     }
                     async for d in api.get_devices_by_system(system)
                 ]
-                print(
+                sys.stdout.write(
                     json.dumps(
                         data_list,
                         indent=2,
@@ -65,7 +66,8 @@ async def main(user, password, data=False, resolution=None, start=None, end=None
                     )
                 )
             else:
-                print(json.dumps(system.dict(), indent=2, default=str))
+                sys.stdout.write(json.dumps(system.dict(), indent=2, default=str))
+                sys.stdout.write("\n")
 
 
 if __name__ == "__main__":

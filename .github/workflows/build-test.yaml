@@ -1,0 +1,28 @@
+name: Build & test
+
+on:
+  push:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - uses: pre-commit/action@v3.0.0
+      - name: Test with pytest
+        run: |
+          python3 tests/generate_test_data.py ${{ secrets.MYVAILLANT_USER }} ${{ secrets.MYVAILLANT_PASSWORD }}
+          pytest

@@ -71,3 +71,16 @@ if __name__ == "__main__":
 * Setting weekly time tables for heating and domestic hot water is still missing
 
 Logo based on [Hase Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/hase) & [Ouroboros Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/ouroboros).
+
+## Running Tests
+
+Replace username and password with your myVAILLANT login credentials.
+This is necessary to generate test data for running integration tests.
+
+```shell
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+python3 tests/generate_test_data.py username password
+pytest
+```
