@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from pathlib import Path
 import re
 
 from aioresponses import aioresponses
+from freezegun import freeze_time
 
 from myPyllant.api import API_URL_BASE, LOGIN_URL, MyPyllantAPI
 from myPyllant.export import main as export_main
@@ -58,7 +59,10 @@ class mypyllant_aioresponses(aioresponses):
 
 async def get_mocked_api():
     api = MyPyllantAPI("test@example.com", "test")
-    api.oauth_session = {"access_token": "access_token"}
+    api.oauth_session = {
+        "access_token": "access_token",
+        "refresh_token": "refresh_token",
+    }
     return api
 
 
@@ -73,10 +77,11 @@ async def test_login() -> None:
 
 async def test_refresh_token() -> None:
     with mypyllant_aioresponses() as _:
-        async with MyPyllantAPI("test@example.com", "test") as api:
-            assert isinstance(api.oauth_session_expires, datetime)
-            assert api.access_token == "access_token"
-            assert "Authorization" in api.get_authorized_headers()
+        with freeze_time(datetime.now() + timedelta(hours=1)):
+            api = await get_mocked_api()
+            await api.refresh_token()
+            session_expires = api.oauth_session_expires
+        assert session_expires - datetime.now() > timedelta(hours=1)
 
 
 async def test_systems() -> None:

@@ -40,7 +40,7 @@ def generate_code() -> tuple[str, str]:
     b64 = base64.urlsafe_b64encode(code_sha_256)
     code_challenge = b64.decode("utf-8").replace("=", "")
 
-    return (code_verifier, code_challenge)
+    return code_verifier, code_challenge
 
 
 def datetime_format(date: datetime, with_microseconds=False) -> str:

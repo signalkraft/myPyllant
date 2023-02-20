@@ -2,7 +2,7 @@ from collections.abc import Mapping
 import datetime
 from enum import Enum
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -66,7 +66,7 @@ class Zone(BaseModel):
     manual_mode_setpoint: float
     heating_operation_mode: ZoneHeatingOperatingMode
     heating_state: ZoneHeatingState
-    humidity: float
+    humidity: float | None
     set_back_temperature: float
     time_windows: dict
 

@@ -5,11 +5,10 @@ import asyncio
 from datetime import datetime, timedelta
 import json
 from pathlib import Path
+import sys
 from urllib.parse import urlencode
 
-from myPyllant.api import API_URL_BASE, MyPyllantAPI
-from myPyllant.models import DeviceDataBucketResolution
-from myPyllant.utils import datetime_format
+sys.path.append((Path(__file__).resolve().parent / "src").name)
 
 parser = argparse.ArgumentParser(
     description="Generates test data necessary to run integration tests."
@@ -29,6 +28,10 @@ async def main(user, password):
     :param password:
     :return:
     """
+    from myPyllant.api import API_URL_BASE, MyPyllantAPI
+    from myPyllant.models import DeviceDataBucketResolution
+    from myPyllant.utils import datetime_format
+
     async with MyPyllantAPI(user, password) as api:
         systems_url = f"{API_URL_BASE}/systems"
         async with api.aiohttp_session.get(

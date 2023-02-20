@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 import datetime
-import json
 import logging
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -307,7 +306,7 @@ class MyPyllantAPI:
             # Set away for a long time if no end date is set
             end = start + datetime.timedelta(days=365)
         if not start < end:
-            raise Exception("Start of holiday mode must be before end")
+            raise ValueError("Start of holiday mode must be before end")
         url = f"{API_URL_BASE}/systems/{system.id}/holiday"
         data = {
             "holidayStartDateTime": datetime_format(start, with_microseconds=True),
