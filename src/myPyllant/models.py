@@ -148,9 +148,16 @@ class System(BaseModel):
 
     @property
     def outdoor_temperature(self):
-        return self.system_control_state["control_state"]["general"][
-            "outdoor_temperature"
-        ]
+        try:
+            return self.system_control_state["control_state"]["general"][
+                "outdoor_temperature"
+            ]
+        except KeyError as e:
+            logger.error(
+                "Could not get outdoor temperature from system control state",
+                exc_info=e,
+            )
+            return None
 
     @property
     def status_online(self) -> bool | None:
@@ -162,9 +169,15 @@ class System(BaseModel):
 
     @property
     def water_pressure(self):
-        return self.system_control_state["control_state"]["general"][
-            "system_water_pressure"
-        ]
+        try:
+            return self.system_control_state["control_state"]["general"][
+                "system_water_pressure"
+            ]
+        except KeyError as e:
+            logger.error(
+                "Could not get water pressure from system control state", exc_info=e
+            )
+            return None
 
     @property
     def mode(self):
