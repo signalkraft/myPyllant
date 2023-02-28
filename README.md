@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/myPyllant)](https://pypi.org/project/myPyllant/)
 [![Build, test & publish](https://github.com/signalkraft/myPyllant/actions/workflows/build-test.yaml/badge.svg)](https://github.com/signalkraft/myPyllant/actions/workflows/build-test.yaml)
 
-A Python library to interact with the API behind the myVAILLANT app.
+A Python library to interact with the API behind the myVAILLANT app, needs at least Python 3.10.
 
 Not affiliated with Vaillant, the developers take no responsibility for anything that happens to your Vaillant devices because of this library.
 

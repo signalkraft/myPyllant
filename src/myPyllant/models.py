@@ -87,7 +87,7 @@ class Circuit(BaseModel):
 class DomesticHotWater(BaseModel):
     system_id: str
     index: int
-    current_dhw_tank_temperature: float
+    current_dhw_tank_temperature: float | None
     current_special_function: DHWCurrentSpecialFunction
     max_set_point: float
     min_set_point: float
