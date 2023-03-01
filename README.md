@@ -1,7 +1,7 @@
 # myPyllant
 
 [![PyPI](https://img.shields.io/pypi/v/myPyllant)](https://pypi.org/project/myPyllant/)
-[![Build, test & publish](https://github.com/signalkraft/myPyllant/actions/workflows/build-test.yaml/badge.svg)](https://github.com/signalkraft/myPyllant/actions/workflows/build-test.yaml)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/signalkraft/myPyllant/build-test.yaml)
 
 A Python library to interact with the API behind the myVAILLANT app, needs at least Python 3.10.
 
@@ -10,6 +10,10 @@ Not affiliated with Vaillant, the developers take no responsibility for anything
 ![myPyllant](https://raw.githubusercontent.com/signalkraft/myPyllant/main/logo.png)
 
 ## Install and Test
+
+> **Warning**
+> 
+> You need at least Python 3.10
 
 ```shell
 pip install myPyllant
@@ -63,25 +67,30 @@ if __name__ == "__main__":
 
 ```
 
-## Notes
+## Contributing
 
-* Auth is loosely based on https://github.com/TA2k/ioBroker.vaillant
-* Most API endpoints are reverse-engineered from the myVaillant app, using https://github.com/mitmproxy/mitmproxy
-* Tested on a Vaillant aroTHERM plus heatpump with sensoCOMFORT VRC 720 and sensoNET VR 921
-* I'm happy to accept PRs, if you can test them yourself
-* Setting weekly time tables for heating and domestic hot water is still missing
+> **Warning**
+> 
+> You need at least Python 3.10
 
-Logo based on [Hase Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/hase) & [Ouroboros Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/ouroboros).
-
-## Running Tests
-
-Replace username and password with your myVAILLANT login credentials.
-This is necessary to generate test data for running integration tests.
+I'm happy to accept PRs, if you run the pre-commit checks and test your changes:
 
 ```shell
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
+pre-commit install
+# Replace username and password with your myVAILLANT login credentials to generate test data
 python3 tests/generate_test_data.py username password
 pytest
 ```
+
+## Notes
+
+* Auth is loosely based on https://github.com/TA2k/ioBroker.vaillant
+* Most API endpoints are reverse-engineered from the myVaillant app, using https://github.com/mitmproxy/mitmproxy
+* Tested on a Vaillant aroTHERM plus heatpump with sensoCOMFORT VRC 720 and sensoNET VR 921
+* Setting weekly time tables for heating and domestic hot water is still missing
+* There is a home assistant component based on this library here: https://github.com/signalkraft/mypyllant-component
+
+Logo based on [Hase Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/hase) & [Ouroboros Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/ouroboros).
