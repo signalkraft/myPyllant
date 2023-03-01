@@ -1,10 +1,9 @@
-import pytest
-
 import json
 from pathlib import Path
 import re
 
 from aioresponses import aioresponses
+import pytest
 
 from myPyllant.api import API_URL_BASE, LOGIN_URL, MyPyllantAPI
 
@@ -35,7 +34,7 @@ def mypyllant_aioresponses():
             )
 
             assert (
-                    json_dir / "systems.json"
+                json_dir / "systems.json"
             ).exists(), "Missing JSON data, make sure to run `python3 tests/generate_test_data.py username password`"
 
             # systems endpoint
