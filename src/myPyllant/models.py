@@ -76,9 +76,9 @@ class Circuit(BaseModel):
     index: int
     circuit_state: str
     current_circuit_flow_temperature: float
-    heating_curve: float
+    heating_curve: float | None
     is_cooling_allowed: bool
-    min_flow_temperature_setpoint: float
+    min_flow_temperature_setpoint: float | None
     mixer_circuit_type_external: str
     set_back_mode_enabled: bool
     zones: list = []
