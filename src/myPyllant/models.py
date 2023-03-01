@@ -123,7 +123,7 @@ class System(BaseModel):
         try:
             return self.system_control_state["control_state"].get("zones", [])
         except KeyError as e:
-            logger.error("Could not get zones from system control state", exc_info=e)
+            logger.info("Could not get zones from system control state", exc_info=e)
             return []
 
     @property
@@ -131,7 +131,7 @@ class System(BaseModel):
         try:
             return self.system_control_state["control_state"].get("circuits", [])
         except KeyError as e:
-            logger.error("Could not get circuits from system control state", exc_info=e)
+            logger.info("Could not get circuits from system control state", exc_info=e)
             return []
 
     @property
@@ -141,7 +141,7 @@ class System(BaseModel):
                 "domestic_hot_water", []
             )
         except KeyError as e:
-            logger.error(
+            logger.info(
                 "Could not get domestic hot water from system control state", exc_info=e
             )
             return []
@@ -153,7 +153,7 @@ class System(BaseModel):
                 "outdoor_temperature"
             ]
         except KeyError as e:
-            logger.error(
+            logger.info(
                 "Could not get outdoor temperature from system control state",
                 exc_info=e,
             )
@@ -174,7 +174,7 @@ class System(BaseModel):
                 "system_water_pressure"
             ]
         except KeyError as e:
-            logger.error(
+            logger.info(
                 "Could not get water pressure from system control state", exc_info=e
             )
             return None
@@ -184,7 +184,7 @@ class System(BaseModel):
         try:
             return self.system_control_state["control_state"]["general"]["system_mode"]
         except KeyError as e:
-            logger.error("Could not get mode from system control state", exc_info=e)
+            logger.info("Could not get mode from system control state", exc_info=e)
             return None
 
 
