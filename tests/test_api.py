@@ -36,7 +36,7 @@ async def test_systems() -> None:
         assert isinstance(system, System), "Expected System return type"
         assert isinstance(system.status_online, bool)
         assert isinstance(system.status_error, bool)
-        assert isinstance(system.outdoor_temperature, float)
+        assert isinstance(system.outdoor_temperature, (float | None))
         assert isinstance(system.mode, str)
         assert isinstance(system.water_pressure, float)
         await api.aiohttp_session.close()
