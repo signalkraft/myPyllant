@@ -3,10 +3,10 @@
 import argparse
 import asyncio
 import copy
-import json
-import sys
 from datetime import datetime, timedelta
+import json
 from pathlib import Path
+import sys
 from urllib.parse import urlencode
 
 sys.path.append((Path(__file__).resolve().parent / "src").name)
@@ -19,7 +19,14 @@ parser.add_argument("password", help="Password for the myVaillant app")
 
 
 JSON_DIR = Path(__file__).resolve().parent / "json"
-ANONYMIZE_ATTRIBUTES = ("device_uuid", "device_serial_number", "deviceId", "serialNumber", "systemId")
+ANONYMIZE_ATTRIBUTES = (
+    "device_uuid",
+    "device_serial_number",
+    "deviceId",
+    "serialNumber",
+    "systemId",
+)
+
 
 async def main(user, password):
     """
@@ -49,7 +56,9 @@ async def main(user, password):
         ) as current_system_resp:
             with open(JSON_DIR / "current_system.json", "w") as fh:
                 current_system = await current_system_resp.json()
-                anonymized_current_system = _recursive_data_anonymize(copy.deepcopy(current_system))
+                anonymized_current_system = _recursive_data_anonymize(
+                    copy.deepcopy(current_system)
+                )
                 fh.write(json.dumps(anonymized_current_system, indent=2))
 
         device = current_system["primary_heat_generator"]
@@ -77,7 +86,6 @@ async def main(user, password):
 
 
 def _recursive_data_anonymize(data: str | dict | list) -> dict:
-
     if isinstance(data, list):
         for elem in data:
             _recursive_data_anonymize(elem)
