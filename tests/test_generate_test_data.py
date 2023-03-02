@@ -127,4 +127,3 @@ def test_anonymize_current_system():
         "solar_station": None,
         "ventilation": None,
     }
-
