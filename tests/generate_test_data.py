@@ -2,7 +2,9 @@
 
 import argparse
 import asyncio
+import copy
 from datetime import datetime, timedelta
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -18,6 +20,13 @@ parser.add_argument("password", help="Password for the myVaillant app")
 
 
 JSON_DIR = Path(__file__).resolve().parent / "json"
+ANONYMIZE_ATTRIBUTES = (
+    "device_uuid",
+    "device_serial_number",
+    "deviceId",
+    "serialNumber",
+    "systemId",
+)
 
 
 async def main(user, password):
@@ -39,7 +48,8 @@ async def main(user, password):
         ) as systems_resp:
             system = await systems_resp.json()
             with open(JSON_DIR / "systems.json", "w") as fh:
-                fh.write(json.dumps(await systems_resp.json(), indent=2))
+                anonymized_system = _recursive_data_anonymize(copy.deepcopy(system))
+                fh.write(json.dumps(anonymized_system, indent=2))
 
         system_url = f"{API_URL_BASE}/emf/v2/{system[0]['systemId']}/currentSystem"
         async with api.aiohttp_session.get(
@@ -47,7 +57,10 @@ async def main(user, password):
         ) as current_system_resp:
             with open(JSON_DIR / "current_system.json", "w") as fh:
                 current_system = await current_system_resp.json()
-                fh.write(json.dumps(current_system, indent=2))
+                anonymized_current_system = _recursive_data_anonymize(
+                    copy.deepcopy(current_system)
+                )
+                fh.write(json.dumps(anonymized_current_system, indent=2))
 
         device = current_system["primary_heat_generator"]
         start = datetime.now().replace(
@@ -71,6 +84,21 @@ async def main(user, password):
             with open(JSON_DIR / "device_buckets.json", "w") as fh:
                 device_buckets = await device_buckets_resp.json()
                 fh.write(json.dumps(device_buckets, indent=2))
+
+
+def _recursive_data_anonymize(data: str | dict | list) -> dict:
+    if isinstance(data, list):
+        for elem in data:
+            _recursive_data_anonymize(elem)
+
+    elif isinstance(data, dict):
+        for elem in data.keys():
+            if elem in ANONYMIZE_ATTRIBUTES:
+                data[elem] = hashlib.sha1(data[elem].encode("UTF-8")).hexdigest()
+                continue
+            _recursive_data_anonymize(data[elem])
+
+    return data
 
 
 if __name__ == "__main__":
