@@ -45,29 +45,29 @@ def test_anonymize_systems_data():
     assert anonymized_data == [
         {
             "gateway": {
-                "deviceId": "ANONYMIZED",
-                "serialNumber": "ANONYMIZED",
-                "systemId": "ANONYMIZED",
+                "deviceId": "707e295cf73b49584939e3fe6e0a96713ca22800",
+                "serialNumber": "f18bbf5a183946e978558a1556ed62c4cfb9dc5e",
+                "systemId": "823c180c5c91bff1ab96e14d253aaa8218b511f4",
                 "diagnosticTroubleCodes": [],
             },
             "devices": [
                 {
-                    "deviceId": "ANONYMIZED",
-                    "serialNumber": "ANONYMIZED",
+                    "deviceId": "707e295cf73b49584939e3fe6e0a96713ca22800",
+                    "serialNumber": "f18bbf5a183946e978558a1556ed62c4cfb9dc5e",
                     "articleNumber": "0020260951",
                     "name": "sensoHOME",
                     "type": "CONTROL",
-                    "systemId": "ANONYMIZED",
+                    "systemId": "823c180c5c91bff1ab96e14d253aaa8218b511f4",
                     "diagnosticTroubleCodes": [],
                 },
                 {
-                    "deviceId": "ANONYMIZED",
-                    "serialNumber": "ANONYMIZED",
+                    "deviceId": "707e295cf73b49584939e3fe6e0a96713ca22800",
+                    "serialNumber": "f18bbf5a183946e978558a1556ed62c4cfb9dc5e",
                     "articleNumber": "0010022040",
                     "name": "ecoTEC",
                     "type": "HEAT_GENERATOR",
                     "operationalData": {},
-                    "systemId": "ANONYMIZED",
+                    "systemId": "823c180c5c91bff1ab96e14d253aaa8218b511f4",
                     "diagnosticTroubleCodes": [],
                     "properties": [],
                 },
@@ -75,7 +75,7 @@ def test_anonymize_systems_data():
             "status": {},
             "systemControlState": {},
             "systemConfiguration": {},
-            "systemId": "ANONYMIZED",
+            "systemId": "823c180c5c91bff1ab96e14d253aaa8218b511f4",
             "hasOwnership": True,
         }
     ]
@@ -109,13 +109,13 @@ def test_anonymize_current_system():
     assert anonymized_data == {
         "system_type": "BOILER_OR_ELECTRIC_HEATER",
         "primary_heat_generator": {
-            "device_uuid": "ANONYMIZED",
+            "device_uuid": "53be2a18985b87f5613e32a9ba44cc4ccbb4f6b4",
             "ebus_id": "BAI00",
             "spn": 376,
             "bus_coupler_address": 0,
             "article_number": "0010022040",
             "emfValid": True,
-            "device_serial_number": "ANONYMIZED",
+            "device_serial_number": "d97b53961ee397e2e9b1bb0cabff02949c360f4f",
             "device_type": "BOILER",
             "first_data": "2022-11-10T13:33:34Z",
             "last_data": "2023-02-28T13:20:31Z",

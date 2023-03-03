@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import copy
 from datetime import datetime, timedelta
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -93,7 +94,7 @@ def _recursive_data_anonymize(data: str | dict | list) -> dict:
     elif isinstance(data, dict):
         for elem in data.keys():
             if elem in ANONYMIZE_ATTRIBUTES:
-                data[elem] = "ANONYMIZED"
+                data[elem] = hashlib.sha1(data[elem].encode("UTF-8")).hexdigest()
                 continue
             _recursive_data_anonymize(data[elem])
 
