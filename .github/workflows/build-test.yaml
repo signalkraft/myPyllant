@@ -2,6 +2,7 @@ name: Build, test & publish
 
 on:
   push:
+  pull_request:
   schedule:
     - cron: "0 0 * * *"
 
@@ -24,7 +25,6 @@ jobs:
           echo "PYTHONPATH=${PYTHONPATH}:${PWD}/src" >> $GITHUB_ENV
       - name: Test with pytest
         run: |
-          python3 tests/generate_test_data.py ${{ secrets.MYVAILLANT_USER }} ${{ secrets.MYVAILLANT_PASSWORD }}
           pytest
       - name: Build a binary wheel and a source tarball
         run: >-

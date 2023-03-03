@@ -11,10 +11,12 @@ from myPyllant.api import API_URL_BASE, LOGIN_URL, MyPyllantAPI
 @pytest.fixture
 def mypyllant_aioresponses():
     class _mypyllant_aioresponses(aioresponses):
+        def __init__(self, test_data=None, **kwargs):
+            self.test_data = test_data
+            super().__init__(**kwargs)
+
         def __enter__(self):
             super().__enter__()
-
-            json_dir = Path(__file__).resolve().parent / "json"
 
             # auth endpoints
             self.post(LOGIN_URL, status=200, payload={"sessionToken": "test"})
@@ -33,28 +35,22 @@ def mypyllant_aioresponses():
                 },
             )
 
-            assert (
-                json_dir / "systems.json"
-            ).exists(), "Missing JSON data, make sure to run `python3 tests/generate_test_data.py username password`"
-
-            # systems endpoint
-            with open(json_dir / "systems.json") as fh:
-                self.get(f"{API_URL_BASE}/systems", status=200, payload=json.load(fh))
-
-            # currentSystem endpoint
-            with open(json_dir / "current_system.json") as fh:
+            if self.test_data:
+                # Create endpoints with stored JSON test data
+                self.get(
+                    f"{API_URL_BASE}/systems",
+                    status=200,
+                    payload=self.test_data["systems"],
+                )
                 self.get(
                     re.compile(r".*currentSystem$"),
                     status=200,
-                    payload=json.load(fh),
+                    payload=self.test_data["current_system"],
                 )
-
-            # device data buckets endpoint
-            with open(json_dir / "device_buckets.json") as fh:
                 self.get(
                     re.compile(r".*buckets\?.*"),
                     status=200,
-                    payload=json.load(fh),
+                    payload=self.test_data["device_buckets"],
                 )
 
     return _mypyllant_aioresponses

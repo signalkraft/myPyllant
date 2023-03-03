@@ -80,9 +80,15 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
 pre-commit install
-# Replace username and password with your myVAILLANT login credentials to generate test data
-python3 tests/generate_test_data.py username password
 pytest
+```
+
+### Contributing Test Data
+
+Because the myVAILLANT API isn't documented, you can help the development of this library by contributing test data:
+
+```shell
+python3 tests/generate_test_data.py username password
 ```
 
 ## Notes
