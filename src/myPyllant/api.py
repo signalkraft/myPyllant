@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 import datetime
 import logging
+import os
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
@@ -43,6 +44,22 @@ API_URL_BASE = (
 )
 
 
+async def on_request_start(session, context, params: aiohttp.TraceRequestStartParams):
+    """
+    See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_start
+    """
+    logging.getLogger("aiohttp.client").debug(f"Starting request {params}")
+
+
+async def on_request_end(session, context, params: aiohttp.TraceRequestEndParams):
+    """
+    See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_end
+    """
+    logging.getLogger("aiohttp.client").debug(
+        f"Got response {await params.response.text()}"
+    )
+
+
 class MyPyllantAPI:
     username: str = None
     password: str = None
@@ -53,9 +70,13 @@ class MyPyllantAPI:
     def __init__(self, username: str, password: str) -> None:
         self.username = username
         self.password = password
+        trace_config = aiohttp.TraceConfig()
+        trace_config.on_request_start.append(on_request_start)
+        trace_config.on_request_end.append(on_request_end)
         self.aiohttp_session = aiohttp.ClientSession(
             cookie_jar=aiohttp.CookieJar(),
             raise_for_status=True,
+            trace_configs=[trace_config],
         )
 
     async def __aenter__(self) -> MyPyllantAPI:
@@ -186,7 +207,6 @@ class MyPyllantAPI:
             systems_url, headers=self.get_authorized_headers()
         ) as systems_resp:
             for system_json in await systems_resp.json():
-                logger.debug(f"Got systems response {system_json}")
                 system_id = system_json["systemId"]
                 system_url = f"{API_URL_BASE}/emf/v2/{system_id}/currentSystem"
 
@@ -194,7 +214,6 @@ class MyPyllantAPI:
                     system_url, headers=self.get_authorized_headers()
                 ) as current_system_resp:
                     current_system_json = await current_system_resp.json()
-                    logger.debug(f"Got current system response {current_system_json}")
                 system = System(
                     id=system_id,
                     current_system=current_system_json,
@@ -249,7 +268,6 @@ class MyPyllantAPI:
                 device_buckets_url, headers=self.get_authorized_headers()
             ) as device_buckets_resp:
                 device_buckets_json = await device_buckets_resp.json()
-                logger.debug(f"Got data buckets response {device_buckets_json}")
                 yield DeviceData(
                     device=device,
                     **dict_to_snake_case(device_buckets_json),

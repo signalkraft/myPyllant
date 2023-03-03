@@ -6,10 +6,13 @@ import copy
 from datetime import datetime, timedelta
 import hashlib
 import json
+import logging
 from pathlib import Path
 import secrets
 import sys
 from urllib.parse import urlencode
+
+logger = logging.getLogger(__name__)
 
 sys.path.append((Path(__file__).resolve().parent / "src").name)
 
@@ -18,6 +21,9 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
 parser.add_argument("password", help="Password for the myVaillant app")
+parser.add_argument(
+    "--debug", help="Print debug information", action=argparse.BooleanOptionalAction
+)
 
 SALT = secrets.token_bytes(16)
 JSON_DIR = Path(__file__).resolve().parent / "json"
@@ -109,4 +115,6 @@ def _recursive_data_anonymize(data: str | dict | list, salt: bytes = b"") -> dic
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    asyncio.run(main(**vars(args)))
+    if args.debug:
+        logging.basicConfig(level="DEBUG")
+    asyncio.run(main(args.user, args.password))

@@ -91,6 +91,8 @@ Because the myVAILLANT API isn't documented, you can help the development of thi
 python3 tests/generate_test_data.py username password
 ```
 
+Create a fork of this repository and create a PR with the newly created folder in `test/json`.
+
 ## Notes
 
 * Auth is loosely based on https://github.com/TA2k/ioBroker.vaillant
