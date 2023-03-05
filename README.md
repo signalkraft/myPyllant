@@ -70,7 +70,7 @@ if __name__ == "__main__":
 ### Tested Configurations
 
 * Vaillant aroTHERM plus heatpump, sensoCOMFORT VRC 720, sensoNET VR 921
-* VMW 23CS/1-5 C (N-ES) ecoTEC plus
+* [VMW 23CS/1-5 C (N-ES) ecoTEC plus](https://github.com/signalkraft/myPyllant/pull/6)
 
 ## Contributing
 
