@@ -1,0 +1,215 @@
+[
+  {
+    "gateway": {
+      "deviceId": "92be1ee4ab00440ffbc781682d234faa6489dc3e",
+      "serialNumber": "0d07c8a809d56aef4c41e4c7023965634cf71274",
+      "systemId": "35b6c3ca1d6131af0505e674b55c0976069170ee",
+      "diagnosticTroubleCodes": []
+    },
+    "devices": [
+      {
+        "deviceId": "efe2e60090348d9946d94b7aee1f73c8e84d9ed9",
+        "serialNumber": "5e382a467a1f1515ecb191c9734135a01836593d",
+        "articleNumber": "0020260951",
+        "name": "sensoHOME",
+        "type": "CONTROL",
+        "systemId": "35b6c3ca1d6131af0505e674b55c0976069170ee",
+        "diagnosticTroubleCodes": []
+      },
+      {
+        "deviceId": "1441dd725ae6f7555633c6f76cca1eee8cf9f388",
+        "serialNumber": "7f78b8657f10d635161a070c71a7c6cc0cefc316",
+        "articleNumber": "0010022040",
+        "name": "ecoTEC",
+        "type": "HEAT_GENERATOR",
+        "operationalData": {
+          "waterPressure": {
+            "value": 2.0,
+            "unit": "BAR",
+            "stepSize": 0.1
+          }
+        },
+        "systemId": "35b6c3ca1d6131af0505e674b55c0976069170ee",
+        "diagnosticTroubleCodes": [],
+        "properties": [
+          "EMF"
+        ]
+      }
+    ],
+    "status": {
+      "online": true,
+      "error": false
+    },
+    "systemControlState": {
+      "controlIdentifier": "TLI",
+      "controlState": {
+        "zones": [
+          {
+            "name": "Zone 1",
+            "index": 0,
+            "active": true,
+            "desiredRoomTemperatureSetpoint": 18.0,
+            "currentRoomTemperature": 18.5,
+            "heatingOperationMode": "TIME_CONTROLLED",
+            "currentSpecialFunction": "NONE",
+            "heatingState": "IDLE",
+            "setBackTemperature": 14.0,
+            "manualModeSetpoint": 18.0,
+            "timeWindows": {
+              "heating": {
+                "metaInfo": {
+                  "minSlotsPerDay": 0,
+                  "maxSlotsPerDay": 12,
+                  "setPointRequiredPerSlot": true
+                },
+                "monday": [
+                  {
+                    "startTime": "07:30",
+                    "endTime": "20:00",
+                    "setPoint": 18.0
+                  }
+                ],
+                "tuesday": [
+                  {
+                    "startTime": "07:30",
+                    "endTime": "20:00",
+                    "setPoint": 18.0
+                  }
+                ],
+                "wednesday": [
+                  {
+                    "startTime": "07:30",
+                    "endTime": "20:00",
+                    "setPoint": 18.0
+                  }
+                ],
+                "thursday": [
+                  {
+                    "startTime": "07:30",
+                    "endTime": "20:00",
+                    "setPoint": 18.0
+                  }
+                ],
+                "friday": [
+                  {
+                    "startTime": "07:30",
+                    "endTime": "20:00",
+                    "setPoint": 18.0
+                  }
+                ],
+                "saturday": [
+                  {
+                    "startTime": "07:30",
+                    "endTime": "20:00",
+                    "setPoint": 18.0
+                  }
+                ],
+                "sunday": [
+                  {
+                    "startTime": "07:30",
+                    "endTime": "20:00",
+                    "setPoint": 18.0
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "circuits": [
+          {
+            "index": 0,
+            "zones": [],
+            "setBackModeEnabled": false,
+            "circuitState": "HEATING",
+            "currentCircuitFlowTemperature": 37.5,
+            "mixerCircuitTypeExternal": "HEATING",
+            "isCoolingAllowed": false
+          }
+        ],
+        "domesticHotWater": [
+          {
+            "index": 255,
+            "setPoint": 45.0,
+            "currentSpecialFunction": "REGULAR",
+            "operationMode": "TIME_CONTROLLED",
+            "minSetPoint": 35.0,
+            "maxSetPoint": 65.0,
+            "timeWindows": {
+              "dhw": {
+                "metaInfo": {
+                  "minSlotsPerDay": 0,
+                  "maxSlotsPerDay": 3,
+                  "setPointRequiredPerSlot": false
+                },
+                "monday": [
+                  {
+                    "startTime": "05:30",
+                    "endTime": "22:00"
+                  }
+                ],
+                "tuesday": [
+                  {
+                    "startTime": "05:30",
+                    "endTime": "22:00"
+                  }
+                ],
+                "wednesday": [
+                  {
+                    "startTime": "05:30",
+                    "endTime": "22:00"
+                  }
+                ],
+                "thursday": [
+                  {
+                    "startTime": "05:30",
+                    "endTime": "22:00"
+                  }
+                ],
+                "friday": [
+                  {
+                    "startTime": "05:30",
+                    "endTime": "22:00"
+                  }
+                ],
+                "saturday": [
+                  {
+                    "startTime": "07:00",
+                    "endTime": "23:30"
+                  }
+                ],
+                "sunday": [
+                  {
+                    "startTime": "07:00",
+                    "endTime": "22:00"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "properties": {
+          "controlType": "VRT380",
+          "general": {
+            "isCoolingAllowed": false
+          },
+          "circuits": [
+            {
+              "index": 0,
+              "mixerCircuitTypeExternal": "HEATING",
+              "isCoolingAllowed": false
+            }
+          ]
+        },
+        "general": {
+          "systemMode": "REGULAR",
+          "systemWaterPressure": 2.0
+        }
+      }
+    },
+    "systemConfiguration": {
+      "timeZoneId": "Europe/Madrid"
+    },
+    "systemId": "35b6c3ca1d6131af0505e674b55c0976069170ee",
+    "hasOwnership": true
+  }
+]
