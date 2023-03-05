@@ -67,6 +67,11 @@ if __name__ == "__main__":
 
 ```
 
+### Tested Configurations
+
+* Vaillant aroTHERM plus heatpump, sensoCOMFORT VRC 720, sensoNET VR 921
+* VMW 23CS/1-5 C (N-ES) ecoTEC plus
+
 ## Contributing
 
 > **Warning**
@@ -97,7 +102,6 @@ Create a fork of this repository and create a PR with the newly created folder i
 
 * Auth is loosely based on https://github.com/TA2k/ioBroker.vaillant
 * Most API endpoints are reverse-engineered from the myVaillant app, using https://github.com/mitmproxy/mitmproxy
-* Tested on a Vaillant aroTHERM plus heatpump with sensoCOMFORT VRC 720 and sensoNET VR 921
 * Setting weekly time tables for heating and domestic hot water is still missing
 * There is a home assistant component based on this library here: https://github.com/signalkraft/mypyllant-component
 
