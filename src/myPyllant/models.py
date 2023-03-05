@@ -216,10 +216,10 @@ class DeviceDataBucket(BaseModel):
 
 
 class DeviceData(BaseModel):
-    def __init__(self, device: Device = None, **data: Mapping) -> None:
-        data["data_from"] = data.pop("from") if "from" in data else None
-        data["data_to"] = data.pop("to") if "to" in data else None
-        super().__init__(device=device, **data)
+    def __init__(self, device: Device = None, **kwargs: Any) -> None:
+        kwargs["data_from"] = kwargs.pop("from") if "from" in kwargs else None
+        kwargs["data_to"] = kwargs.pop("to") if "to" in kwargs else None
+        super().__init__(device=device, **kwargs)
 
     device: Device | None
     data_from: datetime.datetime | None
