@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 import datetime
+from html import unescape
 import logging
 import os
-from urllib.parse import parse_qs, urlencode, urlparse
+import re
+from urllib.parse import parse_qs, parse_qsl, unquote, urlencode, urlparse
 
 import aiohttp
 
@@ -28,17 +30,10 @@ from myPyllant.utils import (
 logger = logging.getLogger(__name__)
 
 
-LOGIN_URL = "https://vaillant-prod.okta.com/api/v1/authn"
-LOGIN_HEADERS = {
-    "accept": "application/json",
-    "content-type": "application/json",
-    "user-agent": "myVAILLANT/11835 CFNetwork/1240.0.4 Darwin/20.6.0",
-    "x-okta-user-agent-extended": "okta-auth-js/5.4.1 okta-react-native/2.7.0 "
-    "react-native/>=0.70.1 ios/14.8 nodejs/undefined",
-    "accept-language": "de-de",
-}
-
-OAUTH_CLIENT_ID = "0oarllti4egHi7Nwx4x6"
+LOGIN_URL = "https://identity.vaillant-group.com/auth/realms/vaillant-germany-b2c/login-actions/authenticate"
+AUTHENTICATE_URL = "https://identity.vaillant-group.com/auth/realms/vaillant-germany-b2c/protocol/openid-connect/auth"
+TOKEN_URL = "https://identity.vaillant-group.com/auth/realms/vaillant-germany-b2c/protocol/openid-connect/token"
+CLIENT_ID = "myvaillant"
 API_URL_BASE = (
     "https://api.vaillant-group.com/service-connected-control/end-user-app-api/v1"
 )
@@ -88,47 +83,30 @@ class MyPyllantAPI:
 
     async def login(self):
         code_verifier, code_challenge = generate_code()
+        auth_querystring = {
+            "response_type": "code",
+            "client_id": CLIENT_ID,
+            "code": "code_challenge",
+            "redirect_uri": "enduservaillant.page.link://login",
+            "code_challenge_method": "S256",
+            "code_challenge": code_challenge,
+        }
+
+        async with self.aiohttp_session.get(
+            AUTHENTICATE_URL + "?" + urlencode(auth_querystring)
+        ) as resp:
+            login_html = await resp.text()
+
+        result = re.search(LOGIN_URL + r"\?([^\"]*)", login_html)
+        login_url = unescape(result.group())
 
         login_payload = {
             "username": self.username,
             "password": self.password,
+            "credentialId": "",
         }
         async with self.aiohttp_session.post(
-            LOGIN_URL, json=login_payload, headers=LOGIN_HEADERS, raise_for_status=False
-        ) as resp:
-            login_json = await resp.json()
-            if resp.status >= 400:
-                logger.error(
-                    f"Could not log in, got status {resp.status} this response: {login_json}"
-                )
-                raise Exception(login_json["errorSummary"])
-            session_token = login_json["sessionToken"]
-
-        nonce = random_string(43)
-        state = random_string(43)
-        authorize_querystring = {
-            "nonce": nonce,
-            "sessionToken": session_token,
-            "response_type": "code",
-            "code_challenge_method": "S256",
-            "scope": "openid profile offline_access",
-            "code_challenge": code_challenge,
-            "redirect_uri": "com.okta.vaillant-prod:/callback",
-            "client_id": OAUTH_CLIENT_ID,
-            "state": state,
-        }
-        authorize_headers = {
-            "accept": "application/json",
-            "content-type": "application/x-www-form-urlencoded",
-            "user-agent": "myVAILLANT/11835 CFNetwork/1240.0.4 Darwin/20.6.0",
-            "accept-language": "de-de",
-        }
-        authorize_url = (
-            "https://vaillant-prod.okta.com/oauth2/default/v1/authorize?"
-            + urlencode(authorize_querystring)
-        )
-        async with self.aiohttp_session.get(
-            authorize_url, headers=authorize_headers, allow_redirects=False
+            login_url, data=login_payload, allow_redirects=False
         ) as resp:
             await resp.text()
             logger.debug(
@@ -138,23 +116,23 @@ class MyPyllantAPI:
             code = parse_qs(parsed_url.query)["code"]
 
         token_payload = {
+            "grant_type": "authorization_code",
+            "client_id": "myvaillant",
             "code": code,
             "code_verifier": code_verifier,
-            "redirect_uri": "com.okta.vaillant-prod:/callback",
-            "client_id": OAUTH_CLIENT_ID,
-            "grant_type": "authorization_code",
+            "redirect_uri": "enduservaillant.page.link://login",
         }
-        token_headers = {
-            "accept": "*/*",
-            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "user-agent": "okta-react-native/2.7.0 okta-oidc-ios/3.11.2 react-native/>=0.70.1 ios/14.8",
-            "accept-language": "de-de",
-        }
-        token_url = "https://vaillant-prod.okta.com/oauth2/default/v1/token"
+
         async with self.aiohttp_session.post(
-            token_url, data=token_payload, headers=token_headers
+            TOKEN_URL, data=token_payload, raise_for_status=False
         ) as resp:
-            self.oauth_session = await resp.json()
+            login_json = await resp.json()
+            if resp.status >= 400:
+                logger.error(
+                    f"Could not log in, got status {resp.status} this response: {login_json}"
+                )
+                raise Exception(login_json)
+            self.oauth_session = login_json
             logger.debug(f"Got session {self.oauth_session}")
             self.set_session_expires()
 
@@ -165,21 +143,12 @@ class MyPyllantAPI:
         logger.debug(f"Session expires in {self.oauth_session_expires}")
 
     async def refresh_token(self):
-        refresh_url = "https://vaillant-prod.okta.com/oauth2/default/v1/token"
         refresh_payload = {
             "refresh_token": self.oauth_session["refresh_token"],
-            "client_id": OAUTH_CLIENT_ID,
+            "client_id": CLIENT_ID,
             "grant_type": "refresh_token",
         }
-        refresh_headers = {
-            "accept": "*/*",
-            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "user-agent": "okta-react-native/2.7.0 okta-oidc-ios/3.11.2 react-native/>=0.70.1 ios/14.8",
-            "accept-language": "de-de",
-        }
-        async with self.aiohttp_session.post(
-            refresh_url, data=refresh_payload, headers=refresh_headers
-        ) as resp:
+        async with self.aiohttp_session.post(TOKEN_URL, data=refresh_payload) as resp:
             self.oauth_session = await resp.json()
             self.set_session_expires()
             return self.oauth_session
@@ -192,12 +161,12 @@ class MyPyllantAPI:
         return {
             "Authorization": "Bearer " + self.access_token,
             "x-app-identifier": "VAILLANT",
-            "Accept-Language": "de-de",
+            "Accept-Language": "en-GB",
             "Accept": "application/json, text/plain, */*",
-            "x-client-locale": "de-DE",
-            "x-idm-identifier": "OKTA",
+            "x-client-locale": "en-GB",
+            "x-idm-identifier": "KEYCLOAK",
             "ocp-apim-subscription-key": "1e0a2f3511fb4c5bbb1c7f9fedd20b1c",
-            "User-Agent": "myVAILLANT/11835 CFNetwork/1240.0.4 Darwin/20.6.0",
+            "User-Agent": "okhttp/4.9.2",
             "Connection": "keep-alive",
         }
 

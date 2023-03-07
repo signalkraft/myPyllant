@@ -5,7 +5,13 @@ import re
 from aioresponses import aioresponses
 import pytest
 
-from myPyllant.api import API_URL_BASE, LOGIN_URL, MyPyllantAPI
+from myPyllant.api import (
+    API_URL_BASE,
+    AUTHENTICATE_URL,
+    LOGIN_URL,
+    TOKEN_URL,
+    MyPyllantAPI,
+)
 
 
 @pytest.fixture
@@ -19,14 +25,18 @@ def mypyllant_aioresponses():
             super().__enter__()
 
             # auth endpoints
-            self.post(LOGIN_URL, status=200, payload={"sessionToken": "test"})
             self.get(
-                re.compile(r".*v1/authorize\?"),
+                re.compile(r".*openid-connect/auth\?"),
+                body=f"{LOGIN_URL}?test=test",
+                status=200,
+            )
+            self.post(
+                re.compile(r".*login-actions/authenticate\?"),
                 status=200,
                 headers={"Location": "test?code=code"},
             )
             self.post(
-                re.compile(r".*v1/token$"),
+                re.compile(r".*openid-connect/token$"),
                 status=200,
                 payload={
                     "expires_in": 3600,
