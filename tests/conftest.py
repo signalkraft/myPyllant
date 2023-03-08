@@ -1,17 +1,10 @@
-import json
-from pathlib import Path
 import re
 
 from aioresponses import aioresponses
 import pytest
 
-from myPyllant.api import (
-    API_URL_BASE,
-    AUTHENTICATE_URL,
-    LOGIN_URL,
-    TOKEN_URL,
-    MyPyllantAPI,
-)
+from myPyllant.api import MyPyllantAPI
+from myPyllant.const import API_URL_BASE, LOGIN_URL
 
 
 @pytest.fixture
@@ -27,7 +20,7 @@ def mypyllant_aioresponses():
             # auth endpoints
             self.get(
                 re.compile(r".*openid-connect/auth\?"),
-                body=f"{LOGIN_URL}?test=test",
+                body=f"{LOGIN_URL.format(country='germany')}?test=test",
                 status=200,
             )
             self.post(
@@ -68,7 +61,7 @@ def mypyllant_aioresponses():
 
 @pytest.fixture
 async def mocked_api():
-    api = MyPyllantAPI("test@example.com", "test")
+    api = MyPyllantAPI("test@example.com", "test", "germany")
     api.oauth_session = {
         "access_token": "access_token",
         "refresh_token": "refresh_token",

@@ -16,11 +16,18 @@ logger = logging.getLogger(__name__)
 
 sys.path.append((Path(__file__).resolve().parent / "src").name)
 
+from myPyllant.const import COUNTRIES
+
 parser = argparse.ArgumentParser(
     description="Generates test data necessary to run integration tests."
 )
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
 parser.add_argument("password", help="Password for the myVaillant app")
+parser.add_argument(
+    "country",
+    help="Country your account is registered in, i.e. 'germany'",
+    choices=COUNTRIES.keys(),
+)
 parser.add_argument(
     "--debug", help="Print debug information", action=argparse.BooleanOptionalAction
 )
@@ -36,22 +43,24 @@ ANONYMIZE_ATTRIBUTES = (
 )
 
 
-async def main(user, password):
+async def main(user, password, country):
     """
     Generate json data for running testcases.
 
     :param user:
     :param password:
+    :param country:
     :return:
     """
-    from myPyllant.api import API_URL_BASE, MyPyllantAPI
+    from myPyllant.api import MyPyllantAPI
+    from myPyllant.const import API_URL_BASE
     from myPyllant.models import DeviceDataBucketResolution
     from myPyllant.utils import datetime_format
 
     user_json_dir = JSON_DIR / hashlib.sha1(user.encode("UTF-8") + SALT).hexdigest()
     user_json_dir.mkdir(parents=True, exist_ok=True)
 
-    async with MyPyllantAPI(user, password) as api:
+    async with MyPyllantAPI(user, password, country) as api:
         systems_url = f"{API_URL_BASE}/systems"
         async with api.aiohttp_session.get(
             systems_url, headers=api.get_authorized_headers()
@@ -117,4 +126,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level="DEBUG")
-    asyncio.run(main(args.user, args.password))
+    asyncio.run(main(args.user, args.password, args.country))

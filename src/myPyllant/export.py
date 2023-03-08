@@ -7,11 +7,17 @@ import json
 import sys
 
 from myPyllant.api import MyPyllantAPI
+from myPyllant.const import COUNTRIES
 from myPyllant.models import DeviceDataBucketResolution
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API.")
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
 parser.add_argument("password", help="Password for the myVaillant app")
+parser.add_argument(
+    "country",
+    help="Country your account is registered in, i.e. 'germany'",
+    choices=COUNTRIES.keys(),
+)
 parser.add_argument(
     "-d",
     "--data",
@@ -40,8 +46,10 @@ parser.add_argument(
 )
 
 
-async def main(user, password, data=False, resolution=None, start=None, end=None):
-    async with MyPyllantAPI(user, password) as api:
+async def main(
+    user, password, country, data=False, resolution=None, start=None, end=None
+):
+    async with MyPyllantAPI(user, password, country) as api:
         async for system in api.get_systems():
             if data:
                 data_list = [

@@ -4,12 +4,19 @@ from collections.abc import AsyncGenerator
 import datetime
 from html import unescape
 import logging
-import os
 import re
-from urllib.parse import parse_qs, parse_qsl, unquote, urlencode, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
 
+from myPyllant.const import (
+    API_URL_BASE,
+    AUTHENTICATE_URL,
+    CLIENT_ID,
+    COUNTRIES,
+    LOGIN_URL,
+    TOKEN_URL,
+)
 from myPyllant.models import (
     Device,
     DeviceData,
@@ -20,23 +27,13 @@ from myPyllant.models import (
     Zone,
     ZoneHeatingOperatingMode,
 )
-from myPyllant.utils import (
-    datetime_format,
-    dict_to_snake_case,
-    generate_code,
-    random_string,
-)
+from myPyllant.utils import datetime_format, dict_to_snake_case, generate_code
 
 logger = logging.getLogger(__name__)
 
 
-LOGIN_URL = "https://identity.vaillant-group.com/auth/realms/vaillant-germany-b2c/login-actions/authenticate"
-AUTHENTICATE_URL = "https://identity.vaillant-group.com/auth/realms/vaillant-germany-b2c/protocol/openid-connect/auth"
-TOKEN_URL = "https://identity.vaillant-group.com/auth/realms/vaillant-germany-b2c/protocol/openid-connect/token"
-CLIENT_ID = "myvaillant"
-API_URL_BASE = (
-    "https://api.vaillant-group.com/service-connected-control/end-user-app-api/v1"
-)
+class AuthenticationFailed(ConnectionError):
+    pass
 
 
 async def on_request_start(session, context, params: aiohttp.TraceRequestStartParams):
@@ -62,9 +59,12 @@ class MyPyllantAPI:
     oauth_session: dict = {}
     oauth_session_expires: datetime.datetime = None
 
-    def __init__(self, username: str, password: str) -> None:
+    def __init__(self, username: str, password: str, country: str) -> None:
+        if country not in COUNTRIES.keys():
+            raise ValueError(f"Country must be one of {', '.join(COUNTRIES.keys())}")
         self.username = username
         self.password = password
+        self.country = country
         trace_config = aiohttp.TraceConfig()
         trace_config.on_request_start.append(on_request_start)
         trace_config.on_request_end.append(on_request_end)
@@ -75,11 +75,16 @@ class MyPyllantAPI:
         )
 
     async def __aenter__(self) -> MyPyllantAPI:
-        await self.login()
+        try:
+            await self.login()
+        except Exception:
+            await self.aiohttp_session.close()
+            raise
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
-        await self.aiohttp_session.close()
+        if not self.aiohttp_session.closed:
+            await self.aiohttp_session.close()
 
     async def login(self):
         code_verifier, code_challenge = generate_code()
@@ -93,11 +98,15 @@ class MyPyllantAPI:
         }
 
         async with self.aiohttp_session.get(
-            AUTHENTICATE_URL + "?" + urlencode(auth_querystring)
+            AUTHENTICATE_URL.format(country=self.country)
+            + "?"
+            + urlencode(auth_querystring)
         ) as resp:
             login_html = await resp.text()
 
-        result = re.search(LOGIN_URL + r"\?([^\"]*)", login_html)
+        result = re.search(
+            LOGIN_URL.format(country=self.country) + r"\?([^\"]*)", login_html
+        )
         login_url = unescape(result.group())
 
         login_payload = {
@@ -108,7 +117,8 @@ class MyPyllantAPI:
         async with self.aiohttp_session.post(
             login_url, data=login_payload, allow_redirects=False
         ) as resp:
-            await resp.text()
+            if "Location" not in resp.headers:
+                raise AuthenticationFailed("Login failed")
             logger.debug(
                 f'Got location from authorize endpoint: {resp.headers["Location"]}'
             )
@@ -124,7 +134,9 @@ class MyPyllantAPI:
         }
 
         async with self.aiohttp_session.post(
-            TOKEN_URL, data=token_payload, raise_for_status=False
+            TOKEN_URL.format(country=self.country),
+            data=token_payload,
+            raise_for_status=False,
         ) as resp:
             login_json = await resp.json()
             if resp.status >= 400:
@@ -148,7 +160,9 @@ class MyPyllantAPI:
             "client_id": CLIENT_ID,
             "grant_type": "refresh_token",
         }
-        async with self.aiohttp_session.post(TOKEN_URL, data=refresh_payload) as resp:
+        async with self.aiohttp_session.post(
+            TOKEN_URL.format(country=self.country), data=refresh_payload
+        ) as resp:
             self.oauth_session = await resp.json()
             self.set_session_expires()
             return self.oauth_session

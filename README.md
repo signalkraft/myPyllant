@@ -17,8 +17,8 @@ Not affiliated with Vaillant, the developers take no responsibility for anything
 
 ```shell
 pip install myPyllant
-python3 -m myPyllant.export user password
-# See python3 -m myPyllant.export -h for more options
+python3 -m myPyllant.export user password country
+# See python3 -m myPyllant.export -h for more options and a list of countries
 ```
 
 The `--data` argument exports historical data of the devices in your system.
@@ -31,22 +31,30 @@ import argparse
 import asyncio
 from datetime import datetime, timedelta
 
-from myPyllant.api import MyPyllantAPI
+from custom_components.mypyllant.const import COUNTRIES
 
+from myPyllant.api import MyPyllantAPI
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API   .")
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
 parser.add_argument("password", help="Password for the myVaillant app")
+parser.add_argument(
+    "country",
+    help="Country your account is registered in, i.e. 'germany'",
+    choices=COUNTRIES.keys(),
+)
 
 
-async def main(user, password):
-    async with MyPyllantAPI(user, password) as api:
+async def main(user, password, country):
+    async with MyPyllantAPI(user, password, country) as api:
         async for system in api.get_systems():
             print(await api.set_holiday(system, datetime.now()))
             print(
-                await api.set_holiday(
-                    system, datetime.now(), datetime.now() + timedelta(days=1)
-                )
+                await (
+                    await api.set_holiday(
+                        system, datetime.now(), datetime.now() + timedelta(days=1)
+                    )
+                ).json()
             )
             print(await api.cancel_holiday(system))
             print(await api.boost_domestic_hot_water(system.domestic_hot_water[0]))
@@ -63,7 +71,7 @@ async def main(user, password):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    asyncio.run(main(args.user, args.password))
+    asyncio.run(main(args.user, args.password, args.country))
 
 ```
 
@@ -88,12 +96,23 @@ pre-commit install
 pytest
 ```
 
+### Supporting new Countries
+
+The myVAILLANT app uses Keycloak and OIDC for authentication, with a realm for each country.
+There is a script to check which countries are supported:
+
+```shell
+python3 tests/find_countries.py
+```
+
+Copy the resulting dictionary into [src/myPyllant/const.py](src/myPyllant/const.py)
+
 ### Contributing Test Data
 
 Because the myVAILLANT API isn't documented, you can help the development of this library by contributing test data:
 
 ```shell
-python3 tests/generate_test_data.py username password
+python3 tests/generate_test_data.py username password country
 ```
 
 Create a fork of this repository and create a PR with the newly created folder in `test/json`.
