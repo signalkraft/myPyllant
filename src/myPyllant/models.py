@@ -60,7 +60,7 @@ class Zone(BaseModel):
     name: str
     index: int
     active: bool
-    current_room_temperature: float
+    current_room_temperature: float | None
     current_special_function: ZoneCurrentSpecialFunction
     desired_room_temperature_setpoint: float
     manual_mode_setpoint: float
