@@ -1,8 +1,7 @@
-from collections.abc import Mapping
 import datetime
 from enum import Enum
 import logging
-from typing import Any
+from typing import Any, List
 
 from pydantic import BaseModel
 
@@ -17,7 +16,7 @@ class MyPyllantEnum(Enum):
         return self.value
 
     @property
-    def display_value(self):
+    def display_value(self) -> str:
         return self.value.replace("_", " ").title()
 
 
@@ -119,43 +118,40 @@ class System(BaseModel):
         ]
 
     @property
-    def _raw_zones(self):
+    def _raw_zones(self) -> list:
         try:
             return self.system_control_state["control_state"].get("zones", [])
-        except KeyError as e:
-            logger.info("Could not get zones from system control state", exc_info=e)
+        except KeyError:
+            logger.info("Could not get zones from system control state")
             return []
 
     @property
-    def _raw_circuits(self):
+    def _raw_circuits(self) -> list:
         try:
             return self.system_control_state["control_state"].get("circuits", [])
-        except KeyError as e:
-            logger.info("Could not get circuits from system control state", exc_info=e)
+        except KeyError:
+            logger.info("Could not get circuits from system control state")
             return []
 
     @property
-    def _raw_domestic_hot_water(self):
+    def _raw_domestic_hot_water(self) -> list:
         try:
             return self.system_control_state["control_state"].get(
                 "domestic_hot_water", []
             )
-        except KeyError as e:
-            logger.info(
-                "Could not get domestic hot water from system control state", exc_info=e
-            )
+        except KeyError:
+            logger.info("Could not get domestic hot water from system control state")
             return []
 
     @property
-    def outdoor_temperature(self):
+    def outdoor_temperature(self) -> float | None:
         try:
             return self.system_control_state["control_state"]["general"][
                 "outdoor_temperature"
             ]
-        except KeyError as e:
+        except KeyError:
             logger.info(
                 "Could not get outdoor temperature from system control state",
-                exc_info=e,
             )
             return None
 
@@ -168,23 +164,21 @@ class System(BaseModel):
         return self.status["error"] if "error" in self.status else None
 
     @property
-    def water_pressure(self):
+    def water_pressure(self) -> float | None:
         try:
             return self.system_control_state["control_state"]["general"][
                 "system_water_pressure"
             ]
-        except KeyError as e:
-            logger.info(
-                "Could not get water pressure from system control state", exc_info=e
-            )
+        except KeyError:
+            logger.info("Could not get water pressure from system control state")
             return None
 
     @property
-    def mode(self):
+    def mode(self) -> str | None:
         try:
             return self.system_control_state["control_state"]["general"]["system_mode"]
-        except KeyError as e:
-            logger.info("Could not get mode from system control state", exc_info=e)
+        except KeyError:
+            logger.info("Could not get mode from system control state")
             return None
 
 
@@ -205,7 +199,7 @@ class Device(BaseModel):
     data: list["DeviceData"] = []
 
     @property
-    def name_display(self):
+    def name_display(self) -> str:
         return self.name if self.name else self.product_name.title()
 
 
