@@ -7,7 +7,10 @@ import requests
 
 def countries_with_realm():
     for code, country in countries_for_language("en"):
-        country_name = re.sub(r"\W+", "", country.lower())
+        if code == "CZ":
+            country_name = "czechrepublic"
+        else:
+            country_name = re.sub(r"\W+", "", country.lower())
         r = requests.head(
             f"https://identity.vaillant-group.com/auth/realms/"
             f"vaillant-{country_name}-b2c/.well-known/openid-configuration"
@@ -19,7 +22,7 @@ def countries_with_realm():
 def main():
     print("COUNTRIES = {")
     for country_name, country in countries_with_realm():
-        print(f'  "{country_name}": "{country}",')
+        print(f'    "{country_name}": "{country}",')
     print("}")
 
 

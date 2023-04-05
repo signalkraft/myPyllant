@@ -10,6 +10,7 @@ COUNTRIES = {
     "belgium": "Belgium",
     "bulgaria": "Bulgaria",
     "croatia": "Croatia",
+    "czechrepublic": "Czechia",
     "denmark": "Denmark",
     "estonia": "Estonia",
     "finland": "Finland",
