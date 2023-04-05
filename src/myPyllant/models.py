@@ -110,6 +110,9 @@ class System(BaseModel):
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
+        logger.debug(
+            f'Creating related models from control_state: {self.system_control_state["control_state"]}'
+        )
         self.zones = [Zone(system_id=self.id, **z) for z in self._raw_zones]
         self.circuits = [Circuit(system_id=self.id, **c) for c in self._raw_circuits]
         self.domestic_hot_water = [
