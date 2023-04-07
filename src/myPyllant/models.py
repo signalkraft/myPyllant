@@ -74,7 +74,7 @@ class Circuit(BaseModel):
     system_id: str
     index: int
     circuit_state: str
-    current_circuit_flow_temperature: float
+    current_circuit_flow_temperature: float | None
     heating_curve: float | None
     is_cooling_allowed: bool
     min_flow_temperature_setpoint: float | None
