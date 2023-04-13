@@ -8,6 +8,7 @@ import re
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
+from aiohttp import ClientResponseError
 
 from myPyllant.const import (
     API_URL_BASE,
@@ -36,6 +37,10 @@ logger = logging.getLogger(__name__)
 
 
 class AuthenticationFailed(ConnectionError):
+    pass
+
+
+class LoginEndpointInvalid(ConnectionError):
     pass
 
 
@@ -109,12 +114,15 @@ class MyPyllantAPI:
         }
 
         # Grabbing the login URL from the HTML form of the login page
-        async with self.aiohttp_session.get(
-            AUTHENTICATE_URL.format(country=self.country, brand=self.brand)
-            + "?"
-            + urlencode(auth_querystring)
-        ) as resp:
-            login_html = await resp.text()
+        try:
+            async with self.aiohttp_session.get(
+                AUTHENTICATE_URL.format(country=self.country, brand=self.brand)
+                + "?"
+                + urlencode(auth_querystring)
+            ) as resp:
+                login_html = await resp.text()
+        except ClientResponseError as e:
+            raise LoginEndpointInvalid from e
 
         result = re.search(
             LOGIN_URL.format(country=self.country, brand=self.brand) + r"\?([^\"]*)",
@@ -122,16 +130,18 @@ class MyPyllantAPI:
         )
         login_url = unescape(result.group())
 
+        logger.debug(f"Got login url {login_url}")
+
         login_payload = {
             "username": self.username,
             "password": self.password,
             "credentialId": "",
         }
-
         # Obtaining the code
         async with self.aiohttp_session.post(
             login_url, data=login_payload, allow_redirects=False
         ) as resp:
+            logger.debug(f"Got login response headers {resp.headers}")
             if "Location" not in resp.headers:
                 raise AuthenticationFailed("Login failed")
             logger.debug(
