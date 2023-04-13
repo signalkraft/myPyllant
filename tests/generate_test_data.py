@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 sys.path.append((Path(__file__).resolve().parent / "src").name)
 
-from myPyllant.const import COUNTRIES
+from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
 parser = argparse.ArgumentParser(
     description="Generates test data necessary to run integration tests."
@@ -27,6 +27,12 @@ parser.add_argument(
     "country",
     help="Country your account is registered in, i.e. 'germany'",
     choices=COUNTRIES.keys(),
+)
+parser.add_argument(
+    "brand",
+    help="Brand your account is registered in, i.e. 'vaillant'",
+    default=DEFAULT_BRAND,
+    choices=BRANDS.keys(),
 )
 parser.add_argument(
     "--debug", help="Print debug information", action=argparse.BooleanOptionalAction
@@ -43,7 +49,7 @@ ANONYMIZE_ATTRIBUTES = (
 )
 
 
-async def main(user, password, country):
+async def main(user, password, country, brand):
     """
     Generate json data for running testcases.
 
@@ -60,7 +66,7 @@ async def main(user, password, country):
     user_json_dir = JSON_DIR / hashlib.sha1(user.encode("UTF-8") + SALT).hexdigest()
     user_json_dir.mkdir(parents=True, exist_ok=True)
 
-    async with MyPyllantAPI(user, password, country) as api:
+    async with MyPyllantAPI(user, password, country, brand) as api:
         systems_url = f"{API_URL_BASE}/systems"
         async with api.aiohttp_session.get(
             systems_url, headers=api.get_authorized_headers()
@@ -126,4 +132,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level="DEBUG")
-    asyncio.run(main(args.user, args.password, args.country))
+    asyncio.run(main(args.user, args.password, args.country, args.brand))

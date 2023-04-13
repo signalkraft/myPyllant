@@ -23,7 +23,9 @@ def get_test_data():
 
 async def test_login(mypyllant_aioresponses) -> None:
     with mypyllant_aioresponses() as _:
-        async with MyPyllantAPI("test@example.com", "test", "germany") as mocked_api:
+        async with MyPyllantAPI(
+            "test@example.com", "test", "germany", "vaillant"
+        ) as mocked_api:
             assert isinstance(mocked_api.oauth_session_expires, datetime)
             assert mocked_api.oauth_session_expires > datetime.now()
             assert mocked_api.access_token == "access_token"
@@ -79,6 +81,6 @@ async def test_device_data(mypyllant_aioresponses, mocked_api, test_data) -> Non
 @pytest.mark.parametrize("test_data", get_test_data())
 async def test_export(mypyllant_aioresponses, capsys, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        await export_main("test@example.com", "test", "germany")
+        await export_main("test@example.com", "test", "germany", "vaillant")
         captured = capsys.readouterr()
         assert isinstance(json.loads(captured.out), dict)

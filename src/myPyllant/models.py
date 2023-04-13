@@ -1,7 +1,7 @@
 import datetime
 from enum import Enum
 import logging
-from typing import Any, List
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -18,6 +18,11 @@ class MyPyllantEnum(Enum):
     @property
     def display_value(self) -> str:
         return self.value.replace("_", " ").title()
+
+
+class CircuitState(MyPyllantEnum):
+    HEATING = "HEATING"
+    STANDBY = "STANDBY"
 
 
 class DeviceDataBucketResolution(MyPyllantEnum):
@@ -73,7 +78,7 @@ class Zone(BaseModel):
 class Circuit(BaseModel):
     system_id: str
     index: int
-    circuit_state: str
+    circuit_state: CircuitState
     current_circuit_flow_temperature: float | None
     heating_curve: float | None
     is_cooling_allowed: bool

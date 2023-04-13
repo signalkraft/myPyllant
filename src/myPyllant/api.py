@@ -12,6 +12,7 @@ import aiohttp
 from myPyllant.const import (
     API_URL_BASE,
     AUTHENTICATE_URL,
+    BRANDS,
     CLIENT_ID,
     COUNTRIES,
     LOGIN_URL,
@@ -59,12 +60,15 @@ class MyPyllantAPI:
     oauth_session: dict = {}
     oauth_session_expires: datetime.datetime = None
 
-    def __init__(self, username: str, password: str, country: str) -> None:
+    def __init__(self, username: str, password: str, country: str, brand: str) -> None:
         if country not in COUNTRIES.keys():
             raise ValueError(f"Country must be one of {', '.join(COUNTRIES.keys())}")
+        if brand not in BRANDS.keys():
+            raise ValueError(f"Brand must be one of {', '.join(BRANDS.keys())}")
         self.username = username
         self.password = password
         self.country = country
+        self.brand = brand
         trace_config = aiohttp.TraceConfig()
         trace_config.on_request_start.append(on_request_start)
         trace_config.on_request_end.append(on_request_end)
@@ -98,14 +102,15 @@ class MyPyllantAPI:
         }
 
         async with self.aiohttp_session.get(
-            AUTHENTICATE_URL.format(country=self.country)
+            AUTHENTICATE_URL.format(country=self.country, brand=self.brand)
             + "?"
             + urlencode(auth_querystring)
         ) as resp:
             login_html = await resp.text()
 
         result = re.search(
-            LOGIN_URL.format(country=self.country) + r"\?([^\"]*)", login_html
+            LOGIN_URL.format(country=self.country, brand=self.brand) + r"\?([^\"]*)",
+            login_html,
         )
         login_url = unescape(result.group())
 
@@ -134,7 +139,7 @@ class MyPyllantAPI:
         }
 
         async with self.aiohttp_session.post(
-            TOKEN_URL.format(country=self.country),
+            TOKEN_URL.format(country=self.country, brand=self.brand),
             data=token_payload,
             raise_for_status=False,
         ) as resp:
@@ -161,7 +166,8 @@ class MyPyllantAPI:
             "grant_type": "refresh_token",
         }
         async with self.aiohttp_session.post(
-            TOKEN_URL.format(country=self.country), data=refresh_payload
+            TOKEN_URL.format(country=self.country, brand=self.brand),
+            data=refresh_payload,
         ) as resp:
             self.oauth_session = await resp.json()
             self.set_session_expires()

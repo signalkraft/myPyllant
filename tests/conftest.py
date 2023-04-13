@@ -20,7 +20,7 @@ def mypyllant_aioresponses():
             # auth endpoints
             self.get(
                 re.compile(r".*openid-connect/auth\?"),
-                body=f"{LOGIN_URL.format(country='germany')}?test=test",
+                body=f"{LOGIN_URL.format(brand='vaillant', country='germany')}?test=test",
                 status=200,
             )
             self.post(
@@ -61,7 +61,7 @@ def mypyllant_aioresponses():
 
 @pytest.fixture
 async def mocked_api():
-    api = MyPyllantAPI("test@example.com", "test", "germany")
+    api = MyPyllantAPI("test@example.com", "test", "germany", "vaillant")
     api.oauth_session = {
         "access_token": "access_token",
         "refresh_token": "refresh_token",
