@@ -34,3 +34,4 @@ COUNTRIES = {
     "switzerland": "Switzerland",
     "unitedkingdom": "United Kingdom",
 }
+DEFAULT_QUICK_VETO_DURATION = 3

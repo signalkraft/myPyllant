@@ -14,6 +14,7 @@ from myPyllant.const import (
     AUTHENTICATE_URL,
     CLIENT_ID,
     COUNTRIES,
+    DEFAULT_QUICK_VETO_DURATION,
     LOGIN_URL,
     TOKEN_URL,
 )
@@ -25,6 +26,7 @@ from myPyllant.models import (
     DomesticHotWater,
     System,
     Zone,
+    ZoneCurrentSpecialFunction,
     ZoneHeatingOperatingMode,
 )
 from myPyllant.utils import datetime_format, dict_to_snake_case, generate_code
@@ -40,16 +42,14 @@ async def on_request_start(session, context, params: aiohttp.TraceRequestStartPa
     """
     See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_start
     """
-    logging.getLogger("aiohttp.client").debug(f"Starting request {params}")
+    logger.debug(f"Starting request {params}")
 
 
 async def on_request_end(session, context, params: aiohttp.TraceRequestEndParams):
     """
     See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_end
     """
-    logging.getLogger("aiohttp.client").debug(
-        f"Got response {await params.response.text()}"
-    )
+    logger.debug(f"Got response {await params.response.text()}")
 
 
 class MyPyllantAPI:
@@ -57,7 +57,7 @@ class MyPyllantAPI:
     password: str = None
     aiohttp_session: aiohttp.ClientSession = None
     oauth_session: dict = {}
-    oauth_session_expires: datetime.datetime = None
+    oauth_session_expires: datetime.datetime | None = None
 
     def __init__(self, username: str, password: str, country: str) -> None:
         if country not in COUNTRIES.keys():
@@ -87,6 +87,13 @@ class MyPyllantAPI:
             await self.aiohttp_session.close()
 
     async def login(self):
+        """
+        This should really be done in the browser with OIDC, but that's not easy without support from Vaillant
+
+        So instead, we grab the login endpoint from the HTML form of the login website and send username + password
+        to obtain a session
+        """
+
         code_verifier, code_challenge = generate_code()
         auth_querystring = {
             "response_type": "code",
@@ -97,6 +104,7 @@ class MyPyllantAPI:
             "code_challenge": code_challenge,
         }
 
+        # Grabbing the login URL from the HTML form of the login page
         async with self.aiohttp_session.get(
             AUTHENTICATE_URL.format(country=self.country)
             + "?"
@@ -114,6 +122,8 @@ class MyPyllantAPI:
             "password": self.password,
             "credentialId": "",
         }
+
+        # Obtaining the code
         async with self.aiohttp_session.post(
             login_url, data=login_payload, allow_redirects=False
         ) as resp:
@@ -125,6 +135,7 @@ class MyPyllantAPI:
             parsed_url = urlparse(resp.headers["Location"])
             code = parse_qs(parsed_url.query)["code"]
 
+        # Obtaining a access token and refresh token
         token_payload = {
             "grant_type": "authorization_code",
             "client_id": "myvaillant",
@@ -199,7 +210,7 @@ class MyPyllantAPI:
                     current_system_json = await current_system_resp.json()
                 system = System(
                     id=system_id,
-                    current_system=current_system_json,
+                    current_system=dict_to_snake_case(current_system_json),
                     **dict_to_snake_case(system_json),
                 )
                 yield system
@@ -216,13 +227,13 @@ class MyPyllantAPI:
                 **device_raw,
             )
 
-            serial_nos = {d["serial_number"]: d for d in system.devices}
+            serial_nos = {d.serial_number: d for d in system.devices}
             if device.device_serial_number in serial_nos.keys():
                 device_info = serial_nos[device.device_serial_number]
                 device.operational_data = dict_to_snake_case(
-                    device_info.get("operational_data", {})
+                    device_info.operational_data
                 )
-                device.name = device_info.get("name", "")
+                device.name = device_info.name
 
             yield device
 
@@ -269,17 +280,41 @@ class MyPyllantAPI:
         )
 
     async def quick_veto_zone_temperature(
-        self, zone: Zone, temperature: float, duration_hours: int
+        self,
+        zone: Zone,
+        temperature: float,
+        duration_hours: int | None = None,
+        default_duration: int | None = None,
     ):
-        url = f"{API_URL_BASE}/systems/{zone.system_id}/zones/{zone.index}/quickVeto"
-        return await self.aiohttp_session.post(
-            url,
-            json={
-                "desiredRoomTemperatureSetpoint": temperature,
-                "duration": duration_hours,
-            },
-            headers=self.get_authorized_headers(),
+        logger.debug(
+            f"Setting quick veto for {zone.name} in {zone.current_special_function} mode"
         )
+        if not default_duration:
+            default_duration = DEFAULT_QUICK_VETO_DURATION
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/zones/{zone.index}/quickVeto"
+        if zone.current_special_function == ZoneCurrentSpecialFunction.QUICK_VETO:
+            logger.debug(
+                f"Patching quick veto for {zone.name} because it is already in quick veto mode"
+            )
+            payload = {
+                "desiredRoomTemperatureSetpoint": temperature,
+            }
+            if duration_hours:
+                payload["duration"] = duration_hours
+            return await self.aiohttp_session.patch(
+                url,
+                json=payload,
+                headers=self.get_authorized_headers(),
+            )
+        else:
+            return await self.aiohttp_session.post(
+                url,
+                json={
+                    "desiredRoomTemperatureSetpoint": temperature,
+                    "duration": duration_hours if duration_hours else default_duration,
+                },
+                headers=self.get_authorized_headers(),
+            )
 
     async def cancel_quick_veto_zone_temperature(self, zone: Zone):
         url = f"{API_URL_BASE}/systems/{zone.system_id}/zones/{zone.index}/quickVeto"
@@ -298,8 +333,8 @@ class MyPyllantAPI:
     async def set_holiday(
         self,
         system: System,
-        start: datetime.datetime = None,
-        end: datetime.datetime = None,
+        start: datetime.datetime | None = None,
+        end: datetime.datetime | None = None,
     ):
         if not start:
             start = datetime.datetime.now()

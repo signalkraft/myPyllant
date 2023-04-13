@@ -98,7 +98,7 @@ class DomesticHotWater(BaseModel):
 class System(BaseModel):
     id: str
     status: dict[str, bool]
-    devices: list[dict]
+    devices: list["SystemDevice"]
     current_system: dict = {}
     system_configuration: dict = {}
     system_control_state: dict = {}
@@ -109,6 +109,8 @@ class System(BaseModel):
     domestic_hot_water: list[DomesticHotWater] = []
 
     def __init__(self, **data: Any) -> None:
+        if len(data["devices"]) > 0 and isinstance(data["devices"][0], dict):
+            data["devices"] = [SystemDevice(**d) for d in data.pop("devices")]
         super().__init__(**data)
         logger.debug(
             f'Creating related models from control_state: {self.system_control_state["control_state"]}'
@@ -185,7 +187,36 @@ class System(BaseModel):
             return None
 
 
-class Device(BaseModel):
+class SystemDevice(BaseModel):
+    """
+    The System contains some information about devices already, this is saved in SystemDevice
+    The currentSystem API call returns more device info, which is saved in Device
+    """
+
+    system_id: str
+    device_id: str | None
+    name: str = ""
+    type: str = ""
+    diagnostic_trouble_codes: list = []
+    properties: list = []
+    serial_number: str | None
+    article_number: str | None
+    operational_data: dict = {}
+    data: list["DeviceData"] = []
+
+    @property
+    def name_display(self) -> str:
+        if self.name:
+            return self.name
+        elif self.device_id:
+            return f"Device {self.device_id}"
+        elif self.serial_number:
+            return f"Device {self.serial_number}"
+        else:
+            return "System Device"
+
+
+class Device(SystemDevice):
     system: System
     device_uuid: str
     name: str = ""
@@ -200,6 +231,10 @@ class Device(BaseModel):
     last_data: datetime.datetime
     operational_data: dict = {}
     data: list["DeviceData"] = []
+
+    def __init__(self, **data):
+        data["system_id"] = data["system"].id
+        super().__init__(**data)
 
     @property
     def name_display(self) -> str:
@@ -230,4 +265,6 @@ class DeviceData(BaseModel):
     data: list[DeviceDataBucket] = []
 
 
+# Updating string type hints for pydantic
+System.update_forward_refs()
 Device.update_forward_refs()
