@@ -3,9 +3,9 @@
 [![PyPI](https://img.shields.io/pypi/v/myPyllant)](https://pypi.org/project/myPyllant/)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/signalkraft/myPyllant/build-test.yaml)
 
-A Python library to interact with the API behind the myVAILLANT app, needs at least Python 3.10.
+A Python library to interact with the API behind the myVAILLANT app ((and branded versions of it, such as the MiGo app from Saunier Duval). Needs at least Python 3.10.
 
-Not affiliated with Vaillant, the developers take no responsibility for anything that happens to your Vaillant devices because of this library.
+Not affiliated with Vaillant, the developers take no responsibility for anything that happens to your devices because of this library.
 
 ![myPyllant](https://raw.githubusercontent.com/signalkraft/myPyllant/main/logo.png)
 
