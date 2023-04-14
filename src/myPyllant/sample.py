@@ -2,7 +2,7 @@ import argparse
 import asyncio
 from datetime import datetime, timedelta
 
-from custom_components.mypyllant.const import COUNTRIES
+from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
 from myPyllant.api import MyPyllantAPI
 
@@ -14,10 +14,15 @@ parser.add_argument(
     help="Country your account is registered in, i.e. 'germany'",
     choices=COUNTRIES.keys(),
 )
+parser.add_argument(
+    "brand",
+    help="Brand your account is registered in, i.e. 'vaillant'",
+    default=DEFAULT_BRAND,
+    choices=BRANDS.keys(),
+)
 
-
-async def main(user, password, country):
-    async with MyPyllantAPI(user, password, country) as api:
+async def main(user, password, country, brand):
+    async with MyPyllantAPI(user, password, country, brand) as api:
         async for system in api.get_systems():
             print(await api.set_holiday(system, datetime.now()))
             print(
@@ -42,4 +47,4 @@ async def main(user, password, country):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    asyncio.run(main(args.user, args.password, args.country))
+    asyncio.run(main(args.user, args.password, args.country, args.brand))

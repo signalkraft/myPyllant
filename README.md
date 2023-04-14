@@ -17,7 +17,7 @@ Not affiliated with Vaillant, the developers take no responsibility for anything
 
 ```shell
 pip install myPyllant
-python3 -m myPyllant.export user password country
+python3 -m myPyllant.export user password country brand
 # See python3 -m myPyllant.export -h for more options and a list of countries
 ```
 
@@ -31,7 +31,7 @@ import argparse
 import asyncio
 from datetime import datetime, timedelta
 
-from custom_components.mypyllant.const import COUNTRIES
+from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
 from myPyllant.api import MyPyllantAPI
 
@@ -43,10 +43,15 @@ parser.add_argument(
     help="Country your account is registered in, i.e. 'germany'",
     choices=COUNTRIES.keys(),
 )
+parser.add_argument(
+    "brand",
+    help="Brand your account is registered in, i.e. 'vaillant'",
+    default=DEFAULT_BRAND,
+    choices=BRANDS.keys(),
+)
 
-
-async def main(user, password, country):
-    async with MyPyllantAPI(user, password, country) as api:
+async def main(user, password, country, brand):
+    async with MyPyllantAPI(user, password, country, brand) as api:
         async for system in api.get_systems():
             print(await api.set_holiday(system, datetime.now()))
             print(
@@ -71,7 +76,7 @@ async def main(user, password, country):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    asyncio.run(main(args.user, args.password, args.country))
+    asyncio.run(main(args.user, args.password, args.country, args.brand))
 
 ```
 
@@ -112,7 +117,7 @@ Copy the resulting dictionary into [src/myPyllant/const.py](src/myPyllant/const.
 Because the myVAILLANT API isn't documented, you can help the development of this library by contributing test data:
 
 ```shell
-python3 tests/generate_test_data.py username password country
+python3 tests/generate_test_data.py username password country brand
 ```
 
 Create a fork of this repository and create a PR with the newly created folder in `test/json`.
