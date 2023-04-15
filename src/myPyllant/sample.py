@@ -2,9 +2,8 @@ import argparse
 import asyncio
 from datetime import datetime, timedelta
 
-from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
-
 from myPyllant.api import MyPyllantAPI
+from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API   .")
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
@@ -20,6 +19,7 @@ parser.add_argument(
     default=DEFAULT_BRAND,
     choices=BRANDS.keys(),
 )
+
 
 async def main(user, password, country, brand):
     async with MyPyllantAPI(user, password, country, brand) as api:
