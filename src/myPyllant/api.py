@@ -66,10 +66,14 @@ class MyPyllantAPI:
     oauth_session_expires: datetime.datetime | None = None
 
     def __init__(self, username: str, password: str, country: str, brand: str) -> None:
-        if country not in COUNTRIES.keys():
-            raise ValueError(f"Country must be one of {', '.join(COUNTRIES.keys())}")
         if brand not in BRANDS.keys():
-            raise ValueError(f"Brand must be one of {', '.join(BRANDS.keys())}")
+            raise ValueError(
+                f"Invalid brand, must be one of {', '.join(BRANDS.keys())}"
+            )
+        if country not in COUNTRIES[brand].keys():
+            raise ValueError(
+                f"Invalid country, {BRANDS[brand]} only supports {', '.join(COUNTRIES[brand].keys())}"
+            )
         self.username = username
         self.password = password
         self.country = country

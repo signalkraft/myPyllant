@@ -26,7 +26,7 @@ parser.add_argument("password", help="Password for the myVaillant app")
 parser.add_argument(
     "country",
     help="Country your account is registered in, i.e. 'germany'",
-    choices=COUNTRIES.keys(),
+    choices=COUNTRIES[DEFAULT_BRAND].keys(),
 )
 parser.add_argument(
     "brand",
