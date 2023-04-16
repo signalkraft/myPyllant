@@ -31,9 +31,8 @@ import argparse
 import asyncio
 from datetime import datetime, timedelta
 
-from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
-
 from myPyllant.api import MyPyllantAPI
+from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API   .")
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
@@ -41,7 +40,7 @@ parser.add_argument("password", help="Password for the myVaillant app")
 parser.add_argument(
     "country",
     help="Country your account is registered in, i.e. 'germany'",
-    choices=COUNTRIES.keys(),
+    choices=COUNTRIES[DEFAULT_BRAND].keys(),
 )
 parser.add_argument(
     "brand",
@@ -49,6 +48,7 @@ parser.add_argument(
     default=DEFAULT_BRAND,
     choices=BRANDS.keys(),
 )
+
 
 async def main(user, password, country, brand):
     async with MyPyllantAPI(user, password, country, brand) as api:
@@ -82,8 +82,7 @@ if __name__ == "__main__":
 
 ### Tested Configurations
 
-* Vaillant aroTHERM plus heatpump, sensoCOMFORT VRC 720, sensoNET VR 921
-* [VMW 23CS/1-5 C (N-ES) ecoTEC plus](https://github.com/signalkraft/myPyllant/pull/6)
+See https://github.com/signalkraft/mypyllant-component/blob/main/README.md#tested-setups
 
 ## Contributing
 
@@ -103,7 +102,7 @@ pytest
 
 ### Supporting new Countries
 
-The myVAILLANT app uses Keycloak and OIDC for authentication, with a realm for each country.
+The myVAILLANT app uses Keycloak and OIDC for authentication, with a realm for each country and brand.
 There is a script to check which countries are supported:
 
 ```shell
