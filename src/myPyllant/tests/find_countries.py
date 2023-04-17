@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
-from pathlib import Path
 import re
-import sys
 
-from country_list import countries_for_language
+import country_list  # type: ignore
 import requests
 
-sys.path.append((Path(__file__).resolve().parent / "src").name)
-
-from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
+from myPyllant.const import BRANDS
 
 
 def countries_with_realm(brand):
-    for code, country in countries_for_language("en"):
+    for code, country in country_list.countries_for_language("en"):
         if code == "CZ":
             country_name = "czechrepublic"
         else:

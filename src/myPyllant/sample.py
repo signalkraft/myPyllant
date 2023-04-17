@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import asyncio
 from datetime import datetime, timedelta
@@ -24,13 +26,11 @@ parser.add_argument(
 async def main(user, password, country, brand):
     async with MyPyllantAPI(user, password, country, brand) as api:
         async for system in api.get_systems():
-            print(await api.set_holiday(system, datetime.now()))
+            print(await api.set_holiday(system))
             print(
-                await (
-                    await api.set_holiday(
-                        system, datetime.now(), datetime.now() + timedelta(days=1)
-                    )
-                ).json()
+                await api.set_holiday(
+                    system, datetime.now(), datetime.now() + timedelta(days=7)
+                )
             )
             print(await api.cancel_holiday(system))
             print(await api.boost_domestic_hot_water(system.domestic_hot_water[0]))

@@ -3,20 +3,18 @@
 import argparse
 import asyncio
 import copy
-from datetime import datetime, timedelta
 import hashlib
 import json
 import logging
-from pathlib import Path
 import secrets
-import sys
+from datetime import datetime, timedelta
+from pathlib import Path
 from urllib.parse import urlencode
+
+from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
 logger = logging.getLogger(__name__)
 
-sys.path.append((Path(__file__).resolve().parent / "src").name)
-
-from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
 parser = argparse.ArgumentParser(
     description="Generates test data necessary to run integration tests."
@@ -56,6 +54,7 @@ async def main(user, password, country, brand):
     :param user:
     :param password:
     :param country:
+    :param brand:
     :return:
     """
     from myPyllant.api import MyPyllantAPI
@@ -63,7 +62,10 @@ async def main(user, password, country, brand):
     from myPyllant.models import DeviceDataBucketResolution
     from myPyllant.utils import datetime_format
 
-    user_json_dir = JSON_DIR / hashlib.sha1(user.encode("UTF-8") + SALT).hexdigest()
+    user_json_dir = (
+        JSON_DIR
+        / hashlib.sha1(user.encode("UTF-8") + SALT, usedforsecurity=False).hexdigest()
+    )
     user_json_dir.mkdir(parents=True, exist_ok=True)
 
     async with MyPyllantAPI(user, password, country, brand) as api:
@@ -113,7 +115,9 @@ async def main(user, password, country, brand):
                 fh.write(json.dumps(device_buckets, indent=2))
 
 
-def _recursive_data_anonymize(data: str | dict | list, salt: bytes = b"") -> dict:
+def _recursive_data_anonymize(
+    data: str | dict | list, salt: bytes = b""
+) -> str | dict | list:
     if isinstance(data, list):
         for elem in data:
             _recursive_data_anonymize(elem, salt)
@@ -121,7 +125,9 @@ def _recursive_data_anonymize(data: str | dict | list, salt: bytes = b"") -> dic
     elif isinstance(data, dict):
         for elem in data.keys():
             if elem in ANONYMIZE_ATTRIBUTES:
-                data[elem] = hashlib.sha1(data[elem].encode("UTF-8") + salt).hexdigest()
+                data[elem] = hashlib.sha1(
+                    data[elem].encode("UTF-8") + salt, usedforsecurity=False
+                ).hexdigest()
                 continue
             _recursive_data_anonymize(data[elem], salt)
 

@@ -1,14 +1,12 @@
 import re
 
 from aioresponses import aioresponses
-import pytest
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.const import API_URL_BASE, LOGIN_URL
 
 
-@pytest.fixture
-def mypyllant_aioresponses():
+def _mypyllant_aioresponses():
     class _mypyllant_aioresponses(aioresponses):
         def __init__(self, test_data=None, **kwargs):
             self.test_data = test_data
@@ -22,11 +20,13 @@ def mypyllant_aioresponses():
                 re.compile(r".*openid-connect/auth\?"),
                 body=f"{LOGIN_URL.format(brand='vaillant', country='germany')}?test=test",
                 status=200,
+                repeat=True,
             )
             self.post(
                 re.compile(r".*login-actions/authenticate\?"),
                 status=200,
                 headers={"Location": "test?code=code"},
+                repeat=True,
             )
             self.post(
                 re.compile(r".*openid-connect/token$"),
@@ -36,6 +36,62 @@ def mypyllant_aioresponses():
                     "access_token": "access_token",
                     "refresh_token": "refresh_token",
                 },
+                repeat=True,
+            )
+            actions = re.compile(r".*(holiday|setBackTemperature|temperature)$")
+            self.post(
+                actions,
+                status=200,
+                payload={},
+                repeat=True,
+            )
+            self.patch(
+                actions,
+                status=200,
+                payload={},
+                repeat=True,
+            )
+            self.delete(
+                actions,
+                status=200,
+                payload={},
+                repeat=True,
+            )
+            self.post(
+                re.compile(r".*domesticHotWater/.*/temperature$"),
+                status=200,
+                payload={},
+                repeat=True,
+            )
+            self.post(
+                re.compile(r".*domesticHotWater/.*/boost$"),
+                status=200,
+                payload={},
+                repeat=True,
+            )
+            self.delete(
+                re.compile(r".*domesticHotWater/.*/boost$"),
+                status=200,
+                payload={},
+                repeat=True,
+            )
+            self.post(
+                re.compile(r".*zones/.*/quickVeto$"),
+                status=200,
+                payload={},
+                repeat=True,
+            )
+            self.patch(
+                re.compile(r".*zones/.*/quickVeto$"),
+                status=200,
+                payload={},
+                repeat=True,
+            )
+            self.delete(
+                re.compile(r".*zones/.*/quickVeto$"),
+                status=200,
+                payload={},
+                repeat=True,
             )
 
             if self.test_data:
@@ -44,23 +100,26 @@ def mypyllant_aioresponses():
                     f"{API_URL_BASE}/systems",
                     status=200,
                     payload=self.test_data["systems"],
+                    repeat=True,
                 )
                 self.get(
                     re.compile(r".*currentSystem$"),
                     status=200,
                     payload=self.test_data["current_system"],
+                    repeat=True,
                 )
                 self.get(
                     re.compile(r".*buckets\?.*"),
                     status=200,
                     payload=self.test_data["device_buckets"],
+                    repeat=True,
                 )
+            return self
 
     return _mypyllant_aioresponses
 
 
-@pytest.fixture
-async def mocked_api():
+async def _mocked_api(*args, **kwargs) -> MyPyllantAPI:
     api = MyPyllantAPI("test@example.com", "test", "germany", "vaillant")
     api.oauth_session = {
         "access_token": "access_token",

@@ -1,6 +1,6 @@
 import datetime
-from enum import Enum
 import logging
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel
@@ -253,7 +253,7 @@ class DeviceDataBucket(BaseModel):
 
 
 class DeviceData(BaseModel):
-    def __init__(self, device: Device = None, **kwargs: Any) -> None:
+    def __init__(self, device: Device | None = None, **kwargs: Any) -> None:
         kwargs["data_from"] = kwargs.pop("from") if "from" in kwargs else None
         kwargs["data_to"] = kwargs.pop("to") if "to" in kwargs else None
         super().__init__(device=device, **kwargs)

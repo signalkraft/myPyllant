@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
 import datetime
-from html import unescape
 import logging
 import re
+from collections.abc import AsyncGenerator
+from html import unescape
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
@@ -59,9 +59,9 @@ async def on_request_end(session, context, params: aiohttp.TraceRequestEndParams
 
 
 class MyPyllantAPI:
-    username: str = None
-    password: str = None
-    aiohttp_session: aiohttp.ClientSession = None
+    username: str
+    password: str
+    aiohttp_session: aiohttp.ClientSession
     oauth_session: dict = {}
     oauth_session_expires: datetime.datetime | None = None
 
@@ -265,8 +265,16 @@ class MyPyllantAPI:
         data_to: datetime.datetime | None = None,
     ) -> AsyncGenerator[DeviceData, None]:
         for data in device.data:
-            start_date = datetime_format(data_from if data_from else data.data_from)
-            end_date = datetime_format(data_to if data_to else data.data_to)
+            data_from = data_from or data.data_from
+            if not data_from:
+                raise ValueError(
+                    "No data_from set, and no data_from found in device data"
+                )
+            data_to = data_to or data.data_to
+            if not data_to:
+                raise ValueError("No data_to set, and no data_to found in device data")
+            start_date = datetime_format(data_from)
+            end_date = datetime_format(data_to)
             querystring = {
                 "resolution": str(data_resolution),
                 "operationMode": data.operation_mode,
@@ -382,7 +390,7 @@ class MyPyllantAPI:
         self, domestic_hot_water: DomesticHotWater, temperature: int | float
     ):
         if isinstance(temperature, float):
-            logger.warning(f"Domestic hot water can only be set to whole numbers")
+            logger.warning("Domestic hot water can only be set to whole numbers")
             temperature = int(round(temperature, 0))
         url = (
             f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/"

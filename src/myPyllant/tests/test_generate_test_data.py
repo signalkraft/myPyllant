@@ -1,4 +1,4 @@
-from tests.generate_test_data import _recursive_data_anonymize
+from .generate_test_data import _recursive_data_anonymize
 
 
 def test_anonymize_systems_data():

@@ -11,7 +11,6 @@ repos:
         args:
           - --safe
           - --quiet
-        files: ^((src|tests)/.+)?[^/]+\.py$
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.2
     hooks:
@@ -21,6 +20,22 @@ repos:
           - --skip="./.*,*.csv,*.json"
           - --quiet-level=2
         exclude_types: [csv, json]
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        entry: pflake8
+        additional_dependencies:
+          - pydocstyle==5.0.2
+          - pyproject-flake8==6.0.0
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.4
+    hooks:
+      - id: bandit
+        args:
+          - --quiet
+          - --format=custom
+          - -lll
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1
     hooks:
@@ -29,7 +44,6 @@ repos:
     rev: v4.4.0
     hooks:
       - id: check-executables-have-shebangs
-        stages: [manual]
       - id: check-json
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.0.1
@@ -39,3 +53,25 @@ repos:
           - --pretty
           - --show-error-codes
           - --show-error-context
+        additional_dependencies:
+          - aiohttp
+          - aioresponses
+          - freezegun
+          - pydantic
+          - pytest
+          - types-requests
+  - repo: local
+    hooks:
+      - id: update-sample
+        name: update-sample
+        entry: python src/myPyllant/tests/update_sample.py
+        language: python
+        pass_filenames: false
+  - repo: local
+    hooks:
+    - id: pytest
+      name: pytest
+      entry: .venv/bin/pytest
+      language: script
+      pass_filenames: false
+      always_run: true

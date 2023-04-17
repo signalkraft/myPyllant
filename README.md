@@ -27,6 +27,8 @@ Without this keyword, information about your system will be exported as JSON.
 ## Usage
 
 ```python
+#!/usr/bin/env python3
+
 import argparse
 import asyncio
 from datetime import datetime, timedelta
@@ -53,13 +55,11 @@ parser.add_argument(
 async def main(user, password, country, brand):
     async with MyPyllantAPI(user, password, country, brand) as api:
         async for system in api.get_systems():
-            print(await api.set_holiday(system, datetime.now()))
+            print(await api.set_holiday(system))
             print(
-                await (
-                    await api.set_holiday(
-                        system, datetime.now(), datetime.now() + timedelta(days=1)
-                    )
-                ).json()
+                await api.set_holiday(
+                    system, datetime.now(), datetime.now() + timedelta(days=7)
+                )
             )
             print(await api.cancel_holiday(system))
             print(await api.boost_domestic_hot_water(system.domestic_hot_water[0]))
@@ -96,6 +96,7 @@ I'm happy to accept PRs, if you run the pre-commit checks and test your changes:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
+pip install -e .
 pre-commit install
 pytest
 ```

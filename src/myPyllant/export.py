@@ -2,9 +2,9 @@
 
 import argparse
 import asyncio
-from datetime import datetime
 import json
 import sys
+from datetime import datetime
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
