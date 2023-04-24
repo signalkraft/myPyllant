@@ -38,6 +38,7 @@ def _mypyllant_aioresponses():
                 },
                 repeat=True,
             )
+            # API endpoints
             actions = re.compile(r".*(holiday|setBackTemperature|temperature)$")
             self.post(
                 actions,
@@ -97,9 +98,9 @@ def _mypyllant_aioresponses():
             if self.test_data:
                 # Create endpoints with stored JSON test data
                 self.get(
-                    f"{API_URL_BASE}/systems",
+                    f"{API_URL_BASE}/claims",
                     status=200,
-                    payload=self.test_data["systems"],
+                    payload=self.test_data["claims"],
                     repeat=True,
                 )
                 self.get(
@@ -112,6 +113,32 @@ def _mypyllant_aioresponses():
                     re.compile(r".*buckets\?.*"),
                     status=200,
                     payload=self.test_data["device_buckets"],
+                    repeat=True,
+                )
+                self.get(
+                    re.compile(
+                        rf".*systems/.*/{self.test_data['control_identifier']['controlIdentifier']}"
+                    ),
+                    status=200,
+                    payload=self.test_data["system"],
+                    repeat=True,
+                )
+                self.get(
+                    re.compile(r".*meta-info/control-identifier$"),
+                    status=200,
+                    payload=self.test_data["control_identifier"],
+                    repeat=True,
+                )
+                self.get(
+                    re.compile(r".*meta-info/time-zone"),
+                    status=200,
+                    payload=self.test_data["time_zone"],
+                    repeat=True,
+                )
+                self.get(
+                    re.compile(r".*meta-info/connection-status"),
+                    status=200,
+                    payload=self.test_data["connection_status"],
                     repeat=True,
                 )
             return self

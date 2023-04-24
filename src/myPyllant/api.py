@@ -3,12 +3,13 @@ from __future__ import annotations
 import datetime
 import logging
 import re
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncIterator
 from html import unescape
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
 from aiohttp import ClientResponseError
+from dateutil.tz import gettz
 
 from myPyllant.const import (
     API_URL_BASE,
@@ -16,11 +17,13 @@ from myPyllant.const import (
     BRANDS,
     CLIENT_ID,
     COUNTRIES,
+    DEFAULT_CONTROL_IDENTIFIER,
     DEFAULT_QUICK_VETO_DURATION,
     LOGIN_URL,
     TOKEN_URL,
 )
 from myPyllant.models import (
+    Claim,
     Device,
     DeviceData,
     DeviceDataBucketResolution,
@@ -98,6 +101,13 @@ class MyPyllantAPI:
     async def __aexit__(self, exc_type, exc, tb) -> None:
         if not self.aiohttp_session.closed:
             await self.aiohttp_session.close()
+
+    @classmethod
+    def get_system_id(cls, system: System | str) -> str:
+        if isinstance(system, System):
+            return system.id
+        else:
+            return system
 
     async def login(self):
         """
@@ -215,47 +225,40 @@ class MyPyllantAPI:
             "Connection": "keep-alive",
         }
 
-    async def get_systems(self) -> AsyncGenerator[System, int]:
-        systems_url = f"{API_URL_BASE}/systems"
+    async def get_claims(self) -> AsyncIterator[Claim]:
         async with self.aiohttp_session.get(
-            systems_url, headers=self.get_authorized_headers()
-        ) as systems_resp:
-            for system_json in await systems_resp.json():
-                system_id = system_json["systemId"]
-                system_url = f"{API_URL_BASE}/emf/v2/{system_id}/currentSystem"
+            f"{API_URL_BASE}/claims", headers=self.get_authorized_headers()
+        ) as claims_resp:
+            for claim_json in await claims_resp.json():
+                yield Claim(**dict_to_snake_case(claim_json))
 
-                async with self.aiohttp_session.get(
-                    system_url, headers=self.get_authorized_headers()
-                ) as current_system_resp:
-                    current_system_json = await current_system_resp.json()
-                system = System(
-                    id=system_id,
-                    current_system=dict_to_snake_case(current_system_json),
-                    **dict_to_snake_case(system_json),
-                )
-                yield system
-
-    @staticmethod
-    async def get_devices_by_system(
-        system: System,
-    ) -> AsyncGenerator[Device, None]:
-        for device_raw in system.current_system.values():
-            if not (isinstance(device_raw, dict) and "device_uuid" in device_raw):
-                continue
-            device = Device(
-                system=system,
-                **device_raw,
+    async def get_systems(self) -> AsyncIterator[System]:
+        claims = self.get_claims()
+        async for claim in claims:
+            control_identifier = await self.get_control_identifier(claim.system_id)
+            system_url = (
+                f"{API_URL_BASE}/systems/{claim.system_id}/{control_identifier}"
+            )
+            current_system_url = (
+                f"{API_URL_BASE}/emf/v2/{claim.system_id}/currentSystem"
             )
 
-            serial_nos = {d.serial_number: d for d in system.devices}
-            if device.device_serial_number in serial_nos.keys():
-                device_info = serial_nos[device.device_serial_number]
-                device.operational_data = dict_to_snake_case(
-                    device_info.operational_data
-                )
-                device.name = device_info.name
+            async with self.aiohttp_session.get(
+                system_url, headers=self.get_authorized_headers()
+            ) as system_resp:
+                system_json = await system_resp.json()
 
-            yield device
+            async with self.aiohttp_session.get(
+                current_system_url, headers=self.get_authorized_headers()
+            ) as current_system_resp:
+                current_system_json = await current_system_resp.json()
+
+            system = System(
+                claim=claim,
+                current_system=dict_to_snake_case(current_system_json),
+                **dict_to_snake_case(system_json),
+            )
+            yield system
 
     async def get_data_by_device(
         self,
@@ -263,7 +266,7 @@ class MyPyllantAPI:
         data_resolution: DeviceDataBucketResolution = DeviceDataBucketResolution.DAY,
         data_from: datetime.datetime | None = None,
         data_to: datetime.datetime | None = None,
-    ) -> AsyncGenerator[DeviceData, None]:
+    ) -> AsyncIterator[DeviceData]:
         for data in device.data:
             data_from = data_from or data.data_from
             if not data_from:
@@ -283,7 +286,7 @@ class MyPyllantAPI:
                 "endDate": end_date,
             }
             device_buckets_url = (
-                f"{API_URL_BASE}/emf/v2/{device.system.id}/"
+                f"{API_URL_BASE}/emf/v2/{device.system_id}/"
                 f"devices/{device.device_uuid}/buckets?{urlencode(querystring)}"
             )
             async with self.aiohttp_session.get(
@@ -426,3 +429,40 @@ class MyPyllantAPI:
             },
             headers=self.get_authorized_headers(),
         )
+
+    async def get_connection_status(self, system: System | str) -> bool:
+        url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/meta-info/connection-status"
+        response = await self.aiohttp_session.get(
+            url,
+            headers=self.get_authorized_headers(),
+        )
+        try:
+            return (await response.json())["connected"]
+        except KeyError:
+            logger.warning("Couldn't get connection status")
+            return False
+
+    async def get_control_identifier(self, system: System | str) -> str | None:
+        url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/meta-info/control-identifier"
+        response = await self.aiohttp_session.get(
+            url,
+            headers=self.get_authorized_headers(),
+        )
+        try:
+            return (await response.json())["controlIdentifier"]
+        except KeyError:
+            logger.warning("Couldn't get control identifier")
+            return DEFAULT_CONTROL_IDENTIFIER
+
+    async def get_time_zone(self, system: System | str) -> datetime.tzinfo | None:
+        url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/meta-info/time-zone"
+        response = await self.aiohttp_session.get(
+            url,
+            headers=self.get_authorized_headers(),
+        )
+        try:
+            tz = (await response.json())["timeZone"]
+            return gettz(tz)
+        except KeyError:
+            logger.warning("Couldn't get timezone from API")
+            return None

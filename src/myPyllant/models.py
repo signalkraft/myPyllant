@@ -1,9 +1,13 @@
 import datetime
+import json
 import logging
+from collections.abc import Iterator
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel
+
+from myPyllant.utils import datetime_parse
 
 logger = logging.getLogger(__name__)
 
@@ -59,20 +63,53 @@ class DHWOperationMode(MyPyllantEnum):
     OFF = "OFF"
 
 
+class Claim(BaseModel):
+    country_code: str
+    nomenclature: str
+    serial_number: str
+    state: str
+    system_id: str
+
+
+class ZoneHeating(BaseModel):
+    manual_mode_setpoint_heating: float
+    operation_mode_heating: ZoneHeatingOperatingMode
+    time_program_heating: dict
+    set_back_temperature: float
+
+
 class Zone(BaseModel):
     system_id: str
-    name: str
+    general: dict
     index: int
-    active: bool
+    is_active: bool
+    is_cooling_allowed: bool
+    zone_binding: str
     current_room_temperature: float | None
     current_special_function: ZoneCurrentSpecialFunction
+    desired_room_temperature_setpoint_heating: float
     desired_room_temperature_setpoint: float
-    manual_mode_setpoint: float
-    heating_operation_mode: ZoneHeatingOperatingMode
     heating_state: ZoneHeatingState
-    humidity: float | None
-    set_back_temperature: float
-    time_windows: dict
+    current_room_humidity: float | None
+    heating: ZoneHeating
+    associated_circuit_index: int | None
+    quick_veto_start_date_time: datetime.datetime | None
+    quick_veto_end_date_time: datetime.datetime | None
+
+    def __init__(self, **data: Any):
+        if "quick_veto_start_date_time" in data:
+            data["quick_veto_start_date_time"] = datetime_parse(
+                data["quick_veto_start_date_time"]
+            )
+        if "quick_veto_end_date_time" in data:
+            data["quick_veto_end_date_time"] = datetime_parse(
+                data["quick_veto_end_date_time"]
+            )
+        super().__init__(**data)
+
+    @property
+    def name(self):
+        return self.general["name"]
 
 
 class Circuit(BaseModel):
@@ -91,74 +128,92 @@ class Circuit(BaseModel):
 class DomesticHotWater(BaseModel):
     system_id: str
     index: int
-    current_dhw_tank_temperature: float | None
+    current_dhw_temperature: float | None
     current_special_function: DHWCurrentSpecialFunction
-    max_set_point: float
-    min_set_point: float
-    operation_mode: DHWOperationMode
-    set_point: float
-    time_windows: dict
+    max_setpoint: float
+    min_setpoint: float
+    operation_mode_dhw: DHWOperationMode
+    tapping_setpoint: float
+    time_program_dhw: dict
+    time_program_circulation_pump: dict
 
 
 class System(BaseModel):
     id: str
-    status: dict[str, bool]
-    devices: list["SystemDevice"]
+    claim: Claim | None
     current_system: dict = {}
-    system_configuration: dict = {}
-    system_control_state: dict = {}
-    gateway: dict = {}
-    has_ownership: bool
+    state: dict
+    properties: dict
+    configuration: dict
     zones: list[Zone] = []
     circuits: list[Circuit] = []
     domestic_hot_water: list[DomesticHotWater] = []
+    devices: list["Device"] = []
 
     def __init__(self, **data: Any) -> None:
-        if len(data["devices"]) > 0 and isinstance(data["devices"][0], dict):
-            data["devices"] = [SystemDevice(**d) for d in data.pop("devices")]
+        if "claim" in data and "id" not in data:
+            data["id"] = data["claim"].system_id
         super().__init__(**data)
-        logger.debug(
-            f'Creating related models from control_state: {self.system_control_state["control_state"]}'
-        )
-        self.zones = [Zone(system_id=self.id, **z) for z in self._raw_zones]
-        self.circuits = [Circuit(system_id=self.id, **c) for c in self._raw_circuits]
+        logger.debug(f"Creating related models from state: {data}")
+        self.zones = [Zone(system_id=self.id, **z) for z in self._merged_zones]
+        self.circuits = [Circuit(system_id=self.id, **c) for c in self._merged_circuits]
         self.domestic_hot_water = [
             DomesticHotWater(system_id=self.id, **d)
-            for d in self._raw_domestic_hot_water
+            for d in self._merged_domestic_hot_water
+        ]
+        self.devices = [
+            Device(system_id=self.id, type=k, **v) for k, v in self._raw_devices
         ]
 
     @property
-    def _raw_zones(self) -> list:
-        try:
-            return self.system_control_state["control_state"].get("zones", [])
-        except KeyError:
-            logger.info("Could not get zones from system control state")
-            return []
+    def _raw_devices(self) -> Iterator[tuple[str, dict]]:
+        for key, device in self.current_system.items():
+            if isinstance(device, dict) and "device_uuid" in device:
+                yield key, device
 
     @property
-    def _raw_circuits(self) -> list:
-        try:
-            return self.system_control_state["control_state"].get("circuits", [])
-        except KeyError:
-            logger.info("Could not get circuits from system control state")
-            return []
+    def primary_heat_generator(self) -> Optional["Device"]:
+        devices = [d for d in self.devices if d.type == "primary_heat_generator"]
+        if len(devices) > 0:
+            return devices[0]
+        return None
 
-    @property
-    def _raw_domestic_hot_water(self) -> list:
-        try:
-            return self.system_control_state["control_state"].get(
-                "domestic_hot_water", []
+    def _merge_object(self, obj_name) -> Iterator[dict]:
+        indexes = [o["index"] for o in self.configuration.get(obj_name, [])]
+        for idx in indexes:
+            configuration = [
+                c for c in self.configuration.get(obj_name, []) if c["index"] == idx
+            ][0]
+            state = [c for c in self.state.get(obj_name, []) if c["index"] == idx][0]
+            properties = [
+                c for c in self.properties.get(obj_name, []) if c["index"] == idx
+            ][0]
+            del state["index"]
+            del properties["index"]
+            logger.debug(
+                f"Merging {obj_name} into results: {json.dumps(configuration, indent=2)}"
             )
-        except KeyError:
-            logger.info("Could not get domestic hot water from system control state")
-            return []
+            logger.debug(json.dumps(state, indent=2))
+            logger.debug(json.dumps(properties, indent=2))
+            merged = dict(**state, **properties, **configuration)
+            yield merged
+
+    @property
+    def _merged_zones(self) -> Iterator[dict]:
+        return self._merge_object("zones")
+
+    @property
+    def _merged_circuits(self) -> Iterator[dict]:
+        return self._merge_object("circuits")
+
+    @property
+    def _merged_domestic_hot_water(self) -> Iterator[dict]:
+        return self._merge_object("dhw")
 
     @property
     def outdoor_temperature(self) -> float | None:
         try:
-            return self.system_control_state["control_state"]["general"][
-                "outdoor_temperature"
-            ]
+            return self.state["system"]["outdoor_temperature"]
         except KeyError:
             logger.info(
                 "Could not get outdoor temperature from system control state",
@@ -166,63 +221,16 @@ class System(BaseModel):
             return None
 
     @property
-    def status_online(self) -> bool | None:
-        return self.status["online"] if "online" in self.status else None
-
-    @property
-    def status_error(self) -> bool | None:
-        return self.status["error"] if "error" in self.status else None
-
-    @property
     def water_pressure(self) -> float | None:
         try:
-            return self.system_control_state["control_state"]["general"][
-                "system_water_pressure"
-            ]
+            return self.state["system"]["system_water_pressure"]
         except KeyError:
             logger.info("Could not get water pressure from system control state")
             return None
 
-    @property
-    def mode(self) -> str | None:
-        try:
-            return self.system_control_state["control_state"]["general"]["system_mode"]
-        except KeyError:
-            logger.info("Could not get mode from system control state")
-            return None
 
-
-class SystemDevice(BaseModel):
-    """
-    The System contains some information about devices already, this is saved in SystemDevice
-    The currentSystem API call returns more device info, which is saved in Device
-    """
-
+class Device(BaseModel):
     system_id: str
-    device_id: str | None
-    name: str = ""
-    type: str = ""
-    diagnostic_trouble_codes: list = []
-    properties: list = []
-    serial_number: str | None
-    article_number: str | None
-    operational_data: dict = {}
-    data: list["DeviceData"] = []
-
-    @property
-    def name_display(self) -> str:
-        if self.name:
-            return self.name
-        elif self.device_id:
-            return f"Device {self.device_id}"
-        elif self.serial_number:
-            return f"Device {self.serial_number}"
-        else:
-            return "System Device"
-
-
-class Device(SystemDevice):
-    system: System
     device_uuid: str
     name: str = ""
     product_name: str
@@ -231,15 +239,12 @@ class Device(SystemDevice):
     ebus_id: str
     article_number: str
     device_serial_number: str
+    type: str
     device_type: str
     first_data: datetime.datetime
     last_data: datetime.datetime
     operational_data: dict = {}
     data: list["DeviceData"] = []
-
-    def __init__(self, **data):
-        data["system_id"] = data["system"].id
-        super().__init__(**data)
 
     @property
     def name_display(self) -> str:

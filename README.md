@@ -31,6 +31,7 @@ Without this keyword, information about your system will be exported as JSON.
 
 import argparse
 import asyncio
+import logging
 from datetime import datetime, timedelta
 
 from myPyllant.api import MyPyllantAPI
@@ -50,17 +51,22 @@ parser.add_argument(
     default=DEFAULT_BRAND,
     choices=BRANDS.keys(),
 )
+parser.add_argument(
+    "-v", "--verbose", help="increase output verbosity", action="store_true"
+)
 
 
 async def main(user, password, country, brand):
     async with MyPyllantAPI(user, password, country, brand) as api:
         async for system in api.get_systems():
+            print(await api.get_time_zone(system))
             print(await api.set_holiday(system))
             print(
                 await api.set_holiday(
                     system, datetime.now(), datetime.now() + timedelta(days=7)
                 )
             )
+            print(await api.get_time_zone(system))
             print(await api.cancel_holiday(system))
             print(await api.boost_domestic_hot_water(system.domestic_hot_water[0]))
             print(await api.cancel_hot_water_boost(system.domestic_hot_water[0]))
@@ -76,6 +82,8 @@ async def main(user, password, country, brand):
 
 if __name__ == "__main__":
     args = parser.parse_args()
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
     asyncio.run(main(args.user, args.password, args.country, args.brand))
 
 ```
@@ -107,7 +115,7 @@ The myVAILLANT app uses Keycloak and OIDC for authentication, with a realm for e
 There is a script to check which countries are supported:
 
 ```shell
-python3 tests/find_countries.py
+python3 -m myPyllant.tests.find_countries
 ```
 
 Copy the resulting dictionary into [src/myPyllant/const.py](src/myPyllant/const.py)
@@ -117,10 +125,10 @@ Copy the resulting dictionary into [src/myPyllant/const.py](src/myPyllant/const.
 Because the myVAILLANT API isn't documented, you can help the development of this library by contributing test data:
 
 ```shell
-python3 tests/generate_test_data.py username password country brand
+python3 -m myPyllant.tests.generate_test_data username password country brand
 ```
 
-Create a fork of this repository and create a PR with the newly created folder in `test/json`.
+Create a fork of this repository and create a PR with the newly created folder in `src/myPyllant/tests/json`.
 
 ## Notes
 

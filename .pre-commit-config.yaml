@@ -60,6 +60,7 @@ repos:
           - pydantic
           - pytest
           - types-requests
+          - types-python-dateutil
   - repo: local
     hooks:
       - id: update-sample

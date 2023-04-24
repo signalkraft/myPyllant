@@ -1,11 +1,10 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, tzinfo
 
 import pytest
 from freezegun import freeze_time
 
 from myPyllant.api import MyPyllantAPI
-from myPyllant.export import main as export_main
 from myPyllant.models import (
     Device,
     DeviceData,
@@ -56,11 +55,34 @@ async def test_systems(mypyllant_aioresponses, mocked_api, test_data) -> None:
         system = await anext(mocked_api.get_systems())
 
         assert isinstance(system, System), "Expected System return type"
-        assert isinstance(system.status_online, bool)
-        assert isinstance(system.status_error, bool)
         assert isinstance(system.outdoor_temperature, (float | None))
-        assert isinstance(system.mode, str)
         assert isinstance(system.water_pressure, float)
+        await mocked_api.aiohttp_session.close()
+
+
+@pytest.mark.parametrize("test_data", get_test_data())
+async def test_meta_info(mypyllant_aioresponses, mocked_api, test_data) -> None:
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(mocked_api.get_systems())
+        status = await mocked_api.get_connection_status(system)
+        assert isinstance(status, bool)
+        time_zone = await mocked_api.get_time_zone(system)
+        assert isinstance(time_zone, tzinfo)
+        await mocked_api.aiohttp_session.close()
+
+
+@pytest.mark.parametrize("test_data", get_test_data())
+async def test_meta_info_system_id(
+    mypyllant_aioresponses, mocked_api, test_data
+) -> None:
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(mocked_api.get_systems())
+        control_identifier = await mocked_api.get_control_identifier(system.id)
+        assert isinstance(control_identifier, str)
+        status = await mocked_api.get_connection_status(system.id)
+        assert isinstance(status, bool)
+        time_zone = await mocked_api.get_time_zone(system.id)
+        assert isinstance(time_zone, tzinfo)
         await mocked_api.aiohttp_session.close()
 
 
@@ -68,7 +90,7 @@ async def test_systems(mypyllant_aioresponses, mocked_api, test_data) -> None:
 async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
-        device = await anext(mocked_api.get_devices_by_system(system))
+        device = system.devices[0]
 
         assert isinstance(device, Device)
         assert isinstance(device.name_display, str)
@@ -79,20 +101,12 @@ async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
 async def test_device_data(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
-        device = await anext(mocked_api.get_devices_by_system(system))
+        device = system.devices[0]
         device_data = await anext(mocked_api.get_data_by_device(device))
 
         assert isinstance(device_data, DeviceData)
         assert isinstance(device_data.data[0], DeviceDataBucket)
         await mocked_api.aiohttp_session.close()
-
-
-@pytest.mark.parametrize("test_data", get_test_data())
-async def test_export(mypyllant_aioresponses, capsys, test_data) -> None:
-    with mypyllant_aioresponses(test_data) as _:
-        await export_main("test@example.com", "test", "germany", "vaillant")
-        captured = capsys.readouterr()
-        assert isinstance(json.loads(captured.out), dict)
 
 
 @pytest.mark.parametrize("test_data", get_test_data())

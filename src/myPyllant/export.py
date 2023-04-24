@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import json
+import logging
 import sys
 from datetime import datetime
 
@@ -50,6 +51,9 @@ parser.add_argument(
     type=datetime.fromisoformat,
     help="Date where the data should end (ISO format)",
 )
+parser.add_argument(
+    "-v", "--verbose", help="increase output verbosity", action="store_true"
+)
 
 
 async def main(
@@ -58,20 +62,15 @@ async def main(
     async with MyPyllantAPI(user, password, country, brand) as api:
         async for system in api.get_systems():
             if data:
-                data_list = [
-                    {
-                        "device": d.dict()
-                        | {
-                            "data": [
-                                d
-                                async for d in api.get_data_by_device(
-                                    d, resolution, start, end
-                                )
-                            ]
-                        }
-                    }
-                    async for d in api.get_devices_by_system(system)
-                ]
+                data_list = []
+                for device in system.devices:
+                    data = [
+                        d.dict()
+                        async for d in api.get_data_by_device(
+                            device, resolution, start, end
+                        )
+                    ]
+                    data_list.append(dict(device=device.dict(), data=data))
                 sys.stdout.write(
                     json.dumps(
                         data_list,
@@ -86,4 +85,9 @@ async def main(
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    asyncio.run(main(**vars(args)))
+    kwargs = vars(args)
+    verbose = kwargs.pop("verbose")
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
+    asyncio.run(main(**kwargs))
