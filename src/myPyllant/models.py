@@ -149,6 +149,8 @@ class System(BaseModel):
     circuits: list[Circuit] = []
     domestic_hot_water: list[DomesticHotWater] = []
     devices: list["Device"] = []
+    timezone: datetime.tzinfo | None
+    connected: bool | None
 
     def __init__(self, **data: Any) -> None:
         if "claim" in data and "id" not in data:
@@ -164,6 +166,9 @@ class System(BaseModel):
         self.devices = [
             Device(system_id=self.id, type=k, **v) for k, v in self._raw_devices
         ]
+
+    class Config:
+        arbitrary_types_allowed = True  # Necessary for timezone
 
     @property
     def _raw_devices(self) -> Iterator[tuple[str, dict]]:

@@ -232,7 +232,13 @@ class MyPyllantAPI:
             for claim_json in await claims_resp.json():
                 yield Claim(**dict_to_snake_case(claim_json))
 
-    async def get_systems(self) -> AsyncIterator[System]:
+    async def get_systems(
+        self, include_timezone=False, include_connection_status=False
+    ) -> AsyncIterator[System]:
+        logger.debug(
+            f"Getting systems with include_timezone={include_timezone}"
+            f" and include_connection_status={include_connection_status}"
+        )
         claims = self.get_claims()
         async for claim in claims:
             control_identifier = await self.get_control_identifier(claim.system_id)
@@ -255,6 +261,12 @@ class MyPyllantAPI:
 
             system = System(
                 claim=claim,
+                timezone=await self.get_time_zone(claim.system_id)
+                if include_timezone
+                else None,
+                connected=await self.get_connection_status(claim.system_id)
+                if include_connection_status
+                else None,
                 current_system=dict_to_snake_case(current_system_json),
                 **dict_to_snake_case(system_json),
             )
