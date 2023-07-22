@@ -26,6 +26,7 @@ class MyPyllantEnum(Enum):
 
 class CircuitState(MyPyllantEnum):
     HEATING = "HEATING"
+    COOLING = "COOLING"
     STANDBY = "STANDBY"
 
 
@@ -50,6 +51,7 @@ class ZoneCurrentSpecialFunction(MyPyllantEnum):
 class ZoneHeatingState(MyPyllantEnum):
     IDLE = "IDLE"
     HEATING_UP = "HEATING_UP"
+    COOLING_DOWN = "COOLING_DOWN"
 
 
 class DHWCurrentSpecialFunction(MyPyllantEnum):
@@ -87,8 +89,9 @@ class Zone(BaseModel):
     zone_binding: str
     current_room_temperature: float | None
     current_special_function: ZoneCurrentSpecialFunction
-    desired_room_temperature_setpoint_heating: float
-    desired_room_temperature_setpoint: float
+    desired_room_temperature_setpoint_heating: float | None
+    desired_room_temperature_setpoint_cooling: float | None
+    desired_room_temperature_setpoint: float | None
     heating_state: ZoneHeatingState
     current_room_humidity: float | None
     heating: ZoneHeating
@@ -260,7 +263,7 @@ class Device(BaseModel):
 class DeviceDataBucket(BaseModel):
     start_date: datetime.datetime
     end_date: datetime.datetime
-    value: float
+    value: float | None
 
 
 class DeviceData(BaseModel):
