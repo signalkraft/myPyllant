@@ -136,6 +136,19 @@ Check the timestamp on the folders, if you're unsure which one is yours.
 
 You can then either create a PR with the newly created folder, or zip it and attach it to an issue.
 
+### Reverse Engineering API requests of the myVAILLANT app
+
+You'll need a rooted Android device with Magisk.
+
+1. Install https://github.com/NVISOsecurity/MagiskTrustUserCerts on your Android device
+2. Run mitmproxy, for example in Docker: `docker run --rm -it -v ~/.mitmproxy:/home/mitmproxy/.mitmproxy -p 0.0.0.0:8080:8080 -p 127.0.0.1:8081:8081 mitmproxy/mitmproxy mitmweb --web-host 0.0.0.0`
+3. Set your Android device's proxy to the IP of the device running mitmproxy, using port 8080, with an exception for `identity.vaillant-group.com` (which opens in your browser and uses HSTS)
+4. Visit http://mitm.it/ on your Android device, download the CA cert, install it through settings, restart the device
+5. Check that you can see your Android device's HTTPS traffic on http://127.0.0.1:8081
+6. Install myVAILLANT 2.5.5 and launch it, you'll see all its API calls in mitmproxy
+
+From 2.7.0 the app seem to have some additional HTTPS cert pinning that leads to an error page if mitmproxy is enabled.
+
 ## Notes
 
 * Auth is loosely based on https://github.com/TA2k/ioBroker.vaillant
