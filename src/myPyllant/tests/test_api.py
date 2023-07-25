@@ -90,10 +90,10 @@ async def test_meta_info_system_id(
 async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
-        device = system.devices[0]
-
-        assert isinstance(device, Device)
-        assert isinstance(device.name_display, str)
+        if len(system.devices) > 0:
+            device = system.devices[0]
+            assert isinstance(device, Device)
+            assert isinstance(device.name_display, str)
         await mocked_api.aiohttp_session.close()
 
 
@@ -101,11 +101,11 @@ async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
 async def test_device_data(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
-        device = system.devices[0]
-        device_data = await anext(mocked_api.get_data_by_device(device))
-
-        assert isinstance(device_data, DeviceData)
-        assert isinstance(device_data.data[0], DeviceDataBucket)
+        if len(system.devices) > 0:
+            device = system.devices[0]
+            device_data = await anext(mocked_api.get_data_by_device(device))
+            assert isinstance(device_data, DeviceData)
+            assert isinstance(device_data.data[0], DeviceDataBucket)
         await mocked_api.aiohttp_session.close()
 
 

@@ -84,6 +84,9 @@ async def main(user, password, country, brand):
                 anonymized_system = _recursive_data_anonymize(
                     copy.deepcopy(claims), SALT
                 )
+                for system in anonymized_system:
+                    if "address" in system:
+                        system.pop("address")
                 fh.write(json.dumps(anonymized_system, indent=2))
 
         control_identifier_url = f"{API_URL_BASE}/systems/{claims[0]['systemId']}/meta-info/control-identifier"

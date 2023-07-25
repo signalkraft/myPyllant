@@ -199,10 +199,20 @@ class System(BaseModel):
             configuration = next(
                 c for c in self.configuration.get(obj_name, []) if c["index"] == idx
             )
-            state = next(c for c in self.state.get(obj_name, []) if c["index"] == idx)
-            properties = next(
-                c for c in self.properties.get(obj_name, []) if c["index"] == idx
-            )
+            try:
+                state = next(
+                    c for c in self.state.get(obj_name, []) if c["index"] == idx
+                )
+            except (StopIteration, KeyError) as e:
+                logger.warning("Error when merging state", exc_info=e)
+                state = {}
+            try:
+                properties = next(
+                    c for c in self.properties.get(obj_name, []) if c["index"] == idx
+                )
+            except (StopIteration, KeyError) as e:
+                logger.warning("Error when merging properties", exc_info=e)
+                properties = {}
             # index is part of all three fields, delete from two to avoid multiple keyword argument error in dict init
             configuration.update(state)
             configuration.update(properties)

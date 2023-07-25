@@ -1,34 +1,34 @@
 {
   "state": {
     "system": {
-      "outdoorTemperature": 15.199219,
-      "systemWaterPressure": 1.1
+      "outdoorTemperature": 15.65625,
+      "systemWaterPressure": 1.3,
+      "outdoorTemperatureAverage24h": 19.300781
     },
     "zones": [
       {
         "index": 0,
-        "desiredRoomTemperatureSetpointHeating": 20.5,
-        "desiredRoomTemperatureSetpoint": 20.5,
-        "currentRoomTemperature": 20.35,
-        "currentRoomHumidity": 60.0,
-        "currentSpecialFunction": "QUICK_VETO",
-        "heatingState": "HEATING_UP",
-        "quickVetoStartDateTime": "2023-04-24T09:35:28Z",
-        "quickVetoEndDateTime": "2023-04-24T12:35:00Z"
+        "desiredRoomTemperatureSetpointHeating": 0.0,
+        "desiredRoomTemperatureSetpoint": 0.0,
+        "currentRoomTemperature": 23.1625,
+        "currentRoomHumidity": 62.0,
+        "currentSpecialFunction": "NONE",
+        "heatingState": "IDLE"
       }
     ],
     "circuits": [
       {
         "index": 0,
-        "circuitState": "HEATING",
-        "currentCircuitFlowTemperature": 52.5
+        "circuitState": "STANDBY",
+        "currentCircuitFlowTemperature": 30.0,
+        "calculatedEnergyManagerState": "HEATING_STANDBY"
       }
     ],
     "dhw": [
       {
         "index": 255,
         "currentSpecialFunction": "REGULAR",
-        "currentDhwTemperature": 45.5
+        "currentDhwTemperature": 44.0
       }
     ]
   },
@@ -42,7 +42,7 @@
         "heating": {
           "operationModeHeating": "TIME_CONTROLLED",
           "setBackTemperature": 15.5,
-          "manualModeSetpointHeating": 21.0,
+          "manualModeSetpointHeating": 19.0,
           "timeProgramHeating": {
             "metaInfo": {
               "minSlotsPerDay": 0,
@@ -105,7 +105,7 @@
     "circuits": [
       {
         "index": 0,
-        "heatingCurve": 0.5549309,
+        "heatingCurve": 0.6842696,
         "heatingFlowTemperatureMinimumSetpoint": 35.0,
         "setBackModeEnabled": false
       }
