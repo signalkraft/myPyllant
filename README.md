@@ -127,10 +127,14 @@ Copy the resulting dictionary into [src/myPyllant/const.py](src/myPyllant/const.
 Because the myVAILLANT API isn't documented, you can help the development of this library by contributing test data:
 
 ```shell
+python3 -m myPyllant.tests.generate_test_data -h
 python3 -m myPyllant.tests.generate_test_data username password country brand
 ```
 
-Create a fork of this repository and create a PR with the newly created folder in `src/myPyllant/tests/json`.
+This creates a new folder with JSON values from the API in `src/myPyllant/tests/json`.
+Check the timestamp on the folders, if you're unsure which one is yours.
+
+You can then either create a PR with the newly created folder, or zip it and attach it to an issue.
 
 ## Notes
 
