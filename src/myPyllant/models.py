@@ -1,5 +1,4 @@
 import datetime
-import json
 import logging
 from collections.abc import Iterator
 from enum import Enum
@@ -160,11 +159,12 @@ class System(BaseModel):
             data["id"] = data["claim"].system_id
         super().__init__(**data)
         logger.debug(f"Creating related models from state: {data}")
-        self.zones = [Zone(system_id=self.id, **z) for z in self._merged_zones]
-        self.circuits = [Circuit(system_id=self.id, **c) for c in self._merged_circuits]
+        self.zones = [Zone(system_id=self.id, **z) for z in self._merge_object("zones")]
+        self.circuits = [
+            Circuit(system_id=self.id, **c) for c in self._merge_object("circuits")
+        ]
         self.domestic_hot_water = [
-            DomesticHotWater(system_id=self.id, **d)
-            for d in self._merged_domestic_hot_water
+            DomesticHotWater(system_id=self.id, **d) for d in self._merge_object("dhw")
         ]
         self.devices = [
             Device(system_id=self.id, type=k, **v) for k, v in self._raw_devices
@@ -187,36 +187,26 @@ class System(BaseModel):
         return None
 
     def _merge_object(self, obj_name) -> Iterator[dict]:
+        """
+        The Vaillant API returns information about zones, circuits, and dhw separately as
+        configuration, state, and properties.
+
+        This function merges everything together into one big dict for a given object (i.e. zones)
+        """
         indexes = [o["index"] for o in self.configuration.get(obj_name, [])]
         for idx in indexes:
-            configuration = [
+            # deepcopy() avoids unintentional changes to the referenced objects
+            configuration = next(
                 c for c in self.configuration.get(obj_name, []) if c["index"] == idx
-            ][0]
-            state = [c for c in self.state.get(obj_name, []) if c["index"] == idx][0]
-            properties = [
-                c for c in self.properties.get(obj_name, []) if c["index"] == idx
-            ][0]
-            del state["index"]
-            del properties["index"]
-            logger.debug(
-                f"Merging {obj_name} into results: {json.dumps(configuration, indent=2)}"
             )
-            logger.debug(json.dumps(state, indent=2))
-            logger.debug(json.dumps(properties, indent=2))
-            merged = dict(**state, **properties, **configuration)
-            yield merged
-
-    @property
-    def _merged_zones(self) -> Iterator[dict]:
-        return self._merge_object("zones")
-
-    @property
-    def _merged_circuits(self) -> Iterator[dict]:
-        return self._merge_object("circuits")
-
-    @property
-    def _merged_domestic_hot_water(self) -> Iterator[dict]:
-        return self._merge_object("dhw")
+            state = next(c for c in self.state.get(obj_name, []) if c["index"] == idx)
+            properties = next(
+                c for c in self.properties.get(obj_name, []) if c["index"] == idx
+            )
+            # index is part of all three fields, delete from two to avoid multiple keyword argument error in dict init
+            configuration.update(state)
+            configuration.update(properties)
+            yield configuration
 
     @property
     def outdoor_temperature(self) -> float | None:
