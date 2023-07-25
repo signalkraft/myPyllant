@@ -186,13 +186,17 @@ class System(BaseModel):
     def _merge_object(self, obj_name) -> Iterator[dict]:
         indexes = [o["index"] for o in self.configuration.get(obj_name, [])]
         for idx in indexes:
-            configuration = dict([
-                c for c in self.configuration.get(obj_name, []) if c["index"] == idx
-            ][0])
-            state = dict([c for c in self.state.get(obj_name, []) if c["index"] == idx][0])
-            properties = dict([
-                c for c in self.properties.get(obj_name, []) if c["index"] == idx
-            ][0])
+            configuration = dict(
+                [c for c in self.configuration.get(obj_name, []) if c["index"] == idx][
+                    0
+                ]
+            )
+            state = dict(
+                [c for c in self.state.get(obj_name, []) if c["index"] == idx][0]
+            )
+            properties = dict(
+                [c for c in self.properties.get(obj_name, []) if c["index"] == idx][0]
+            )
             del state["index"]
             del properties["index"]
             logger.debug(
@@ -200,9 +204,8 @@ class System(BaseModel):
             )
             logger.debug(json.dumps(state, indent=2))
             logger.debug(json.dumps(properties, indent=2))
-            merged = dict(**state, **properties, **configuration)			
+            merged = dict(**state, **properties, **configuration)
             yield merged
-
 
     @property
     def _merged_zones(self) -> Iterator[dict]:
