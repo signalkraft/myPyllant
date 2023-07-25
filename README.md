@@ -101,6 +101,8 @@ See https://github.com/signalkraft/mypyllant-component/blob/main/README.md#teste
 I'm happy to accept PRs, if you run the pre-commit checks and test your changes:
 
 ```shell
+git clone https://github.com/signalkraft/myPyllant.git
+cd myPyllant
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
