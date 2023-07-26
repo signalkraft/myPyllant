@@ -152,6 +152,7 @@ class System(BaseModel):
     domestic_hot_water: list[DomesticHotWater] = []
     devices: list["Device"] = []
     timezone: datetime.tzinfo | None
+    firmware_update_required: bool | None
     connected: bool | None
 
     def __init__(self, **data: Any) -> None:

@@ -138,16 +138,16 @@ You can then either create a PR with the newly created folder, or zip it and att
 
 ### Reverse Engineering API requests of the myVAILLANT app
 
-You'll need a rooted Android device with Magisk.
+You'll need an Android device and a computer with ADB on the same network.
 
-1. Install https://github.com/NVISOsecurity/MagiskTrustUserCerts on your Android device
-2. Run mitmproxy, for example in Docker: `docker run --rm -it -v ~/.mitmproxy:/home/mitmproxy/.mitmproxy -p 0.0.0.0:8080:8080 -p 127.0.0.1:8081:8081 mitmproxy/mitmproxy mitmweb --web-host 0.0.0.0`
-3. Set your Android device's proxy to the IP of the device running mitmproxy, using port 8080, with an exception for `identity.vaillant-group.com` (which opens in your browser and uses HSTS)
-4. Visit http://mitm.it/ on your Android device, download the CA cert, install it through settings, restart the device
-5. Check that you can see your Android device's HTTPS traffic on http://127.0.0.1:8081
-6. Install myVAILLANT 2.5.5 and launch it, you'll see all its API calls in mitmproxy
-
-From 2.7.0 the app seem to have some additional HTTPS cert pinning that leads to an error page if mitmproxy is enabled.
+1. Run mitmproxy, for example in Docker: `docker run --rm -it -v ~/.mitmproxy:/home/mitmproxy/.mitmproxy -p 0.0.0.0:8080:8080 -p 127.0.0.1:8081:8081 mitmproxy/mitmproxy mitmweb --web-host 0.0.0.0`
+2. In the WIFI connection settings of your Android device, set a manual proxy to the IP of the computer running mitmproxy on port 8080, with an exception for `identity.vaillant-group.com` (which opens in your browser and uses HSTS)
+3. Visit http://mitm.it/ on your Android device, download the CA cert & install it through the settings app
+4. Install ADB and connect your Android device to USB in debug mode
+5. Look for the myVAILLANT APK and download it
+6. Run https://github.com/mitmproxy/android-unpinner on the APK and wait for it to launch the modified app on your Android device with ADB
+7. You should see all API calls in mitmproxy's web interface on http://127.0.0.1:8081 now. If you can't log in because of a certificate error, make sure you added the exception to the proxy settings.
+   If you can log in, but the app reports an error, the unpinning didn't work. You can try https://github.com/NVISOsecurity/MagiskTrustUserCertson if you have a rooted Android device
 
 ## Notes
 

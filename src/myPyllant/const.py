@@ -56,5 +56,10 @@ COUNTRIES = {
         "spain": "Spain",
     },
 }
+MANUAL_SETPOINT_TYPES = {
+    "HEATING": "Heating",
+    "COOLING": "Cooling",
+}
+DEFAULT_MANUAL_SETPOINT_TYPE = "HEATING"
 DEFAULT_QUICK_VETO_DURATION = 3
 DEFAULT_CONTROL_IDENTIFIER = "tli"

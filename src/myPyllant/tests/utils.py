@@ -141,6 +141,12 @@ def _mypyllant_aioresponses():
                     payload=self.test_data["connection_status"],
                     repeat=True,
                 )
+                self.get(
+                    re.compile(r".*firmware-update-required.*"),
+                    status=200,
+                    payload=self.test_data["firmware_update_required"],
+                    repeat=True,
+                )
             return self
 
     return _mypyllant_aioresponses

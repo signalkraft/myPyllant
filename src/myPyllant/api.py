@@ -233,7 +233,10 @@ class MyPyllantAPI:
                 yield Claim(**dict_to_snake_case(claim_json))
 
     async def get_systems(
-        self, include_timezone=False, include_connection_status=False
+        self,
+        include_timezone=False,
+        include_connection_status=False,
+        include_firmware_update_required=False,
     ) -> AsyncIterator[System]:
         logger.debug(
             f"Getting systems with include_timezone={include_timezone}"
@@ -266,6 +269,11 @@ class MyPyllantAPI:
                 else None,
                 connected=await self.get_connection_status(claim.system_id)
                 if include_connection_status
+                else None,
+                firmware_update_required=await self.get_firmware_update_required(
+                    claim.system_id
+                )
+                if include_firmware_update_required
                 else None,
                 current_system=dict_to_snake_case(current_system_json),
                 **dict_to_snake_case(system_json),
@@ -358,6 +366,24 @@ class MyPyllantAPI:
                 },
                 headers=self.get_authorized_headers(),
             )
+
+    async def set_manual_mode_setpoint(
+        self,
+        zone: Zone,
+        temperature: float,
+        setpoint_type: str = "HEATING",
+    ):
+        logger.debug(f"Setting manual mode setpoint for {zone.name}")
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/manual-mode-setpoint"
+        payload = {
+            "setpoint": temperature,
+            "type": setpoint_type,
+        }
+        return await self.aiohttp_session.patch(
+            url,
+            json=payload,
+            headers=self.get_authorized_headers(),
+        )
 
     async def cancel_quick_veto_zone_temperature(self, zone: Zone):
         url = f"{API_URL_BASE}/systems/{zone.system_id}/zones/{zone.index}/quickVeto"
@@ -478,3 +504,11 @@ class MyPyllantAPI:
         except KeyError:
             logger.warning("Couldn't get timezone from API")
             return None
+
+    async def get_firmware_update_required(self, system: System | str) -> bool:
+        url = f"{API_URL_BASE}/firmware-update-required/{self.get_system_id(system)}"
+        response = await self.aiohttp_session.get(
+            url,
+            headers=self.get_authorized_headers(),
+        )
+        return (await response.json())["firmwareUpdateRequired"]
