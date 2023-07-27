@@ -135,7 +135,7 @@ class DomesticHotWater(BaseModel):
     max_setpoint: float
     min_setpoint: float
     operation_mode_dhw: DHWOperationMode
-    tapping_setpoint: float
+    tapping_setpoint: float | None
     time_program_dhw: dict
     time_program_circulation_pump: dict
 
