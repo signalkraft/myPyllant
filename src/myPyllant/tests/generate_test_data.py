@@ -145,6 +145,7 @@ async def main(user, password, brand, country=None):
             with open(json_dir / "device_buckets.json", "w") as fh:
                 device_buckets = await device_buckets_resp.json()
                 fh.write(json.dumps(device_buckets, indent=2))
+        print(f"Wrote test data to {json_dir}")
 
 
 def _recursive_data_anonymize(
