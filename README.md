@@ -17,8 +17,14 @@ Not affiliated with Vaillant, the developers take no responsibility for anything
 
 ```shell
 pip install myPyllant
-python3 -m myPyllant.export user password country brand
+python3 -m myPyllant.export user password brand --country country
 # See python3 -m myPyllant.export -h for more options and a list of countries
+```
+
+..or use Docker:
+
+```shell
+docker run -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.export user password brand --country country
 ```
 
 The `--data` argument exports historical data of the devices in your system.
@@ -129,13 +135,18 @@ Because the myVAILLANT API isn't documented, you can help the development of thi
 
 ```shell
 python3 -m myPyllant.tests.generate_test_data -h
-python3 -m myPyllant.tests.generate_test_data username password country brand
+python3 -m myPyllant.tests.generate_test_data username password brand --country country
 ```
 
-This creates a new folder with JSON values from the API in `src/myPyllant/tests/json`.
-Check the timestamp on the folders, if you're unsure which one is yours.
+..or use Docker:
 
-You can then either create a PR with the newly created folder, or zip it and attach it to an issue.
+```shell
+docker run -v $(pwd)/test_data:/build/src/myPyllant/tests/json -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.tests.generate_test_data username password brand --country country
+```
+
+With docker, the results will be put into `test_data/`.
+
+You can then either create a PR with the created folder, or zip it and attach it to an issue.
 
 ### Reverse Engineering API requests of the myVAILLANT app
 
