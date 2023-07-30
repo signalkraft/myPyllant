@@ -196,7 +196,7 @@ class System(BaseModel):
         """
         indexes = [o["index"] for o in self.configuration.get(obj_name, [])]
         for idx in indexes:
-            # deepcopy() avoids unintentional changes to the referenced objects
+            # State and properties get merged into configuration
             configuration = next(
                 c for c in self.configuration.get(obj_name, []) if c["index"] == idx
             )
