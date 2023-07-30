@@ -32,7 +32,7 @@ def get_test_data():
 async def test_login(mypyllant_aioresponses) -> None:
     with mypyllant_aioresponses() as _:
         async with MyPyllantAPI(
-            "test@example.com", "test", "germany", "vaillant"
+            "test@example.com", "test", "vaillant", "germany"
         ) as mocked_api:
             assert isinstance(mocked_api.oauth_session_expires, datetime)
             assert mocked_api.oauth_session_expires > datetime.now()

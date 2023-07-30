@@ -4,6 +4,7 @@ from aioresponses import aioresponses
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.const import API_URL_BASE, LOGIN_URL
+from myPyllant.utils import get_realm
 
 
 def _mypyllant_aioresponses():
@@ -18,7 +19,7 @@ def _mypyllant_aioresponses():
             # auth endpoints
             self.get(
                 re.compile(r".*openid-connect/auth\?"),
-                body=f"{LOGIN_URL.format(brand='vaillant', country='germany')}?test=test",
+                body=f"{LOGIN_URL.format(realm=get_realm('vaillant', 'germany'))}?test=test",
                 status=200,
                 repeat=True,
             )
@@ -153,7 +154,7 @@ def _mypyllant_aioresponses():
 
 
 async def _mocked_api(*args, **kwargs) -> MyPyllantAPI:
-    api = MyPyllantAPI("test@example.com", "test", "germany", "vaillant")
+    api = MyPyllantAPI("test@example.com", "test", "vaillant", "germany")
     api.oauth_session = {
         "access_token": "access_token",
         "refresh_token": "refresh_token",

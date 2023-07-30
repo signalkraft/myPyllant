@@ -34,7 +34,12 @@ from myPyllant.models import (
     ZoneCurrentSpecialFunction,
     ZoneHeatingOperatingMode,
 )
-from myPyllant.utils import datetime_format, dict_to_snake_case, generate_code
+from myPyllant.utils import (
+    datetime_format,
+    dict_to_snake_case,
+    generate_code,
+    get_realm,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +49,10 @@ class AuthenticationFailed(ConnectionError):
 
 
 class LoginEndpointInvalid(ConnectionError):
+    pass
+
+
+class RealmInvalid(ConnectionError):
     pass
 
 
@@ -68,15 +77,20 @@ class MyPyllantAPI:
     oauth_session: dict = {}
     oauth_session_expires: datetime.datetime | None = None
 
-    def __init__(self, username: str, password: str, country: str, brand: str) -> None:
+    def __init__(
+        self, username: str, password: str, brand: str, country: str | None = None
+    ) -> None:
         if brand not in BRANDS.keys():
             raise ValueError(
                 f"Invalid brand, must be one of {', '.join(BRANDS.keys())}"
             )
-        if country not in COUNTRIES[brand].keys():
-            raise ValueError(
+        if country and country not in COUNTRIES[brand].keys():
+            raise RealmInvalid(
                 f"Invalid country, {BRANDS[brand]} only supports {', '.join(COUNTRIES[brand].keys())}"
             )
+        if not country and brand in COUNTRIES and COUNTRIES[brand]:
+            # If a brand has countries defined, a country needs to be provided
+            raise RealmInvalid(f"{BRANDS[brand]} requires country to be passed")
         self.username = username
         self.password = password
         self.country = country
@@ -130,7 +144,7 @@ class MyPyllantAPI:
         # Grabbing the login URL from the HTML form of the login page
         try:
             async with self.aiohttp_session.get(
-                AUTHENTICATE_URL.format(country=self.country, brand=self.brand)
+                AUTHENTICATE_URL.format(realm=get_realm(self.brand, self.country))
                 + "?"
                 + urlencode(auth_querystring)
             ) as resp:
@@ -139,7 +153,7 @@ class MyPyllantAPI:
             raise LoginEndpointInvalid from e
 
         result = re.search(
-            LOGIN_URL.format(country=self.country, brand=self.brand) + r"\?([^\"]*)",
+            LOGIN_URL.format(realm=get_realm(self.brand, self.country)) + r"\?([^\"]*)",
             login_html,
         )
         login_url = unescape(result.group())
@@ -174,7 +188,7 @@ class MyPyllantAPI:
         }
 
         async with self.aiohttp_session.post(
-            TOKEN_URL.format(country=self.country, brand=self.brand),
+            TOKEN_URL.format(realm=get_realm(self.brand, self.country)),
             data=token_payload,
             raise_for_status=False,
         ) as resp:
@@ -201,7 +215,7 @@ class MyPyllantAPI:
             "grant_type": "refresh_token",
         }
         async with self.aiohttp_session.post(
-            TOKEN_URL.format(country=self.country, brand=self.brand),
+            TOKEN_URL.format(realm=get_realm(self.brand, self.country)),
             data=refresh_payload,
         ) as resp:
             self.oauth_session = await resp.json()

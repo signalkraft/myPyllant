@@ -9,7 +9,7 @@ from .test_api import get_test_data
 @pytest.mark.parametrize("test_data", get_test_data())
 async def test_export(mypyllant_aioresponses, capsys, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        await export_main("test@example.com", "test", "germany", "vaillant")
+        await export_main("test@example.com", "test", "vaillant", "germany")
         captured = capsys.readouterr()
         assert isinstance(json.loads(captured.out), dict)
 
@@ -17,6 +17,6 @@ async def test_export(mypyllant_aioresponses, capsys, test_data) -> None:
 @pytest.mark.parametrize("test_data", get_test_data())
 async def test_export_data(mypyllant_aioresponses, capsys, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        await export_main("test@example.com", "test", "germany", "vaillant", data=True)
+        await export_main("test@example.com", "test", "vaillant", "germany", data=True)
         captured = capsys.readouterr()
         assert isinstance(json.loads(captured.out), list)

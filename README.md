@@ -41,23 +41,24 @@ parser = argparse.ArgumentParser(description="Export data from myVaillant API   
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
 parser.add_argument("password", help="Password for the myVaillant app")
 parser.add_argument(
-    "country",
-    help="Country your account is registered in, i.e. 'germany'",
-    choices=COUNTRIES[DEFAULT_BRAND].keys(),
-)
-parser.add_argument(
     "brand",
     help="Brand your account is registered in, i.e. 'vaillant'",
     default=DEFAULT_BRAND,
     choices=BRANDS.keys(),
 )
 parser.add_argument(
+    "--country",
+    help="Country your account is registered in, i.e. 'germany'",
+    choices=COUNTRIES[DEFAULT_BRAND].keys(),
+    required=False,
+)
+parser.add_argument(
     "-v", "--verbose", help="increase output verbosity", action="store_true"
 )
 
 
-async def main(user, password, country, brand):
-    async with MyPyllantAPI(user, password, country, brand) as api:
+async def main(user, password, brand, country):
+    async with MyPyllantAPI(user, password, brand, country) as api:
         async for system in api.get_systems():
             print(await api.get_time_zone(system))
             print(await api.set_holiday(system))
@@ -84,7 +85,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
-    asyncio.run(main(args.user, args.password, args.country, args.brand))
+    asyncio.run(main(args.user, args.password, args.brand, args.country))
 
 ```
 

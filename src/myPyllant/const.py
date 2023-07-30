@@ -1,6 +1,8 @@
-LOGIN_URL = "https://identity.vaillant-group.com/auth/realms/{brand}-{country}-b2c/login-actions/authenticate"
-AUTHENTICATE_URL = "https://identity.vaillant-group.com/auth/realms/{brand}-{country}-b2c/protocol/openid-connect/auth"
-TOKEN_URL = "https://identity.vaillant-group.com/auth/realms/{brand}-{country}-b2c/protocol/openid-connect/token"
+LOGIN_URL = (
+    "https://identity.vaillant-group.com/auth/realms/{realm}/login-actions/authenticate"
+)
+AUTHENTICATE_URL = "https://identity.vaillant-group.com/auth/realms/{realm}/protocol/openid-connect/auth"
+TOKEN_URL = "https://identity.vaillant-group.com/auth/realms/{realm}/protocol/openid-connect/token"
 CLIENT_ID = "myvaillant"
 API_URL_BASE = (
     "https://api.vaillant-group.com/service-connected-control/end-user-app-api/v1"
@@ -8,10 +10,12 @@ API_URL_BASE = (
 BRANDS = {
     "vaillant": "Vaillant",
     "sdbg": "Saunier Duval",
+    "bulex": "Bulex",
 }
 DEFAULT_BRAND = "vaillant"
 COUNTRIES = {
     "vaillant": {
+        "albania": "Albania",
         "austria": "Austria",
         "belgium": "Belgium",
         "bulgaria": "Bulgaria",
@@ -21,12 +25,14 @@ COUNTRIES = {
         "estonia": "Estonia",
         "finland": "Finland",
         "france": "France",
+        "georgia": "Georgia",
         "germany": "Germany",
         "greece": "Greece",
         "hungary": "Hungary",
         "italy": "Italy",
         "latvia": "Latvia",
         "lithuania": "Lithuania",
+        "luxembourg": "Luxembourg",
         "netherlands": "Netherlands",
         "norway": "Norway",
         "poland": "Poland",
@@ -38,7 +44,9 @@ COUNTRIES = {
         "spain": "Spain",
         "sweden": "Sweden",
         "switzerland": "Switzerland",
+        "ukraine": "Ukraine",
         "unitedkingdom": "United Kingdom",
+        "uzbekistan": "Uzbekistan",
     },
     "sdbg": {
         "austria": "Austria",

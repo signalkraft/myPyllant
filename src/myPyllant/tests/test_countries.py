@@ -2,23 +2,23 @@ from unittest import mock
 
 import pytest
 
-from myPyllant.api import MyPyllantAPI
+from myPyllant.api import MyPyllantAPI, RealmInvalid
 from myPyllant.tests.find_countries import countries_with_realm
 
 
 async def test_invalid_country() -> None:
-    with pytest.raises(ValueError) as _:
-        MyPyllantAPI("test@example.com", "test", "invalid", "vaillant")
+    with pytest.raises(RealmInvalid) as _:
+        MyPyllantAPI("test@example.com", "test", "vaillant", "invalid")
 
 
 async def test_invalid_country_for_brand() -> None:
-    with pytest.raises(ValueError) as _:
-        MyPyllantAPI("test@example.com", "test", "germany", "sdbg")
+    with pytest.raises(RealmInvalid) as _:
+        MyPyllantAPI("test@example.com", "test", "sdbg", "germany")
 
 
 async def test_invalid_brand() -> None:
     with pytest.raises(ValueError) as _:
-        MyPyllantAPI("test@example.com", "test", "germany", "invalid")
+        MyPyllantAPI("test@example.com", "test", "invalid", "germany")
 
 
 async def test_find_countries(mocker) -> None:

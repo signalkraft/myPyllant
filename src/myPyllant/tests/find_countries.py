@@ -24,6 +24,9 @@ def countries_with_realm(brand):
 def main():
     print("COUNTRIES = {")
     for brand in BRANDS.keys():
+        if brand == "bulex":
+            # Bulex has no country-specific realms
+            continue
         print(f'    "{brand}": {{')
         for country_name, country in countries_with_realm(brand):
             print(f'        "{country_name}": "{country}",')

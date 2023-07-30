@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlencode
 
-from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
+from myPyllant.utils import add_default_parser_args
 
 logger = logging.getLogger(__name__)
 
@@ -21,19 +21,7 @@ logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser(
     description="Generates test data necessary to run integration tests."
 )
-parser.add_argument("user", help="Username (email address) for the myVaillant app")
-parser.add_argument("password", help="Password for the myVaillant app")
-parser.add_argument(
-    "country",
-    help="Country your account is registered in, i.e. 'germany'",
-    choices=COUNTRIES[DEFAULT_BRAND].keys(),
-)
-parser.add_argument(
-    "brand",
-    help="Brand your account is registered in, i.e. 'vaillant'",
-    default=DEFAULT_BRAND,
-    choices=BRANDS.keys(),
-)
+add_default_parser_args(parser)
 parser.add_argument(
     "--debug", help="Print debug information", action=argparse.BooleanOptionalAction
 )
@@ -56,14 +44,14 @@ def user_json_dir(user: str) -> Path:
     )
 
 
-async def main(user, password, country, brand):
+async def main(user, password, brand, country=None):
     """
     Generate json data for running testcases.
 
     :param user:
     :param password:
-    :param country:
     :param brand:
+    :param country:
     :return:
     """
     from myPyllant.api import MyPyllantAPI
@@ -74,7 +62,7 @@ async def main(user, password, country, brand):
     json_dir = user_json_dir(user)
     json_dir.mkdir(parents=True, exist_ok=True)
 
-    async with MyPyllantAPI(user, password, country, brand) as api:
+    async with MyPyllantAPI(user, password, brand, country) as api:
         claims_url = f"{API_URL_BASE}/claims"
         async with api.aiohttp_session.get(
             claims_url, headers=api.get_authorized_headers()
@@ -189,4 +177,4 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
 
-    asyncio.run(main(args.user, args.password, args.country, args.brand))
+    asyncio.run(main(args.user, args.password, args.brand, args.country))

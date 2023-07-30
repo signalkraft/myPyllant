@@ -1,9 +1,12 @@
+import argparse
 import base64
 import hashlib
 import random
 import re
 import string
 from datetime import datetime
+
+from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
 
 def dict_to_snake_case(d):
@@ -55,3 +58,30 @@ def datetime_format(date: datetime, with_microseconds=False) -> str:
 
 def datetime_parse(date_string: str) -> datetime:
     return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
+
+
+def get_realm(brand: str, country: str) -> str:
+    """
+    Vaillant and SDBG use `brand-country-b2c` as the realm, Bulex doesn't use a country
+    """
+    if brand == "bulex":
+        return f"{brand}-b2c"
+    else:
+        return f"{brand}-{country}-b2c"
+
+
+def add_default_parser_args(parser: argparse.ArgumentParser):
+    parser.add_argument("user", help="Username (email address) for the myVaillant app")
+    parser.add_argument("password", help="Password for the myVaillant app")
+    parser.add_argument(
+        "brand",
+        help="Brand your account is registered in, i.e. 'vaillant'",
+        default=DEFAULT_BRAND,
+        choices=BRANDS.keys(),
+    )
+    parser.add_argument(
+        "--country",
+        help="Country your account is registered in, i.e. 'germany'",
+        choices=COUNTRIES[DEFAULT_BRAND].keys(),
+        required=False,
+    )

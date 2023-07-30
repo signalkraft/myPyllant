@@ -8,23 +8,11 @@ import sys
 from datetime import datetime
 
 from myPyllant.api import MyPyllantAPI
-from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 from myPyllant.models import DeviceDataBucketResolution
+from myPyllant.utils import add_default_parser_args
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API.")
-parser.add_argument("user", help="Username (email address) for the myVaillant app")
-parser.add_argument("password", help="Password for the myVaillant app")
-parser.add_argument(
-    "country",
-    help="Country your account is registered in, i.e. 'germany'",
-    choices=COUNTRIES[DEFAULT_BRAND].keys(),
-)
-parser.add_argument(
-    "brand",
-    help="Brand your account is registered in, i.e. 'vaillant'",
-    default=DEFAULT_BRAND,
-    choices=BRANDS.keys(),
-)
+add_default_parser_args(parser)
 parser.add_argument(
     "-d",
     "--data",
@@ -57,9 +45,16 @@ parser.add_argument(
 
 
 async def main(
-    user, password, country, brand, data=False, resolution=None, start=None, end=None
+    user,
+    password,
+    brand,
+    country=None,
+    data=False,
+    resolution=None,
+    start=None,
+    end=None,
 ):
-    async with MyPyllantAPI(user, password, country, brand) as api:
+    async with MyPyllantAPI(user, password, brand, country) as api:
         async for system in api.get_systems():
             if data:
                 data_list = []
