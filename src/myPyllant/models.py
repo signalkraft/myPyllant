@@ -242,7 +242,7 @@ class Device(BaseModel):
     system_id: str
     device_uuid: str
     name: str = ""
-    product_name: str
+    product_name: str = ""
     diagnostic_trouble_codes: list = []
     properties: list = []
     ebus_id: str
@@ -257,7 +257,17 @@ class Device(BaseModel):
 
     @property
     def name_display(self) -> str:
-        return self.name if self.name else self.product_name.title()
+        """
+        Product name might be empty, fall back to title-cased device type
+        """
+        return self.name or self.product_name_display
+
+    @property
+    def product_name_display(self) -> str:
+        """
+        Product name might be None, fall back to title-cased device type
+        """
+        return self.product_name or self.device_type.replace("_", "").title()
 
 
 class DeviceDataBucket(BaseModel):

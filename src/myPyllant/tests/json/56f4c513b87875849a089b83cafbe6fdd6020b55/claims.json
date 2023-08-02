@@ -1,0 +1,14 @@
+[
+  {
+    "homeName": "My Home",
+    "serialNumber": "17b61cc511111dd70edcb086fd773f4b4265fe2a",
+    "systemId": "2db959c056700c4fc4026ad3613f0880cf3c6fe7",
+    "productInformation": "VR921",
+    "state": "CLAIMED",
+    "migrationState": "FINISHED",
+    "firmwareVersion": "0357.40.30",
+    "nomenclature": "VR 921",
+    "cag": false,
+    "countryCode": "DE"
+  }
+]
