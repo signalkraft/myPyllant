@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, tzinfo
 import pytest
 from freezegun import freeze_time
 
-from myPyllant.api import MyPyllantAPI
+from myPyllant.api import MyPyllantAPI, RealmInvalid
 from myPyllant.models import (
     Device,
     DeviceData,
@@ -29,7 +29,7 @@ def get_test_data():
     return test_data
 
 
-async def test_login(mypyllant_aioresponses) -> None:
+async def test_login_vaillant(mypyllant_aioresponses) -> None:
     with mypyllant_aioresponses() as _:
         async with MyPyllantAPI(
             "test@example.com", "test", "vaillant", "germany"
@@ -38,6 +38,27 @@ async def test_login(mypyllant_aioresponses) -> None:
             assert mocked_api.oauth_session_expires > datetime.now()
             assert mocked_api.access_token == "access_token"
             assert "Authorization" in mocked_api.get_authorized_headers()
+
+
+async def test_login_bulex(mypyllant_aioresponses) -> None:
+    with mypyllant_aioresponses() as _:
+        async with MyPyllantAPI(
+            "test@example.com", "test", "bulex", None
+        ) as mocked_api:
+            assert isinstance(mocked_api.oauth_session_expires, datetime)
+            assert mocked_api.oauth_session_expires > datetime.now()
+            assert mocked_api.access_token == "access_token"
+            assert "Authorization" in mocked_api.get_authorized_headers()
+
+
+async def test_login_invalid_country(mypyllant_aioresponses) -> None:
+    with pytest.raises(RealmInvalid):
+        MyPyllantAPI("test@example.com", "test", "sdbg", "germany")
+
+
+async def test_login_country_missing(mypyllant_aioresponses) -> None:
+    with pytest.raises(RealmInvalid):
+        MyPyllantAPI("test@example.com", "test", "sdbg")
 
 
 async def test_refresh_token(mypyllant_aioresponses, mocked_api) -> None:

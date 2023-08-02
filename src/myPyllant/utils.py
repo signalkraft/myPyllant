@@ -60,11 +60,13 @@ def datetime_parse(date_string: str) -> datetime:
     return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
 
 
-def get_realm(brand: str, country: str) -> str:
+def get_realm(brand: str, country: str | None = None) -> str:
     """
     Vaillant and SDBG use `brand-country-b2c` as the realm, Bulex doesn't use a country
     """
     if brand == "bulex":
+        return f"{brand}-b2c"
+    elif not country:
         return f"{brand}-b2c"
     else:
         return f"{brand}-{country}-b2c"

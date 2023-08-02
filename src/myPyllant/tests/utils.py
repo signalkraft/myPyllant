@@ -18,8 +18,14 @@ def _mypyllant_aioresponses():
 
             # auth endpoints
             self.get(
-                re.compile(r".*openid-connect/auth\?"),
+                re.compile(r".*vaillant-germany-b2c/protocol/openid-connect/auth\?"),
                 body=f"{LOGIN_URL.format(realm=get_realm('vaillant', 'germany'))}?test=test",
+                status=200,
+                repeat=True,
+            )
+            self.get(
+                re.compile(r".*bulex-b2c/protocol/openid-connect/auth\?"),
+                body=f"{LOGIN_URL.format(realm=get_realm('bulex'))}?test=test",
                 status=200,
                 repeat=True,
             )

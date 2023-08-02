@@ -84,13 +84,15 @@ class MyPyllantAPI:
             raise ValueError(
                 f"Invalid brand, must be one of {', '.join(BRANDS.keys())}"
             )
-        if country and country not in COUNTRIES[brand].keys():
-            raise RealmInvalid(
-                f"Invalid country, {BRANDS[brand]} only supports {', '.join(COUNTRIES[brand].keys())}"
-            )
-        if not country and brand in COUNTRIES and COUNTRIES[brand]:
-            # If a brand has countries defined, a country needs to be provided
-            raise RealmInvalid(f"{BRANDS[brand]} requires country to be passed")
+        if brand in COUNTRIES:
+            # Only need to valid country, if the brand exists as a key in COUNTRIES
+            if not country:
+                raise RealmInvalid(f"{BRANDS[brand]} requires country to be passed")
+            elif country not in COUNTRIES[brand].keys():
+                raise RealmInvalid(
+                    f"Invalid country, {BRANDS[brand]} only supports {', '.join(COUNTRIES[brand].keys())}"
+                )
+
         self.username = username
         self.password = password
         self.country = country
