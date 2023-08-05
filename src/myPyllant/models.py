@@ -241,8 +241,8 @@ class System(BaseModel):
 class Device(BaseModel):
     system_id: str
     device_uuid: str
-    name: str = ""
-    product_name: str = ""
+    name: str | None
+    product_name: str | None
     diagnostic_trouble_codes: list = []
     properties: list = []
     ebus_id: str
