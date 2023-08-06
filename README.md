@@ -75,16 +75,17 @@ async def main(user, password, brand, country):
             )
             print(await api.get_time_zone(system))
             print(await api.cancel_holiday(system))
-            print(await api.boost_domestic_hot_water(system.domestic_hot_water[0]))
-            print(await api.cancel_hot_water_boost(system.domestic_hot_water[0]))
-            print(
-                await api.set_domestic_hot_water_temperature(
-                    system.domestic_hot_water[0], 46
-                )
-            )
             print(await api.set_set_back_temperature(system.zones[0], 15.5))
             print(await api.quick_veto_zone_temperature(system.zones[0], 21, 5))
             print(await api.cancel_quick_veto_zone_temperature(system.zones[0]))
+            if system.domestic_hot_water:
+                print(await api.boost_domestic_hot_water(system.domestic_hot_water[0]))
+                print(await api.cancel_hot_water_boost(system.domestic_hot_water[0]))
+                print(
+                    await api.set_domestic_hot_water_temperature(
+                        system.domestic_hot_water[0], 46
+                    )
+                )
 
 
 if __name__ == "__main__":

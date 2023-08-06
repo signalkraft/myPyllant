@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timedelta, tzinfo
+from pathlib import Path
 
 import pytest
 from freezegun import freeze_time
@@ -19,14 +20,18 @@ from ..utils import datetime_format
 from .generate_test_data import JSON_DIR
 
 
-def get_test_data():
+def list_test_data():
     test_data = []
     for d in [d for d in JSON_DIR.iterdir() if d.is_dir()]:
-        user_data = {}
-        for f in d.glob("*.json"):
-            user_data[f.stem] = json.loads(f.read_text())
-        test_data.append(user_data)
+        test_data.append(load_test_data(d))
     return test_data
+
+
+def load_test_data(data_dir: Path):
+    user_data = {}
+    for f in data_dir.glob("*.json"):
+        user_data[f.stem] = json.loads(f.read_text())
+    return user_data
 
 
 async def test_login_vaillant(mypyllant_aioresponses) -> None:
@@ -70,7 +75,7 @@ async def test_refresh_token(mypyllant_aioresponses, mocked_api) -> None:
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_systems(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
@@ -81,7 +86,7 @@ async def test_systems(mypyllant_aioresponses, mocked_api, test_data) -> None:
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_meta_info(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
@@ -92,7 +97,7 @@ async def test_meta_info(mypyllant_aioresponses, mocked_api, test_data) -> None:
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_meta_info_system_id(
     mypyllant_aioresponses, mocked_api, test_data
 ) -> None:
@@ -107,7 +112,7 @@ async def test_meta_info_system_id(
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
@@ -118,7 +123,7 @@ async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_device_data(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
@@ -130,7 +135,7 @@ async def test_device_data(mypyllant_aioresponses, mocked_api, test_data) -> Non
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_quick_veto(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
@@ -151,7 +156,7 @@ async def test_quick_veto(mypyllant_aioresponses, mocked_api, test_data) -> None
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_holiday_without_dates(
     mypyllant_aioresponses, mocked_api, test_data
 ) -> None:
@@ -167,7 +172,7 @@ async def test_holiday_without_dates(
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_holiday_with_dates(
     mypyllant_aioresponses, mocked_api, test_data
 ) -> None:
@@ -188,7 +193,7 @@ async def test_holiday_with_dates(
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_holiday_wrong_dates(
     mypyllant_aioresponses, mocked_api, test_data
 ) -> None:
@@ -201,13 +206,23 @@ async def test_holiday_wrong_dates(
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", get_test_data())
+@pytest.mark.parametrize("test_data", list_test_data())
 async def test_dhw_setpoint(mypyllant_aioresponses, mocked_api, test_data) -> None:
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
+        if not system.domestic_hot_water:
+            return
         await mocked_api.set_domestic_hot_water_temperature(
             system.domestic_hot_water[0], 60
         )
         request = list(aio.requests.values())[-1][0]
         assert request.kwargs["json"]["setPoint"] == 60
         await mocked_api.aiohttp_session.close()
+
+
+async def test_no_system(mypyllant_aioresponses, mocked_api) -> None:
+    test_data = load_test_data(JSON_DIR / "no_system")
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(mocked_api.get_systems())
+        assert system.outdoor_temperature == 15.5625
+        assert system.water_pressure == 1.0
