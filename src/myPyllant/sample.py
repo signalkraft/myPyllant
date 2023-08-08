@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 
 from myPyllant.api import MyPyllantAPI
-from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
+from myPyllant.const import ALL_COUNTRIES, BRANDS, DEFAULT_BRAND
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API   .")
 parser.add_argument("user", help="Username (email address) for the myVaillant app")
@@ -20,7 +20,7 @@ parser.add_argument(
 parser.add_argument(
     "--country",
     help="Country your account is registered in, i.e. 'germany'",
-    choices=COUNTRIES[DEFAULT_BRAND].keys(),
+    choices=ALL_COUNTRIES.keys(),
     required=False,
 )
 parser.add_argument(

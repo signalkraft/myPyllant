@@ -64,6 +64,7 @@ COUNTRIES = {
         "spain": "Spain",
     },
 }
+ALL_COUNTRIES = {c: n for d in COUNTRIES.values() for c, n in d.items()}
 MANUAL_SETPOINT_TYPES = {
     "HEATING": "Heating",
     "COOLING": "Cooling",

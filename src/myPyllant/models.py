@@ -237,6 +237,15 @@ class System(BaseModel):
             logger.info("Could not get water pressure from system control state")
             return None
 
+    @property
+    def system_name(self) -> str:
+        if self.primary_heat_generator:
+            return self.primary_heat_generator.product_name_display
+        elif self.claim:
+            return self.claim.nomenclature
+        else:
+            return "System"
+
 
 class Device(BaseModel):
     system_id: str
