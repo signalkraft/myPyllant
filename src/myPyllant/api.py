@@ -531,20 +531,28 @@ class MyPyllantAPI:
             logger.warning("Couldn't get timezone from API")
             return None
 
-    async def get_firmware_update_required(self, system: System | str) -> bool:
+    async def get_firmware_update_required(self, system: System | str) -> bool | None:
         url = f"{API_URL_BASE}/firmware-update-required/{self.get_system_id(system)}"
-        response = await self.aiohttp_session.get(
-            url,
-            headers=self.get_authorized_headers(),
-        )
+        try:
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+        except ClientResponseError as e:
+            logger.warning("Could not get firmware update response", exc_info=e)
+            return None
         return (await response.json())["firmwareUpdateRequired"]
 
-    async def get_diagnostic_trouble_codes(self, system: System | str) -> dict:
+    async def get_diagnostic_trouble_codes(self, system: System | str) -> dict | None:
         url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/diagnostic-trouble-codes"
-        response = await self.aiohttp_session.get(
-            url,
-            headers=self.get_authorized_headers(),
-        )
+        try:
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+        except ClientResponseError as e:
+            logger.warning("Could not get diagnostic trouble codes", exc_info=e)
+            return None
         result = await response.json()
         print(result)
         return result
