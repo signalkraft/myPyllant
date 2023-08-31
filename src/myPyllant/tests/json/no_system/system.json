@@ -45,8 +45,8 @@
         "index": 0,
         "general": {
           "name": "Boven",
-          "holidayStartDateTime": "2023-08-05T00:00:00Z",
-          "holidayEndDateTime": "2024-08-05T23:59:59Z"
+          "startDateTime": "2023-08-05T00:00:00Z",
+          "endDateTime": "2024-08-05T23:59:59Z"
         },
         "heating": {
           "operationModeHeating": "MANUAL",
@@ -114,8 +114,8 @@
         "index": 1,
         "general": {
           "name": "Beneden",
-          "holidayStartDateTime": "2023-08-05T00:00:00Z",
-          "holidayEndDateTime": "2024-08-05T23:59:59Z"
+          "startDateTime": "2023-08-05T00:00:00Z",
+          "endDateTime": "2024-08-05T23:59:59Z"
         },
         "heating": {
           "operationModeHeating": "MANUAL",

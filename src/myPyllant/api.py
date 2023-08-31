@@ -253,6 +253,7 @@ class MyPyllantAPI:
         include_timezone=False,
         include_connection_status=False,
         include_firmware_update_required=False,
+        include_diagnostic_trouble_codes=False,
     ) -> AsyncIterator[System]:
         logger.debug(
             f"Getting systems with include_timezone={include_timezone}"
@@ -290,6 +291,11 @@ class MyPyllantAPI:
                     claim.system_id
                 )
                 if include_firmware_update_required
+                else None,
+                diagnostic_trouble_codes=await self.get_diagnostic_trouble_codes(
+                    claim.system_id
+                )
+                if include_diagnostic_trouble_codes
                 else None,
                 current_system=dict_to_snake_case(current_system_json),
                 **dict_to_snake_case(system_json),
@@ -337,8 +343,8 @@ class MyPyllantAPI:
     async def set_zone_heating_operating_mode(
         self, zone: Zone, mode: ZoneHeatingOperatingMode
     ):
-        url = f"{API_URL_BASE}/systems/{zone.system_id}/zones/{zone.index}/heatingOperationMode"
-        return await self.aiohttp_session.post(
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/heating-operation-mode"
+        return await self.aiohttp_session.patch(
             url,
             json={
                 "heatingOperationMode": str(mode),
@@ -350,15 +356,17 @@ class MyPyllantAPI:
         self,
         zone: Zone,
         temperature: float,
-        duration_hours: int | None = None,
-        default_duration: int | None = None,
+        duration_hours: float | None = None,
+        default_duration: float | None = None,
     ):
         logger.debug(
             f"Setting quick veto for {zone.name} in {zone.current_special_function} mode"
         )
         if not default_duration:
             default_duration = DEFAULT_QUICK_VETO_DURATION
-        url = f"{API_URL_BASE}/systems/{zone.system_id}/zones/{zone.index}/quickVeto"
+        url = (
+            f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/quick-veto"
+        )
         if zone.current_special_function == ZoneCurrentSpecialFunction.QUICK_VETO:
             logger.debug(
                 f"Patching quick veto for {zone.name} because it is already in quick veto mode"
@@ -402,13 +410,15 @@ class MyPyllantAPI:
         )
 
     async def cancel_quick_veto_zone_temperature(self, zone: Zone):
-        url = f"{API_URL_BASE}/systems/{zone.system_id}/zones/{zone.index}/quickVeto"
+        url = (
+            f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/quick-veto"
+        )
         return await self.aiohttp_session.delete(
             url, headers=self.get_authorized_headers()
         )
 
     async def set_set_back_temperature(self, zone: Zone, temperature: float):
-        url = f"{API_URL_BASE}/systems/{zone.system_id}/zones/{zone.index}/setBackTemperature"
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/set-back-temperature"
         return await self.aiohttp_session.patch(
             url,
             json={"setBackTemperature": temperature},
@@ -428,17 +438,17 @@ class MyPyllantAPI:
             end = start + datetime.timedelta(days=365)
         if not start < end:
             raise ValueError("Start of holiday mode must be before end")
-        url = f"{API_URL_BASE}/systems/{system.id}/holiday"
+        url = f"{API_URL_BASE}/systems/{system.id}/tli/away-mode"
         data = {
-            "holidayStartDateTime": datetime_format(start, with_microseconds=True),
-            "holidayEndDateTime": datetime_format(end, with_microseconds=True),
+            "startDateTime": datetime_format(start, with_microseconds=True),
+            "endDateTime": datetime_format(end, with_microseconds=True),
         }
         return await self.aiohttp_session.post(
             url, json=data, headers=self.get_authorized_headers()
         )
 
     async def cancel_holiday(self, system: System):
-        url = f"{API_URL_BASE}/systems/{system.id}/holiday"
+        url = f"{API_URL_BASE}/systems/{system.id}/tli/away-mode"
         return await self.aiohttp_session.delete(
             url, headers=self.get_authorized_headers()
         )
@@ -451,20 +461,20 @@ class MyPyllantAPI:
             temperature = int(round(temperature, 0))
         url = (
             f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/"
-            f"domesticHotWater/{domestic_hot_water.index}/temperature"
+            f"tli/domestic-hot-water/{domestic_hot_water.index}/temperature"
         )
-        return await self.aiohttp_session.post(
-            url, json={"setPoint": temperature}, headers=self.get_authorized_headers()
+        return await self.aiohttp_session.patch(
+            url, json={"setpoint": temperature}, headers=self.get_authorized_headers()
         )
 
     async def boost_domestic_hot_water(self, domestic_hot_water: DomesticHotWater):
-        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/domesticHotWater/{domestic_hot_water.index}/boost"
+        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/boost"
         return await self.aiohttp_session.post(
             url, json={}, headers=self.get_authorized_headers()
         )
 
     async def cancel_hot_water_boost(self, domestic_hot_water: DomesticHotWater):
-        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/domesticHotWater/{domestic_hot_water.index}/boost"
+        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/boost"
         return await self.aiohttp_session.delete(
             url, headers=self.get_authorized_headers()
         )
@@ -474,9 +484,9 @@ class MyPyllantAPI:
     ):
         url = (
             f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/"
-            f"domesticHotWater/{domestic_hot_water.index}/operationMode"
+            f"tli/domestic-hot-water/{domestic_hot_water.index}/operation-mode"
         )
-        return await self.aiohttp_session.post(
+        return await self.aiohttp_session.patch(
             url,
             json={
                 "operationMode": str(mode),
@@ -528,3 +538,13 @@ class MyPyllantAPI:
             headers=self.get_authorized_headers(),
         )
         return (await response.json())["firmwareUpdateRequired"]
+
+    async def get_diagnostic_trouble_codes(self, system: System | str) -> dict:
+        url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/diagnostic-trouble-codes"
+        response = await self.aiohttp_session.get(
+            url,
+            headers=self.get_authorized_headers(),
+        )
+        result = await response.json()
+        print(result)
+        return result

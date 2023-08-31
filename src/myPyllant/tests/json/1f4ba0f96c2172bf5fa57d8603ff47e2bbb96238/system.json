@@ -1,0 +1,252 @@
+{
+  "state": {
+    "system": {
+      "outdoorTemperature": 20.5,
+      "systemWaterPressure": 1.9,
+      "outdoorTemperatureAverage24h": 16.917969
+    },
+    "zones": [
+      {
+        "index": 0,
+        "desiredRoomTemperatureSetpointHeating": 0.0,
+        "desiredRoomTemperatureSetpoint": 0.0,
+        "currentRoomTemperature": 21.9125,
+        "currentRoomHumidity": 61.0,
+        "currentSpecialFunction": "QUICK_VETO",
+        "heatingState": "IDLE",
+        "quickVetoStartDateTime": "2023-08-31T17:23:41Z",
+        "quickVetoEndDateTime": "2023-08-31T22:23:00Z"
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "circuitState": "STANDBY",
+        "currentCircuitFlowTemperature": 41.5,
+        "calculatedEnergyManagerState": "HEATING_STANDBY"
+      }
+    ],
+    "dhw": [
+      {
+        "index": 255,
+        "currentSpecialFunction": "REGULAR",
+        "currentDhwTemperature": 49.5
+      }
+    ]
+  },
+  "configuration": {
+    "zones": [
+      {
+        "index": 0,
+        "general": {
+          "name": "Zone 1",
+          "holidayStartDateTime": "2019-01-01T00:00:00Z",
+          "holidayEndDateTime": "2019-01-01T00:00:00Z"
+        },
+        "heating": {
+          "operationModeHeating": "TIME_CONTROLLED",
+          "setBackTemperature": 16.0,
+          "manualModeSetpointHeating": 22.0,
+          "timeProgramHeating": {
+            "metaInfo": {
+              "minSlotsPerDay": 0,
+              "maxSlotsPerDay": 12,
+              "setpointRequiredPerSlot": true
+            },
+            "monday": [
+              {
+                "startTime": 420,
+                "endTime": 1290,
+                "setpoint": 19.5
+              }
+            ],
+            "tuesday": [
+              {
+                "startTime": 420,
+                "endTime": 1290,
+                "setpoint": 19.5
+              }
+            ],
+            "wednesday": [
+              {
+                "startTime": 420,
+                "endTime": 1290,
+                "setpoint": 19.5
+              }
+            ],
+            "thursday": [
+              {
+                "startTime": 420,
+                "endTime": 1290,
+                "setpoint": 19.5
+              }
+            ],
+            "friday": [
+              {
+                "startTime": 420,
+                "endTime": 1290,
+                "setpoint": 19.5
+              }
+            ],
+            "saturday": [
+              {
+                "startTime": 450,
+                "endTime": 1290,
+                "setpoint": 19.5
+              }
+            ],
+            "sunday": [
+              {
+                "startTime": 450,
+                "endTime": 1290,
+                "setpoint": 19.5
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "heatingCurve": 0.6842696,
+        "heatingFlowTemperatureMinimumSetpoint": 35.0,
+        "setBackModeEnabled": false
+      }
+    ],
+    "dhw": [
+      {
+        "index": 255,
+        "operationModeDhw": "TIME_CONTROLLED",
+        "tappingSetpoint": 49.0,
+        "timeProgramDhw": {
+          "metaInfo": {
+            "minSlotsPerDay": 0,
+            "maxSlotsPerDay": 3,
+            "setpointRequiredPerSlot": false
+          },
+          "monday": [
+            {
+              "startTime": 330,
+              "endTime": 1260
+            }
+          ],
+          "tuesday": [
+            {
+              "startTime": 330,
+              "endTime": 1260
+            }
+          ],
+          "wednesday": [
+            {
+              "startTime": 330,
+              "endTime": 1260
+            }
+          ],
+          "thursday": [
+            {
+              "startTime": 330,
+              "endTime": 1260
+            }
+          ],
+          "friday": [
+            {
+              "startTime": 330,
+              "endTime": 1260
+            }
+          ],
+          "saturday": [
+            {
+              "startTime": 450,
+              "endTime": 1260
+            }
+          ],
+          "sunday": [
+            {
+              "startTime": 450,
+              "endTime": 1260
+            }
+          ]
+        },
+        "timeProgramCirculationPump": {
+          "metaInfo": {
+            "minSlotsPerDay": 0,
+            "maxSlotsPerDay": 3,
+            "setpointRequiredPerSlot": false
+          },
+          "monday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "tuesday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "wednesday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "thursday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "friday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "saturday": [
+            {
+              "startTime": 450,
+              "endTime": 1410
+            }
+          ],
+          "sunday": [
+            {
+              "startTime": 450,
+              "endTime": 1320
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "properties": {
+    "system": {
+      "controllerType": "VRC720",
+      "energyProvidePowerCutBehavior": "DISABLE_HEATPUMP_AND_BACKUP_HEATER"
+    },
+    "zones": [
+      {
+        "index": 0,
+        "isActive": true,
+        "zoneBinding": "CENTRAL_CONTROL",
+        "isCoolingAllowed": false,
+        "associatedCircuitIndex": 0
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "mixerCircuitTypeExternal": "HEATING",
+        "isCoolingAllowed": false
+      }
+    ],
+    "dhw": [
+      {
+        "index": 255,
+        "minSetpoint": 35.0,
+        "maxSetpoint": 70.0
+      }
+    ]
+  }
+}

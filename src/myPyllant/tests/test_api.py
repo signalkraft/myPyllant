@@ -166,7 +166,7 @@ async def test_holiday_without_dates(
         with freeze_time(now):
             await mocked_api.set_holiday(system)
         request = list(aio.requests.values())[-1][0]
-        assert request.kwargs["json"]["holidayStartDateTime"] == datetime_format(
+        assert request.kwargs["json"]["startDateTime"] == datetime_format(
             now, with_microseconds=True
         )
         await mocked_api.aiohttp_session.close()
@@ -184,10 +184,10 @@ async def test_holiday_with_dates(
             end = now + timedelta(days=7)
             await mocked_api.set_holiday(system, start, end)
         request = list(aio.requests.values())[-1][0]
-        assert request.kwargs["json"]["holidayStartDateTime"] == datetime_format(
+        assert request.kwargs["json"]["startDateTime"] == datetime_format(
             start, with_microseconds=True
         )
-        assert request.kwargs["json"]["holidayEndDateTime"] == datetime_format(
+        assert request.kwargs["json"]["endDateTime"] == datetime_format(
             end, with_microseconds=True
         )
         await mocked_api.aiohttp_session.close()
@@ -216,7 +216,7 @@ async def test_dhw_setpoint(mypyllant_aioresponses, mocked_api, test_data) -> No
             system.domestic_hot_water[0], 60
         )
         request = list(aio.requests.values())[-1][0]
-        assert request.kwargs["json"]["setPoint"] == 60
+        assert request.kwargs["json"]["setpoint"] == 60
         await mocked_api.aiohttp_session.close()
 
 

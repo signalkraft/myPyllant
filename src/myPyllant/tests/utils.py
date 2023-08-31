@@ -46,7 +46,7 @@ def _mypyllant_aioresponses():
                 repeat=True,
             )
             # API endpoints
-            actions = re.compile(r".*(holiday|setBackTemperature|temperature)$")
+            actions = re.compile(r".*(away-mode|setBackTemperature|temperature)$")
             self.post(
                 actions,
                 status=200,
@@ -66,37 +66,37 @@ def _mypyllant_aioresponses():
                 repeat=True,
             )
             self.post(
-                re.compile(r".*domesticHotWater/.*/temperature$"),
+                re.compile(r".*domestic-hot-water/.*/temperature$"),
                 status=200,
                 payload={},
                 repeat=True,
             )
             self.post(
-                re.compile(r".*domesticHotWater/.*/boost$"),
+                re.compile(r".*domestic-hot-water/.*/boost$"),
                 status=200,
                 payload={},
                 repeat=True,
             )
             self.delete(
-                re.compile(r".*domesticHotWater/.*/boost$"),
+                re.compile(r".*domestic-hot-water/.*/boost$"),
                 status=200,
                 payload={},
                 repeat=True,
             )
             self.post(
-                re.compile(r".*zones/.*/quickVeto$"),
+                re.compile(r".*zones/.*/quick-veto$"),
                 status=200,
                 payload={},
                 repeat=True,
             )
             self.patch(
-                re.compile(r".*zones/.*/quickVeto$"),
+                re.compile(r".*zones/.*/quick-veto$"),
                 status=200,
                 payload={},
                 repeat=True,
             )
             self.delete(
-                re.compile(r".*zones/.*/quickVeto$"),
+                re.compile(r".*zones/.*/quick-veto$"),
                 status=200,
                 payload={},
                 repeat=True,

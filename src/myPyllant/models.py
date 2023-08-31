@@ -154,6 +154,7 @@ class System(BaseModel):
     timezone: datetime.tzinfo | None
     firmware_update_required: bool | None
     connected: bool | None
+    diagnostic_trouble_codes: list[dict] | None
 
     def __init__(self, **data: Any) -> None:
         if "claim" in data and "id" not in data:
@@ -252,7 +253,6 @@ class Device(BaseModel):
     device_uuid: str
     name: str | None
     product_name: str | None
-    diagnostic_trouble_codes: list = []
     properties: list = []
     ebus_id: str
     article_number: str
