@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from myPyllant.utils import datetime_parse
 
@@ -86,17 +86,17 @@ class Zone(BaseModel):
     is_active: bool
     is_cooling_allowed: bool
     zone_binding: str
-    current_room_temperature: float | None
+    current_room_temperature: float | None = None
     current_special_function: ZoneCurrentSpecialFunction
-    desired_room_temperature_setpoint_heating: float | None
-    desired_room_temperature_setpoint_cooling: float | None
-    desired_room_temperature_setpoint: float | None
+    desired_room_temperature_setpoint_heating: float | None = None
+    desired_room_temperature_setpoint_cooling: float | None = None
+    desired_room_temperature_setpoint: float | None = None
     heating_state: ZoneHeatingState
-    current_room_humidity: float | None
+    current_room_humidity: float | None = None
     heating: ZoneHeating
-    associated_circuit_index: int | None
-    quick_veto_start_date_time: datetime.datetime | None
-    quick_veto_end_date_time: datetime.datetime | None
+    associated_circuit_index: int | None = None
+    quick_veto_start_date_time: datetime.datetime | None = None
+    quick_veto_end_date_time: datetime.datetime | None = None
 
     def __init__(self, **data: Any):
         if "quick_veto_start_date_time" in data:
@@ -118,10 +118,10 @@ class Circuit(BaseModel):
     system_id: str
     index: int
     circuit_state: CircuitState
-    current_circuit_flow_temperature: float | None
-    heating_curve: float | None
+    current_circuit_flow_temperature: float | None = None
+    heating_curve: float | None = None
     is_cooling_allowed: bool
-    min_flow_temperature_setpoint: float | None
+    min_flow_temperature_setpoint: float | None = None
     mixer_circuit_type_external: str
     set_back_mode_enabled: bool
     zones: list = []
@@ -130,19 +130,19 @@ class Circuit(BaseModel):
 class DomesticHotWater(BaseModel):
     system_id: str
     index: int
-    current_dhw_temperature: float | None
+    current_dhw_temperature: float | None = None
     current_special_function: DHWCurrentSpecialFunction
     max_setpoint: float
     min_setpoint: float
     operation_mode_dhw: DHWOperationMode
-    tapping_setpoint: float | None
+    tapping_setpoint: float | None = None
     time_program_dhw: dict
     time_program_circulation_pump: dict
 
 
 class System(BaseModel):
     id: str
-    claim: Claim | None
+    claim: Claim | None = None
     current_system: dict = {}
     state: dict
     properties: dict
@@ -151,10 +151,10 @@ class System(BaseModel):
     circuits: list[Circuit] = []
     domestic_hot_water: list[DomesticHotWater] = []
     devices: list["Device"] = []
-    timezone: datetime.tzinfo | None
-    firmware_update_required: bool | None
-    connected: bool | None
-    diagnostic_trouble_codes: list[dict] | None
+    timezone: datetime.tzinfo | None = None
+    firmware_update_required: bool | None = None
+    connected: bool | None = None
+    diagnostic_trouble_codes: list[dict] | None = None
 
     def __init__(self, **data: Any) -> None:
         if "claim" in data and "id" not in data:
@@ -172,8 +172,7 @@ class System(BaseModel):
             Device(system_id=self.id, type=k, **v) for k, v in self._raw_devices
         ]
 
-    class Config:
-        arbitrary_types_allowed = True  # Necessary for timezone
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @property
     def _raw_devices(self) -> Iterator[tuple[str, dict]]:
@@ -251,8 +250,8 @@ class System(BaseModel):
 class Device(BaseModel):
     system_id: str
     device_uuid: str
-    name: str | None
-    product_name: str | None
+    name: str | None = None
+    product_name: str | None = None
     properties: list = []
     ebus_id: str
     article_number: str
@@ -282,7 +281,7 @@ class Device(BaseModel):
 class DeviceDataBucket(BaseModel):
     start_date: datetime.datetime
     end_date: datetime.datetime
-    value: float | None
+    value: float | None = None
 
 
 class DeviceData(BaseModel):
@@ -291,18 +290,18 @@ class DeviceData(BaseModel):
         kwargs["data_to"] = kwargs.pop("to") if "to" in kwargs else None
         super().__init__(device=device, **kwargs)
 
-    device: Device | None
-    data_from: datetime.datetime | None
-    data_to: datetime.datetime | None
-    start_date: datetime.datetime | None
-    end_date: datetime.datetime | None
-    resolution: DeviceDataBucketResolution | None
+    device: Device | None = None
+    data_from: datetime.datetime | None = None
+    data_to: datetime.datetime | None = None
+    start_date: datetime.datetime | None = None
+    end_date: datetime.datetime | None = None
+    resolution: DeviceDataBucketResolution | None = None
     operation_mode: str
-    energy_type: str | None
-    value_type: str | None
+    energy_type: str | None = None
+    value_type: str | None = None
     data: list[DeviceDataBucket] = []
 
 
 # Updating string type hints for pydantic
-System.update_forward_refs()
-Device.update_forward_refs()
+System.model_rebuild()
+Device.model_rebuild()

@@ -60,12 +60,12 @@ async def main(
                 data_list = []
                 for device in system.devices:
                     data = [
-                        d.dict()
+                        d.model_dump()
                         async for d in api.get_data_by_device(
                             device, resolution, start, end
                         )
                     ]
-                    data_list.append(dict(device=device.dict(), data=data))
+                    data_list.append(dict(device=device.model_dump(), data=data))
                 sys.stdout.write(
                     json.dumps(
                         data_list,
@@ -74,7 +74,7 @@ async def main(
                     )
                 )
             else:
-                sys.stdout.write(json.dumps(system.dict(), indent=2, default=str))
+                sys.stdout.write(json.dumps(system.model_dump(), indent=2, default=str))
                 sys.stdout.write("\n")
 
 
