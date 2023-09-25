@@ -5,6 +5,7 @@ import asyncio
 import json
 import logging
 import sys
+from dataclasses import asdict
 from datetime import datetime
 
 from myPyllant.api import MyPyllantAPI
@@ -60,12 +61,12 @@ async def main(
                 data_list = []
                 for device in system.devices:
                     data = [
-                        d.model_dump()
+                        asdict(d)
                         async for d in api.get_data_by_device(
                             device, resolution, start, end
                         )
                     ]
-                    data_list.append(dict(device=device.model_dump(), data=data))
+                    data_list.append(dict(device=asdict(device), data=data))
                 sys.stdout.write(
                     json.dumps(
                         data_list,
@@ -74,7 +75,7 @@ async def main(
                     )
                 )
             else:
-                sys.stdout.write(json.dumps(system.model_dump(), indent=2, default=str))
+                sys.stdout.write(json.dumps(asdict(system), indent=2, default=str))
                 sys.stdout.write("\n")
 
 

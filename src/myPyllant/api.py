@@ -543,7 +543,9 @@ class MyPyllantAPI:
             return None
         return (await response.json())["firmwareUpdateRequired"]
 
-    async def get_diagnostic_trouble_codes(self, system: System | str) -> dict | None:
+    async def get_diagnostic_trouble_codes(
+        self, system: System | str
+    ) -> list[dict] | None:
         url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/diagnostic-trouble-codes"
         try:
             response = await self.aiohttp_session.get(
@@ -554,5 +556,4 @@ class MyPyllantAPI:
             logger.warning("Could not get diagnostic trouble codes", exc_info=e)
             return None
         result = await response.json()
-        print(result)
         return result

@@ -13,7 +13,7 @@ classifiers = [
 ]
 dependencies = [
   "aiohttp>=3.8.0",
-  "pydantic>=2.3.0",
+  "dataclass-type-validator>=0.1.2",
 ]
 dynamic = ["version"]
 
@@ -48,6 +48,12 @@ follow_imports = "silent"
 warn_incomplete_stub = true
 warn_redundant_casts = true
 warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "dataclass_type_validator"
+]
+ignore_missing_imports = true
 
 [tool.isort]
 # https://github.com/timothycrosley/isort
