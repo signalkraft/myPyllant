@@ -60,14 +60,16 @@ async def on_request_start(session, context, params: aiohttp.TraceRequestStartPa
     """
     See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_start
     """
-    logger.debug(f"Starting request {params}")
+    logger.debug("Starting request %s", params)
 
 
 async def on_request_end(session, context, params: aiohttp.TraceRequestEndParams):
     """
     See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_end
+    and https://docs.python.org/3/howto/logging.html#optimization
     """
-    logger.debug(f"Got response {await params.response.text()}")
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Got response %s", await params.response.text())
 
 
 class MyPyllantAPI:
@@ -160,7 +162,7 @@ class MyPyllantAPI:
         )
         login_url = unescape(result.group())
 
-        logger.debug(f"Got login url {login_url}")
+        logger.debug("Got login url %s", login_url)
 
         login_payload = {
             "username": self.username,
@@ -171,7 +173,7 @@ class MyPyllantAPI:
         async with self.aiohttp_session.post(
             login_url, data=login_payload, allow_redirects=False
         ) as resp:
-            logger.debug(f"Got login response headers {resp.headers}")
+            logger.debug("Got login response headers %s", resp.headers)
             if "Location" not in resp.headers:
                 raise AuthenticationFailed("Login failed")
             logger.debug(
@@ -201,14 +203,14 @@ class MyPyllantAPI:
                 )
                 raise Exception(login_json)
             self.oauth_session = login_json
-            logger.debug(f"Got session {self.oauth_session}")
+            logger.debug("Got session %s", self.oauth_session)
             self.set_session_expires()
 
     def set_session_expires(self):
         self.oauth_session_expires = datetime.datetime.now() + datetime.timedelta(
             seconds=self.oauth_session["expires_in"]
         )
-        logger.debug(f"Session expires in {self.oauth_session_expires}")
+        logger.debug("Session expires in %s", self.oauth_session_expires)
 
     async def refresh_token(self):
         refresh_payload = {
@@ -279,7 +281,7 @@ class MyPyllantAPI:
             ) as current_system_resp:
                 current_system_json = await current_system_resp.json()
 
-            system = System(
+            system = System.from_api(
                 claim=claim,
                 timezone=await self.get_time_zone(claim.system_id)
                 if include_timezone
@@ -335,7 +337,7 @@ class MyPyllantAPI:
                 device_buckets_url, headers=self.get_authorized_headers()
             ) as device_buckets_resp:
                 device_buckets_json = await device_buckets_resp.json()
-                yield DeviceData(
+                yield DeviceData.from_api(
                     device=device,
                     **dict_to_snake_case(device_buckets_json),
                 )
@@ -397,7 +399,7 @@ class MyPyllantAPI:
         temperature: float,
         setpoint_type: str = "HEATING",
     ):
-        logger.debug(f"Setting manual mode setpoint for {zone.name}")
+        logger.debug("Setting manual mode setpoint for %s", zone.name)
         url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/manual-mode-setpoint"
         payload = {
             "setpoint": temperature,

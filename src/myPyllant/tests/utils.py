@@ -1,5 +1,7 @@
 import re
 
+from aiohttp import RequestInfo
+from aiohttp.client_exceptions import ClientResponseError
 from aioresponses import aioresponses
 
 from myPyllant.api import MyPyllantAPI
@@ -9,12 +11,41 @@ from myPyllant.utils import get_realm
 
 def _mypyllant_aioresponses():
     class _mypyllant_aioresponses(aioresponses):
-        def __init__(self, test_data=None, **kwargs):
+        def __init__(self, test_data=None, test_quota=False, **kwargs):
             self.test_data = test_data
+            self.test_quota = test_quota
             super().__init__(**kwargs)
 
         def __enter__(self):
             super().__enter__()
+
+            if self.test_quota:
+                e = ClientResponseError(
+                    request_info=RequestInfo(
+                        url="https://api.vaillant-group.com/service-connected-control/end-user-app-api/v1/claims",
+                        method="GET",
+                        headers=None,
+                    ),
+                    history=None,
+                    status=403,
+                    message="Quota Exceeded",
+                )
+                self.get(
+                    re.compile(r".*"),
+                    exception=e,
+                )
+                self.post(
+                    re.compile(r".*"),
+                    exception=e,
+                )
+                self.patch(
+                    re.compile(r".*"),
+                    exception=e,
+                )
+                self.delete(
+                    re.compile(r".*"),
+                    exception=e,
+                )
 
             # auth endpoints
             self.get(

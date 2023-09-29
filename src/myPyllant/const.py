@@ -1,12 +1,11 @@
-LOGIN_URL = (
-    "https://identity.vaillant-group.com/auth/realms/{realm}/login-actions/authenticate"
-)
-AUTHENTICATE_URL = "https://identity.vaillant-group.com/auth/realms/{realm}/protocol/openid-connect/auth"
-TOKEN_URL = "https://identity.vaillant-group.com/auth/realms/{realm}/protocol/openid-connect/token"
-CLIENT_ID = "myvaillant"
+AUTH_BASE_URL = "https://identity.vaillant-group.com/auth/realms"
+LOGIN_URL = AUTH_BASE_URL + "/{realm}/login-actions/authenticate"
+AUTHENTICATE_URL = AUTH_BASE_URL + "/{realm}/protocol/openid-connect/auth"
+TOKEN_URL = AUTH_BASE_URL + "/{realm}/protocol/openid-connect/token"
 API_URL_BASE = (
     "https://api.vaillant-group.com/service-connected-control/end-user-app-api/v1"
 )
+CLIENT_ID = "myvaillant"
 BRANDS = {
     "vaillant": "Vaillant",
     "sdbg": "Saunier Duval",
@@ -70,5 +69,5 @@ MANUAL_SETPOINT_TYPES = {
     "COOLING": "Cooling",
 }
 DEFAULT_MANUAL_SETPOINT_TYPE = "HEATING"
-DEFAULT_QUICK_VETO_DURATION = 3.0
+DEFAULT_QUICK_VETO_DURATION = 3.0  # in hours
 DEFAULT_CONTROL_IDENTIFIER = "tli"

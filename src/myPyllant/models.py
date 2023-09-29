@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 import datetime
 import logging
 from collections.abc import Iterator
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import TypeVar
 
-from dataclass_type_validator import dataclass_type_validator
+from dacite import Config, from_dict
 
 from myPyllant.utils import datetime_parse
 
@@ -65,20 +67,25 @@ class DHWOperationMode(MyPyllantEnum):
     OFF = "OFF"
 
 
+T = TypeVar("T")
+
+
 @dataclass
 class MyPyllantDataClass:
     """
-    Base class that runs type validation in __init__
+    Base class that runs type validation in __init__ and can create an instance from API values
     """
 
-    def __post_init__(self):
-        for f in fields(self):
-            is_enum = isinstance(f.type, type) and issubclass(f.type, Enum)
-            if is_enum:
-                value = object.__getattribute__(self, f.name)
-                if isinstance(value, str):
-                    object.__setattr__(self, f.name, f.type(value))
-        dataclass_type_validator(self)
+    @classmethod
+    def from_api(cls: type[T], **kwargs) -> T:
+        """
+        Creates enums & dates from strings before calling __init__
+        """
+        return from_dict(
+            data_class=cls,
+            data=kwargs,
+            config=Config(cast=[Enum], type_hooks={datetime.datetime: datetime_parse}),
+        )
 
 
 @dataclass
@@ -125,33 +132,10 @@ class Zone(MyPyllantDataClass):
     quick_veto_start_date_time: datetime.datetime | None = None
     quick_veto_end_date_time: datetime.datetime | None = None
 
-    def __post_init__(self):
-        if self.quick_veto_start_date_time:
-            object.__setattr__(
-                self,
-                "quick_veto_start_date_time",
-                datetime_parse(self.quick_veto_start_date_time),  # noqa
-            )
-        if self.quick_veto_end_date_time:
-            object.__setattr__(
-                self,
-                "quick_veto_end_date_time",
-                datetime_parse(self.quick_veto_end_date_time),  # noqa
-            )
-        if isinstance(self.heating_state, str):
-            object.__setattr__(
-                self, "heating_state", ZoneHeatingState(self.heating_state)
-            )
-        if isinstance(self.current_special_function, str):
-            object.__setattr__(
-                self,
-                "current_special_function",
-                ZoneCurrentSpecialFunction(self.current_special_function),
-            )
-        if isinstance(self.heating, dict):
-            object.__setattr__(self, "heating", ZoneHeating(**self.heating))
-
-        super().__post_init__()
+    @classmethod
+    def from_api(cls, **kwargs):
+        kwargs["heating"] = ZoneHeating.from_api(**kwargs["heating"])
+        return super().from_api(**kwargs)
 
     @property
     def name(self):
@@ -170,88 +154,80 @@ class Circuit(MyPyllantDataClass):
     current_circuit_flow_temperature: float | None = None
     heating_curve: float | None = None
     heating_flow_temperature_minimum_setpoint: float | None = None
+    heating_flow_temperature_maximum_setpoint: float | None = None
     min_flow_temperature_setpoint: float | None = None
     calculated_energy_manager_state: str | None = None
-
-    def __post_init__(self):
-        if isinstance(self.circuit_state, str):
-            object.__setattr__(self, "circuit_state", CircuitState(self.circuit_state))
-        super().__post_init__()
 
 
 @dataclass
 class DomesticHotWater(MyPyllantDataClass):
     system_id: str
     index: int
-    current_dhw_temperature: float | None
     current_special_function: DHWCurrentSpecialFunction
     max_setpoint: float
     min_setpoint: float
     operation_mode_dhw: DHWOperationMode
-    tapping_setpoint: float | None
     time_program_dhw: dict
     time_program_circulation_pump: dict
-
-    def __post_init__(self):
-        if isinstance(self.current_special_function, str):
-            object.__setattr__(
-                self,
-                "current_special_function",
-                DHWCurrentSpecialFunction(self.current_special_function),
-            )
-        if isinstance(self.operation_mode_dhw, str):
-            object.__setattr__(
-                self, "operation_mode_dhw", DHWOperationMode(self.operation_mode_dhw)
-            )
-        super().__post_init__()
+    current_dhw_temperature: float | None = None
+    tapping_setpoint: float | None = None
 
 
 @dataclass
 class System(MyPyllantDataClass):
-    id: str = field(init=False)
-    claim: Claim | None
+    id: str
     state: dict
     properties: dict
     configuration: dict
-    timezone: datetime.tzinfo | None
-    firmware_update_required: bool | None
-    connected: bool | None
-    diagnostic_trouble_codes: list[dict] | None
+    claim: Claim | None = None
+    timezone: datetime.tzinfo | None = None
+    firmware_update_required: bool | None = None
+    connected: bool | None = None
+    diagnostic_trouble_codes: list[dict] | None = None
     current_system: dict = field(default_factory=dict)
     zones: list[Zone] = field(default_factory=list)
     circuits: list[Circuit] = field(default_factory=list)
     domestic_hot_water: list[DomesticHotWater] = field(default_factory=list)
-    devices: list["Device"] = field(default_factory=list)
+    devices: list[Device] = field(default_factory=list)
 
-    def __post_init__(self) -> None:
-        if self.claim:
-            object.__setattr__(self, "id", self.claim.system_id)
-        self.zones = [Zone(system_id=self.id, **z) for z in self._merge_object("zones")]
-        self.circuits = [
-            Circuit(system_id=self.id, **c) for c in self._merge_object("circuits")
+    @classmethod
+    def from_api(cls, **kwargs):
+        if "claim" in kwargs and "id" not in kwargs:
+            kwargs["id"] = kwargs["claim"].system_id
+        system: System = super().from_api(**kwargs)
+        logger.debug(f"Creating related models from state: {kwargs}")
+        system.zones = [
+            Zone.from_api(system_id=system.id, **z)
+            for z in system.merge_object("zones")
         ]
-        self.domestic_hot_water = [
-            DomesticHotWater(system_id=self.id, **d) for d in self._merge_object("dhw")
+        system.circuits = [
+            Circuit.from_api(system_id=system.id, **c)
+            for c in system.merge_object("circuits")
         ]
-        self.devices = [
-            Device(system_id=self.id, type=k, **v) for k, v in self._raw_devices
+        system.domestic_hot_water = [
+            DomesticHotWater.from_api(system_id=system.id, **d)
+            for d in system.merge_object("dhw")
         ]
-        super().__post_init__()
+        system.devices = [
+            Device.from_api(system_id=system.id, type=k, **v)
+            for k, v in system.raw_devices
+        ]
+        return system
 
     @property
-    def _raw_devices(self) -> Iterator[tuple[str, dict]]:
+    def raw_devices(self) -> Iterator[tuple[str, dict]]:
         for key, device in self.current_system.items():
             if isinstance(device, dict) and "device_uuid" in device:
                 yield key, device
 
     @property
-    def primary_heat_generator(self) -> Optional["Device"]:
+    def primary_heat_generator(self) -> Device | None:
         devices = [d for d in self.devices if d.type == "primary_heat_generator"]
         if len(devices) > 0:
             return devices[0]
         return None
 
-    def _merge_object(self, obj_name) -> Iterator[dict]:
+    def merge_object(self, obj_name) -> Iterator[dict]:
         """
         The Vaillant API returns information about zones, circuits, and dhw separately as
         configuration, state, and properties.
@@ -328,7 +304,7 @@ class Device(MyPyllantDataClass):
     bus_coupler_address: int | None = None
     emf_valid: bool | None = None
     operational_data: dict = field(default_factory=dict)
-    data: list["DeviceData"] = field(default_factory=list)
+    data: list[DeviceData] = field(default_factory=list)
     properties: list = field(default_factory=list)
 
     @property
@@ -345,36 +321,21 @@ class Device(MyPyllantDataClass):
         """
         return self.product_name or self.device_type.replace("_", "").title()
 
-    def __post_init__(self):
-        if self.first_data:
-            object.__setattr__(
-                self, "first_data", datetime_parse(self.first_data)  # noqa
-            )
-        if self.last_data:
-            object.__setattr__(
-                self, "last_data", datetime_parse(self.last_data)  # noqa
-            )
-        if self.data and isinstance(self.data[0], dict):
-            object.__setattr__(
-                self, "data", [DeviceData(**dd) for dd in self.data]
-            )  # noqa
-        super().__post_init__()
+    @classmethod
+    def from_api(cls, **kwargs):
+        kwargs["data"] = (
+            [DeviceData.from_api(**dd) for dd in kwargs["data"]]
+            if "data" in kwargs
+            else []
+        )
+        return super().from_api(**kwargs)
 
 
 @dataclass
 class DeviceDataBucket(MyPyllantDataClass):
     start_date: datetime.datetime
     end_date: datetime.datetime
-    value: float | None
-
-    def __post_init__(self):
-        if self.start_date:
-            object.__setattr__(
-                self, "start_date", datetime_parse(self.start_date)  # noqa
-            )
-        if self.end_date:
-            object.__setattr__(self, "end_date", datetime_parse(self.end_date))  # noqa
-        super().__post_init__()
+    value: float | None = None
 
 
 @dataclass
@@ -391,19 +352,11 @@ class DeviceData(MyPyllantDataClass):
     calculated: bool | None = None
     data: list[DeviceDataBucket] = field(default_factory=list)
 
-    def __init__(self, **kwargs):
-        names = {f.name for f in fields(self)}
-        kwargs["data_from"] = kwargs.pop("from") if "from" in kwargs else None
-        kwargs["data_to"] = kwargs.pop("to") if "to" in kwargs else None
-        if "data" in kwargs:
-            kwargs["data"] = [DeviceDataBucket(**dd) for dd in kwargs["data"]]
-        else:
-            kwargs["data"] = None
-        if kwargs["data_from"]:
-            kwargs["data_from"] = datetime_parse(kwargs["data_from"])
-        if kwargs["data_to"]:
-            kwargs["data_to"] = datetime_parse(kwargs["data_to"])
-
-        for k, v in kwargs.items():
-            if k in names:
-                object.__setattr__(self, k, v)
+    @classmethod
+    def from_api(cls, **kwargs):
+        kwargs["data_from"] = kwargs.pop("from", None)
+        kwargs["data_to"] = kwargs.pop("to", None)
+        kwargs["data"] = [
+            DeviceDataBucket.from_api(**dd) for dd in kwargs.pop("data", [])
+        ]
+        return super().from_api(**kwargs)

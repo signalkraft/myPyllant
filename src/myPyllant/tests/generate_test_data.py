@@ -32,6 +32,7 @@ ANONYMIZE_ATTRIBUTES = (
     "device_uuid",
     "device_serial_number",
     "deviceId",
+    "homeName",
     "serialNumber",
     "systemId",
 )

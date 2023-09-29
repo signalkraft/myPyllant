@@ -56,7 +56,7 @@ repos:
         additional_dependencies:
           - aiohttp
           - aioresponses
-          - dataclass-type-validator
+          - dacite
           - freezegun
           - pytest
           - types-requests
