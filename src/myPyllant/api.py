@@ -248,13 +248,12 @@ class MyPyllantAPI:
             f"{API_URL_BASE}/claims", headers=self.get_authorized_headers()
         ) as claims_resp:
             for claim_json in await claims_resp.json():
-                yield Claim(**dict_to_snake_case(claim_json))
+                yield Claim.from_api(**dict_to_snake_case(claim_json))
 
     async def get_systems(
         self,
         include_timezone=False,
         include_connection_status=False,
-        include_firmware_update_required=False,
         include_diagnostic_trouble_codes=False,
     ) -> AsyncIterator[System]:
         logger.debug(
@@ -288,11 +287,6 @@ class MyPyllantAPI:
                 else None,
                 connected=await self.get_connection_status(claim.system_id)
                 if include_connection_status
-                else None,
-                firmware_update_required=await self.get_firmware_update_required(
-                    claim.system_id
-                )
-                if include_firmware_update_required
                 else None,
                 diagnostic_trouble_codes=await self.get_diagnostic_trouble_codes(
                     claim.system_id
@@ -532,18 +526,6 @@ class MyPyllantAPI:
         except KeyError:
             logger.warning("Couldn't get timezone from API")
             return None
-
-    async def get_firmware_update_required(self, system: System | str) -> bool | None:
-        url = f"{API_URL_BASE}/firmware-update-required/{self.get_system_id(system)}"
-        try:
-            response = await self.aiohttp_session.get(
-                url,
-                headers=self.get_authorized_headers(),
-            )
-        except ClientResponseError as e:
-            logger.warning("Could not get firmware update response", exc_info=e)
-            return None
-        return (await response.json())["firmwareUpdateRequired"]
 
     async def get_diagnostic_trouble_codes(
         self, system: System | str

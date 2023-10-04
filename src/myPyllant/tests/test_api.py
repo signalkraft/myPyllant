@@ -7,6 +7,7 @@ from freezegun import freeze_time
 
 from myPyllant.api import MyPyllantAPI, RealmInvalid
 from myPyllant.models import (
+    Claim,
     Device,
     DeviceData,
     DeviceDataBucket,
@@ -83,6 +84,15 @@ async def test_systems(mypyllant_aioresponses, mocked_api, test_data) -> None:
         assert isinstance(system, System), "Expected System return type"
         assert isinstance(system.outdoor_temperature, (float | None))
         assert isinstance(system.water_pressure, float)
+        await mocked_api.aiohttp_session.close()
+
+
+@pytest.mark.parametrize("test_data", list_test_data())
+async def test_claims(mypyllant_aioresponses, mocked_api, test_data) -> None:
+    with mypyllant_aioresponses(test_data) as _:
+        claim = await anext(mocked_api.get_claims())
+
+        assert isinstance(claim, Claim), "Expected Claim return type"
         await mocked_api.aiohttp_session.close()
 
 

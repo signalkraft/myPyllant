@@ -1,28 +1,26 @@
 {
   "state": {
     "system": {
-      "outdoorTemperature": 20.5,
-      "systemWaterPressure": 1.9,
-      "outdoorTemperatureAverage24h": 16.917969
+      "outdoorTemperature": 19.847656,
+      "systemWaterPressure": 1.0,
+      "outdoorTemperatureAverage24h": 17.902344
     },
     "zones": [
       {
         "index": 0,
         "desiredRoomTemperatureSetpointHeating": 0.0,
         "desiredRoomTemperatureSetpoint": 0.0,
-        "currentRoomTemperature": 21.9125,
-        "currentRoomHumidity": 61.0,
-        "currentSpecialFunction": "QUICK_VETO",
-        "heatingState": "IDLE",
-        "quickVetoStartDateTime": "2023-08-31T17:23:41Z",
-        "quickVetoEndDateTime": "2023-08-31T22:23:00Z"
+        "currentRoomTemperature": 20.9125,
+        "currentRoomHumidity": 64.0,
+        "currentSpecialFunction": "NONE",
+        "heatingState": "IDLE"
       }
     ],
     "circuits": [
       {
         "index": 0,
         "circuitState": "STANDBY",
-        "currentCircuitFlowTemperature": 41.5,
+        "currentCircuitFlowTemperature": 33.0,
         "calculatedEnergyManagerState": "HEATING_STANDBY"
       }
     ],
@@ -30,7 +28,39 @@
       {
         "index": 255,
         "currentSpecialFunction": "REGULAR",
-        "currentDhwTemperature": 49.5
+        "currentDhwTemperature": 47.0
+      }
+    ]
+  },
+  "properties": {
+    "system": {
+      "controllerType": "VRC720",
+      "systemScheme": 1,
+      "backupHeaterAllowedFor": "DHW_AND_HEATING",
+      "moduleConfigurationVR71": 3,
+      "energyProvidePowerCutBehavior": "DISABLE_HEATPUMP_AND_BACKUP_HEATER"
+    },
+    "zones": [
+      {
+        "index": 0,
+        "isActive": true,
+        "zoneBinding": "CENTRAL_CONTROL",
+        "isCoolingAllowed": false,
+        "associatedCircuitIndex": 0
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "mixerCircuitTypeExternal": "HEATING",
+        "isCoolingAllowed": false
+      }
+    ],
+    "dhw": [
+      {
+        "index": 255,
+        "minSetpoint": 35.0,
+        "maxSetpoint": 70.0
       }
     ]
   },
@@ -39,12 +69,10 @@
       {
         "index": 0,
         "general": {
-          "name": "Zone 1",
-          "holidayStartDateTime": "2019-01-01T00:00:00Z",
-          "holidayEndDateTime": "2019-01-01T00:00:00Z"
+          "name": "Zone 1"
         },
         "heating": {
-          "operationModeHeating": "TIME_CONTROLLED",
+          "operationModeHeating": "OFF",
           "setBackTemperature": 16.0,
           "manualModeSetpointHeating": 22.0,
           "timeProgramHeating": {
@@ -111,14 +139,18 @@
         "index": 0,
         "heatingCurve": 0.6842696,
         "heatingFlowTemperatureMinimumSetpoint": 35.0,
-        "setBackModeEnabled": false
+        "heatingFlowTemperatureMaximumSetpoint": 90.0,
+        "heatDemandLimitedByOutsideTemperature": 21.0,
+        "coolingFlowTemperatureMinimumSetpoint": 20.0,
+        "setBackModeEnabled": false,
+        "roomTemperatureControlMode": "NON"
       }
     ],
     "dhw": [
       {
         "index": 255,
         "operationModeDhw": "TIME_CONTROLLED",
-        "tappingSetpoint": 49.0,
+        "tappingSetpoint": 50.0,
         "timeProgramDhw": {
           "metaInfo": {
             "minSlotsPerDay": 0,
@@ -217,35 +249,6 @@
             }
           ]
         }
-      }
-    ]
-  },
-  "properties": {
-    "system": {
-      "controllerType": "VRC720",
-      "energyProvidePowerCutBehavior": "DISABLE_HEATPUMP_AND_BACKUP_HEATER"
-    },
-    "zones": [
-      {
-        "index": 0,
-        "isActive": true,
-        "zoneBinding": "CENTRAL_CONTROL",
-        "isCoolingAllowed": false,
-        "associatedCircuitIndex": 0
-      }
-    ],
-    "circuits": [
-      {
-        "index": 0,
-        "mixerCircuitTypeExternal": "HEATING",
-        "isCoolingAllowed": false
-      }
-    ],
-    "dhw": [
-      {
-        "index": 255,
-        "minSetpoint": 35.0,
-        "maxSetpoint": 70.0
       }
     ]
   }

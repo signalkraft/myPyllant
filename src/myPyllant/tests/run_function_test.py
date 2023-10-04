@@ -22,7 +22,6 @@ async def main(user, password, brand, country):
         async for system in api.get_systems(
             include_timezone=True,
             include_connection_status=True,
-            include_firmware_update_required=True,
             include_diagnostic_trouble_codes=True,
         ):
             print(

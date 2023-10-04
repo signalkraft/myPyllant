@@ -100,16 +100,6 @@ async def main(user, password, brand, country=None):
             with open(json_dir / "connection_status.json", "w") as fh:
                 fh.write(json.dumps(await status_resp.json(), indent=2))
 
-        firmware_update_url = (
-            f"{API_URL_BASE}/firmware-update-required/{claims[0]['systemId']}"
-        )
-        async with api.aiohttp_session.get(
-            firmware_update_url,
-            headers=api.get_authorized_headers(),
-        ) as firmware_resp:
-            with open(json_dir / "firmware_update_required.json", "w") as fh:
-                fh.write(json.dumps(await firmware_resp.json(), indent=2))
-
         system_url = f"{API_URL_BASE}/systems/{claims[0]['systemId']}/{control_identifier['controlIdentifier']}"
         async with api.aiohttp_session.get(
             system_url, headers=api.get_authorized_headers()

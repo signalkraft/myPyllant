@@ -48,6 +48,7 @@ class ZoneCurrentSpecialFunction(MyPyllantEnum):
     NONE = "NONE"
     QUICK_VETO = "QUICK_VETO"
     HOLIDAY = "HOLIDAY"
+    SYSTEM_OFF = "SYSTEM_OFF"
 
 
 class ZoneHeatingState(MyPyllantEnum):
@@ -101,6 +102,7 @@ class Claim(MyPyllantDataClass):
     migration_state: str | None = None
     cag: bool | None = None
     firmware_version: str | None = None
+    firmware: dict | None = field(default_factory=dict)
     product_metadata: dict = field(default_factory=dict)
 
 
@@ -181,7 +183,6 @@ class System(MyPyllantDataClass):
     configuration: dict
     claim: Claim | None = None
     timezone: datetime.tzinfo | None = None
-    firmware_update_required: bool | None = None
     connected: bool | None = None
     diagnostic_trouble_codes: list[dict] | None = None
     current_system: dict = field(default_factory=dict)
