@@ -181,7 +181,7 @@ class System(MyPyllantDataClass):
     state: dict
     properties: dict
     configuration: dict
-    claim: Claim | None = None
+    claim: Claim
     timezone: datetime.tzinfo | None = None
     connected: bool | None = None
     diagnostic_trouble_codes: list[dict] | None = None
