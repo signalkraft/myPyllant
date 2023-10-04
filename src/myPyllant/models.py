@@ -97,7 +97,7 @@ class Claim(MyPyllantDataClass):
     state: str
     system_id: str
     home_name: str | None = None
-    address: str | None = None
+    address: dict = field(default_factory=dict)
     product_information: str | None = None
     migration_state: str | None = None
     cag: bool | None = None
