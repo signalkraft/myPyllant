@@ -102,7 +102,7 @@ class Claim(MyPyllantDataClass):
     migration_state: str | None = None
     cag: bool | None = None
     firmware_version: str | None = None
-    firmware: dict | None = field(default_factory=dict)
+    firmware: dict = field(default_factory=dict)
     product_metadata: dict = field(default_factory=dict)
 
 
