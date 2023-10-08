@@ -216,7 +216,7 @@ class System(MyPyllantDataClass):
             for d in system.merge_object("dhw")
         ]
         system.devices = [
-            Device.from_api(system_id=system.id, type=k, brand=system.brand_name, **v)
+            Device.from_api(system_id=system.id, type=k, brand=system.brand, **v)
             for k, v in system.raw_devices
         ]
         return system
