@@ -1,17 +1,17 @@
 {
   "state": {
     "system": {
-      "outdoorTemperature": 19.847656,
+      "outdoorTemperature": 22.097656,
       "systemWaterPressure": 1.0,
-      "outdoorTemperatureAverage24h": 17.902344
+      "outdoorTemperatureAverage24h": 19.515625
     },
     "zones": [
       {
         "index": 0,
         "desiredRoomTemperatureSetpointHeating": 0.0,
         "desiredRoomTemperatureSetpoint": 0.0,
-        "currentRoomTemperature": 20.9125,
-        "currentRoomHumidity": 64.0,
+        "currentRoomTemperature": 20.475,
+        "currentRoomHumidity": 59.0,
         "currentSpecialFunction": "NONE",
         "heatingState": "IDLE"
       }
@@ -20,7 +20,7 @@
       {
         "index": 0,
         "circuitState": "STANDBY",
-        "currentCircuitFlowTemperature": 33.0,
+        "currentCircuitFlowTemperature": 41.0,
         "calculatedEnergyManagerState": "HEATING_STANDBY"
       }
     ],
@@ -28,7 +28,7 @@
       {
         "index": 255,
         "currentSpecialFunction": "REGULAR",
-        "currentDhwTemperature": 47.0
+        "currentDhwTemperature": 50.0
       }
     ]
   },

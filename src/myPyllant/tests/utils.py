@@ -132,12 +132,6 @@ def _mypyllant_aioresponses():
                 payload={},
                 repeat=True,
             )
-            self.get(
-                re.compile(r".*diagnostic-trouble-codes$"),
-                status=200,
-                payload=[],
-                repeat=True,
-            )
 
             if self.test_data:
                 # Create endpoints with stored JSON test data
@@ -183,6 +177,12 @@ def _mypyllant_aioresponses():
                     re.compile(r".*meta-info/connection-status"),
                     status=200,
                     payload=self.test_data["connection_status"],
+                    repeat=True,
+                )
+                self.get(
+                    re.compile(r".*diagnostic-trouble-codes$"),
+                    status=200,
+                    payload=self.test_data.get("diagnostic_trouble_codes", []),
                     repeat=True,
                 )
             return self

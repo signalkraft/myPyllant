@@ -281,6 +281,7 @@ class MyPyllantAPI:
                 current_system_json = await current_system_resp.json()
 
             system = System.from_api(
+                brand=self.brand,
                 claim=claim,
                 timezone=await self.get_time_zone(claim.system_id)
                 if include_timezone
@@ -292,7 +293,7 @@ class MyPyllantAPI:
                     claim.system_id
                 )
                 if include_diagnostic_trouble_codes
-                else None,
+                else [],
                 current_system=dict_to_snake_case(current_system_json),
                 **dict_to_snake_case(system_json),
             )
@@ -540,4 +541,4 @@ class MyPyllantAPI:
             logger.warning("Could not get diagnostic trouble codes", exc_info=e)
             return None
         result = await response.json()
-        return result
+        return dict_to_snake_case(result)

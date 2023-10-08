@@ -93,6 +93,17 @@ async def main(user, password, brand, country=None):
             with open(json_dir / "time_zone.json", "w") as fh:
                 fh.write(json.dumps(await tz_response.json(), indent=2))
 
+        dtc_url = (
+            f"{API_URL_BASE}/systems/{claims[0]['systemId']}/diagnostic-trouble-codes"
+        )
+        async with api.aiohttp_session.get(
+            dtc_url, headers=api.get_authorized_headers()
+        ) as dtc_response:
+            dtc = await dtc_response.json()
+            anonymized_dtc = _recursive_data_anonymize(copy.deepcopy(dtc), SALT)
+            with open(json_dir / "diagnostic_trouble_codes.json", "w") as fh:
+                fh.write(json.dumps(anonymized_dtc, indent=2))
+
         connection_status_url = f"{API_URL_BASE}/systems/{claims[0]['systemId']}/meta-info/connection-status"
         async with api.aiohttp_session.get(
             connection_status_url, headers=api.get_authorized_headers()

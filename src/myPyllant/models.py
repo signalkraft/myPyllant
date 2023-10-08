@@ -9,6 +9,7 @@ from typing import TypeVar
 
 from dacite import Config, from_dict
 
+from myPyllant.const import BRANDS
 from myPyllant.utils import datetime_parse
 
 logger = logging.getLogger(__name__)
@@ -105,6 +106,10 @@ class Claim(MyPyllantDataClass):
     firmware: dict = field(default_factory=dict)
     product_metadata: dict = field(default_factory=dict)
 
+    @property
+    def name(self):
+        return f"{self.home_name} {self.nomenclature}"
+
 
 @dataclass
 class ZoneHeating(MyPyllantDataClass):
@@ -182,9 +187,10 @@ class System(MyPyllantDataClass):
     properties: dict
     configuration: dict
     claim: Claim
+    brand: str
     timezone: datetime.tzinfo | None = None
     connected: bool | None = None
-    diagnostic_trouble_codes: list[dict] | None = None
+    diagnostic_trouble_codes: list = field(default_factory=list)
     current_system: dict = field(default_factory=dict)
     zones: list[Zone] = field(default_factory=list)
     circuits: list[Circuit] = field(default_factory=list)
@@ -210,7 +216,7 @@ class System(MyPyllantDataClass):
             for d in system.merge_object("dhw")
         ]
         system.devices = [
-            Device.from_api(system_id=system.id, type=k, **v)
+            Device.from_api(system_id=system.id, type=k, brand=system.brand_name, **v)
             for k, v in system.raw_devices
         ]
         return system
@@ -219,6 +225,10 @@ class System(MyPyllantDataClass):
     def raw_devices(self) -> Iterator[tuple[str, dict]]:
         for key, device in self.current_system.items():
             if isinstance(device, dict) and "device_uuid" in device:
+                dtc = self.diagnostic_trouble_codes_by_serial_number(
+                    device["device_serial_number"]
+                )
+                device["diagnostic_trouble_codes"] = dtc
                 yield key, device
 
     @property
@@ -255,7 +265,6 @@ class System(MyPyllantDataClass):
             except (StopIteration, KeyError) as e:
                 logger.warning("Error when merging properties", exc_info=e)
                 properties = {}
-            # index is part of all three fields, delete from two to avoid multiple keyword argument error in dict init
             configuration.update(state)
             configuration.update(properties)
             yield configuration
@@ -287,6 +296,25 @@ class System(MyPyllantDataClass):
         else:
             return "System"
 
+    @property
+    def brand_name(self) -> str:
+        return BRANDS[self.brand]
+
+    @property
+    def has_diagnostic_trouble_codes(self) -> bool:
+        return any([len(d["codes"]) > 0 for d in self.diagnostic_trouble_codes])
+
+    def diagnostic_trouble_codes_by_serial_number(self, serial_number: str) -> list:
+        dtc = [
+            d
+            for d in self.diagnostic_trouble_codes
+            if d["serial_number"] == serial_number
+        ]
+        if dtc:
+            return dtc[0]["codes"]
+        else:
+            return []
+
 
 @dataclass
 class Device(MyPyllantDataClass):
@@ -299,6 +327,7 @@ class Device(MyPyllantDataClass):
     device_type: str
     first_data: datetime.datetime
     last_data: datetime.datetime
+    brand: str
     name: str | None = None
     product_name: str | None = None
     spn: int | None = None
@@ -307,6 +336,7 @@ class Device(MyPyllantDataClass):
     operational_data: dict = field(default_factory=dict)
     data: list[DeviceData] = field(default_factory=list)
     properties: list = field(default_factory=list)
+    diagnostic_trouble_codes: list = field(default_factory=list)
 
     @property
     def name_display(self) -> str:
@@ -321,6 +351,10 @@ class Device(MyPyllantDataClass):
         Product name might be None, fall back to title-cased device type
         """
         return self.product_name or self.device_type.replace("_", "").title()
+
+    @property
+    def brand_name(self) -> str:
+        return BRANDS[self.brand]
 
     @classmethod
     def from_api(cls, **kwargs):
