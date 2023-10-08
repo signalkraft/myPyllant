@@ -82,6 +82,8 @@ async def test_systems(mypyllant_aioresponses, mocked_api, test_data) -> None:
         system = await anext(mocked_api.get_systems())
 
         assert isinstance(system, System), "Expected System return type"
+        assert isinstance(system.brand, str)
+        assert isinstance(system.brand_name, str)
         assert isinstance(system.outdoor_temperature, (float | None))
         assert isinstance(system.water_pressure, float)
         await mocked_api.aiohttp_session.close()
@@ -130,6 +132,8 @@ async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
             device = system.devices[0]
             assert isinstance(device, Device)
             assert isinstance(device.name_display, str)
+            assert isinstance(device.brand, str)
+            assert isinstance(device.brand_name, str)
         await mocked_api.aiohttp_session.close()
 
 
