@@ -8,7 +8,7 @@ RUN apt update \
 
 COPY . .
 
-RUN pip install -r requirements-dev.txt \
+RUN pip install -r dev-requirements.txt \
     && pip install -e . \
     && pre-commit install
 
