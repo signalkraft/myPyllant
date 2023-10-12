@@ -56,6 +56,3 @@ async def test_trouble_codes(
 
         system.diagnostic_trouble_codes = [{"codes": []}]
         assert not system.has_diagnostic_trouble_codes
-
-        device = system.devices[0]
-        assert isinstance(device.diagnostic_trouble_codes, list)

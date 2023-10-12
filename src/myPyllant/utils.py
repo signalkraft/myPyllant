@@ -57,7 +57,10 @@ def datetime_format(date: datetime, with_microseconds=False) -> str:
 
 
 def datetime_parse(date_string: str) -> datetime:
-    return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
+    if "." in date_string:
+        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S.%fZ")
+    else:
+        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
 
 
 def get_realm(brand: str, country: str | None = None) -> str:

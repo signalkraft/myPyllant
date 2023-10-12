@@ -102,6 +102,12 @@ def _mypyllant_aioresponses():
                 payload={},
                 repeat=True,
             )
+            self.patch(
+                re.compile(r".*domestic-hot-water/.*/operation-mode$"),
+                status=200,
+                payload={},
+                repeat=True,
+            )
             self.post(
                 re.compile(r".*domestic-hot-water/.*/boost$"),
                 status=200,
@@ -115,13 +121,17 @@ def _mypyllant_aioresponses():
                 repeat=True,
             )
             self.post(
-                re.compile(r".*zones/.*/quick-veto$"),
+                re.compile(
+                    r".*zones/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode)$"
+                ),
                 status=200,
                 payload={},
                 repeat=True,
             )
             self.patch(
-                re.compile(r".*zones/.*/quick-veto$"),
+                re.compile(
+                    r".*zones/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode)$"
+                ),
                 status=200,
                 payload={},
                 repeat=True,

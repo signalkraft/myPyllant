@@ -293,7 +293,7 @@ class MyPyllantAPI:
                     claim.system_id
                 )
                 if include_diagnostic_trouble_codes
-                else [],
+                else None,
                 current_system=dict_to_snake_case(current_system_json),
                 **dict_to_snake_case(system_json),
             )

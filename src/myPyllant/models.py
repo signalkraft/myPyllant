@@ -190,7 +190,7 @@ class System(MyPyllantDataClass):
     brand: str
     timezone: datetime.tzinfo | None = None
     connected: bool | None = None
-    diagnostic_trouble_codes: list = field(default_factory=list)
+    diagnostic_trouble_codes: list | None = None
     current_system: dict = field(default_factory=dict)
     zones: list[Zone] = field(default_factory=list)
     circuits: list[Circuit] = field(default_factory=list)
@@ -302,18 +302,22 @@ class System(MyPyllantDataClass):
 
     @property
     def has_diagnostic_trouble_codes(self) -> bool:
-        return any([len(d["codes"]) > 0 for d in self.diagnostic_trouble_codes])
+        return self.diagnostic_trouble_codes is not None and any(
+            [len(d["codes"]) > 0 for d in self.diagnostic_trouble_codes]
+        )
 
-    def diagnostic_trouble_codes_by_serial_number(self, serial_number: str) -> list:
-        dtc = [
-            d
-            for d in self.diagnostic_trouble_codes
-            if d["serial_number"] == serial_number
-        ]
-        if dtc:
-            return dtc[0]["codes"]
+    def diagnostic_trouble_codes_by_serial_number(
+        self, serial_number: str
+    ) -> list | None:
+        if self.diagnostic_trouble_codes:
+            dtc = [
+                d
+                for d in self.diagnostic_trouble_codes
+                if d["serial_number"] == serial_number
+            ]
+            return dtc[0]["codes"] if dtc else None
         else:
-            return []
+            return None
 
 
 @dataclass
@@ -336,7 +340,7 @@ class Device(MyPyllantDataClass):
     operational_data: dict = field(default_factory=dict)
     data: list[DeviceData] = field(default_factory=list)
     properties: list = field(default_factory=list)
-    diagnostic_trouble_codes: list = field(default_factory=list)
+    diagnostic_trouble_codes: list | None = None
 
     @property
     def name_display(self) -> str:
