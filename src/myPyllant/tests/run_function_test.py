@@ -49,6 +49,11 @@ async def main(user, password, brand, country):
                 )
                 print(await api.quick_veto_zone_temperature(zone, 21, 5))
                 print(await api.cancel_quick_veto_zone_temperature(zone))
+                print(
+                    await api.set_zone_time_program(
+                        zone, "heating", zone.heating.time_program_heating
+                    )
+                )
             if system.domestic_hot_water:
                 dhw = system.domestic_hot_water[0]
                 print(

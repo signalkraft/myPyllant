@@ -112,10 +112,29 @@ class Claim(MyPyllantDataClass):
 
 
 @dataclass
+class TimeProgramHeatingDay(MyPyllantDataClass):
+    start_time: int
+    end_time: int
+    setpoint: float | None = None
+
+
+@dataclass
+class TimeProgramHeating(MyPyllantDataClass):
+    monday: list[TimeProgramHeatingDay]
+    tuesday: list[TimeProgramHeatingDay]
+    wednesday: list[TimeProgramHeatingDay]
+    thursday: list[TimeProgramHeatingDay]
+    friday: list[TimeProgramHeatingDay]
+    saturday: list[TimeProgramHeatingDay]
+    sunday: list[TimeProgramHeatingDay]
+    meta_info: dict | None = None
+
+
+@dataclass
 class ZoneHeating(MyPyllantDataClass):
     manual_mode_setpoint_heating: float
     operation_mode_heating: ZoneHeatingOperatingMode
-    time_program_heating: dict
+    time_program_heating: TimeProgramHeating
     set_back_temperature: float
 
 

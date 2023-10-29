@@ -27,6 +27,23 @@ def dict_to_snake_case(d):
     }
 
 
+def dict_to_camel_case(d):
+    """
+    Convert {'camel_case': value} to {'camelCase': value} recursively
+    """
+
+    def to_camel(s):
+        p = s.split("_")
+        return p[0] + "".join(x.capitalize() or "_" for x in p[1:])
+
+    if isinstance(d, list):
+        return [dict_to_camel_case(i) if isinstance(i, (dict, list)) else i for i in d]
+    return {
+        to_camel(a): dict_to_camel_case(b) if isinstance(b, (dict, list)) else b
+        for a, b in d.items()
+    }
+
+
 def random_string(length):
     return "".join(
         random.choices(

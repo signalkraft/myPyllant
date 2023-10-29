@@ -4,6 +4,7 @@ import datetime
 import logging
 import re
 from collections.abc import AsyncIterator
+from dataclasses import asdict
 from html import unescape
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -30,12 +31,14 @@ from myPyllant.models import (
     DHWOperationMode,
     DomesticHotWater,
     System,
+    TimeProgramHeating,
     Zone,
     ZoneCurrentSpecialFunction,
     ZoneHeatingOperatingMode,
 )
 from myPyllant.utils import (
     datetime_format,
+    dict_to_camel_case,
     dict_to_snake_case,
     generate_code,
     get_realm,
@@ -419,6 +422,21 @@ class MyPyllantAPI:
         return await self.aiohttp_session.patch(
             url,
             json={"setBackTemperature": temperature},
+            headers=self.get_authorized_headers(),
+        )
+
+    async def set_zone_time_program(
+        self, zone: Zone, program_type: str, time_program: TimeProgramHeating
+    ):
+        if program_type not in ["heating", "cooling"]:
+            raise ValueError("Type must be either heating or cooling")
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/time-windows"
+        data = asdict(time_program)
+        data["type"] = program_type
+        del data["meta_info"]
+        return await self.aiohttp_session.patch(
+            url,
+            json=dict_to_camel_case(data),
             headers=self.get_authorized_headers(),
         )
 
