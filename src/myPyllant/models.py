@@ -112,21 +112,21 @@ class Claim(MyPyllantDataClass):
 
 
 @dataclass
-class TimeProgramHeatingDay(MyPyllantDataClass):
+class ZoneTimeProgramDay(MyPyllantDataClass):
     start_time: int
     end_time: int
     setpoint: float | None = None
 
 
 @dataclass
-class TimeProgramHeating(MyPyllantDataClass):
-    monday: list[TimeProgramHeatingDay]
-    tuesday: list[TimeProgramHeatingDay]
-    wednesday: list[TimeProgramHeatingDay]
-    thursday: list[TimeProgramHeatingDay]
-    friday: list[TimeProgramHeatingDay]
-    saturday: list[TimeProgramHeatingDay]
-    sunday: list[TimeProgramHeatingDay]
+class ZoneTimeProgram(MyPyllantDataClass):
+    monday: list[ZoneTimeProgramDay]
+    tuesday: list[ZoneTimeProgramDay]
+    wednesday: list[ZoneTimeProgramDay]
+    thursday: list[ZoneTimeProgramDay]
+    friday: list[ZoneTimeProgramDay]
+    saturday: list[ZoneTimeProgramDay]
+    sunday: list[ZoneTimeProgramDay]
     meta_info: dict | None = None
 
 
@@ -134,7 +134,7 @@ class TimeProgramHeating(MyPyllantDataClass):
 class ZoneHeating(MyPyllantDataClass):
     manual_mode_setpoint_heating: float
     operation_mode_heating: ZoneHeatingOperatingMode
-    time_program_heating: TimeProgramHeating
+    time_program_heating: ZoneTimeProgram
     set_back_temperature: float
 
 
@@ -186,6 +186,24 @@ class Circuit(MyPyllantDataClass):
 
 
 @dataclass
+class DHWTimeProgramDay(MyPyllantDataClass):
+    start_time: int
+    end_time: int
+
+
+@dataclass
+class DHWTimeProgram(MyPyllantDataClass):
+    monday: list[DHWTimeProgramDay]
+    tuesday: list[DHWTimeProgramDay]
+    wednesday: list[DHWTimeProgramDay]
+    thursday: list[DHWTimeProgramDay]
+    friday: list[DHWTimeProgramDay]
+    saturday: list[DHWTimeProgramDay]
+    sunday: list[DHWTimeProgramDay]
+    meta_info: dict | None = None
+
+
+@dataclass
 class DomesticHotWater(MyPyllantDataClass):
     system_id: str
     index: int
@@ -193,8 +211,8 @@ class DomesticHotWater(MyPyllantDataClass):
     max_setpoint: float
     min_setpoint: float
     operation_mode_dhw: DHWOperationMode
-    time_program_dhw: dict
-    time_program_circulation_pump: dict
+    time_program_dhw: DHWTimeProgram
+    time_program_circulation_pump: DHWTimeProgram
     current_dhw_temperature: float | None = None
     tapping_setpoint: float | None = None
 

@@ -68,6 +68,16 @@ async def main(user, password, brand, country):
                         dhw, int(dhw.tapping_setpoint)
                     )
                 )
+                print(
+                    await api.set_domestic_hot_water_time_program(
+                        dhw, dhw.time_program_dhw
+                    )
+                )
+                print(
+                    await api.set_domestic_hot_water_circulation_time_program(
+                        dhw, dhw.time_program_circulation_pump
+                    )
+                )
 
 
 if __name__ == "__main__":

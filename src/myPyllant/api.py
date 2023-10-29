@@ -29,12 +29,13 @@ from myPyllant.models import (
     DeviceData,
     DeviceDataBucketResolution,
     DHWOperationMode,
+    DHWTimeProgram,
     DomesticHotWater,
     System,
-    TimeProgramHeating,
     Zone,
     ZoneCurrentSpecialFunction,
     ZoneHeatingOperatingMode,
+    ZoneTimeProgram,
 )
 from myPyllant.utils import (
     datetime_format,
@@ -426,7 +427,7 @@ class MyPyllantAPI:
         )
 
     async def set_zone_time_program(
-        self, zone: Zone, program_type: str, time_program: TimeProgramHeating
+        self, zone: Zone, program_type: str, time_program: ZoneTimeProgram
     ):
         if program_type not in ["heating", "cooling"]:
             raise ValueError("Type must be either heating or cooling")
@@ -506,6 +507,30 @@ class MyPyllantAPI:
             json={
                 "operationMode": str(mode),
             },
+            headers=self.get_authorized_headers(),
+        )
+
+    async def set_domestic_hot_water_time_program(
+        self, domestic_hot_water: DomesticHotWater, time_program: DHWTimeProgram
+    ):
+        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/time-windows"
+        data = asdict(time_program)
+        del data["meta_info"]
+        return await self.aiohttp_session.patch(
+            url,
+            json=dict_to_camel_case(data),
+            headers=self.get_authorized_headers(),
+        )
+
+    async def set_domestic_hot_water_circulation_time_program(
+        self, domestic_hot_water: DomesticHotWater, time_program: DHWTimeProgram
+    ):
+        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/circulation-pump-time-windows"
+        data = asdict(time_program)
+        del data["meta_info"]
+        return await self.aiohttp_session.patch(
+            url,
+            json=dict_to_camel_case(data),
             headers=self.get_authorized_headers(),
         )
 
