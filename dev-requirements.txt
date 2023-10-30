@@ -9,4 +9,4 @@ build~=1.0.3
 freezegun~=1.2.2
 country_list~=1.0.0
 requests~=2.31.0
-dacite~=1.7.0
+dacite>=1.7,<1.9
