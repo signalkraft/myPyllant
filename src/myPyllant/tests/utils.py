@@ -142,6 +142,12 @@ def _mypyllant_aioresponses():
                 payload={},
                 repeat=True,
             )
+            self.patch(
+                re.compile(r".*ventilation/.*/(operation-mode|fan-stage)$"),
+                status=200,
+                payload={},
+                repeat=True,
+            )
 
             if self.test_data:
                 # Create endpoints with stored JSON test data

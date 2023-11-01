@@ -54,6 +54,14 @@ async def main(user, password, brand, country):
                         zone, "heating", zone.heating.time_program_heating
                     )
                 )
+                print(
+                    await api.set_time_program_temperature(
+                        zone,
+                        "heating",
+                        zone.heating.time_program_heating.monday[0].setpoint,
+                    )
+                )
+
             if system.domestic_hot_water:
                 dhw = system.domestic_hot_water[0]
                 print(

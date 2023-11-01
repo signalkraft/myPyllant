@@ -56,3 +56,16 @@ async def test_trouble_codes(
 
         system.diagnostic_trouble_codes = [{"codes": []}]
         assert not system.has_diagnostic_trouble_codes
+
+
+@pytest.mark.parametrize("test_data", list_test_data())
+async def test_ventilation(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
+) -> None:
+    with mypyllant_aioresponses(test_data) as _:
+        if "ventilation" not in test_data:
+            pytest.skip("No ventilation devices in test data, skipping")
+        system = await anext(mocked_api.get_systems())
+        assert isinstance(system.ventilation, list)
+        devices = [d for d in system.devices if d.type == "ventilation"]
+        assert devices[0].device_type == "VENTILATION"

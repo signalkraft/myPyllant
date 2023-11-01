@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import calendar
 import datetime
 import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, EnumMeta
 from typing import TypeVar
 
 from dacite import Config, from_dict
@@ -15,7 +16,17 @@ from myPyllant.utils import datetime_parse
 logger = logging.getLogger(__name__)
 
 
-class MyPyllantEnum(Enum):
+class MyPyllantEnumMeta(EnumMeta):
+    def __contains__(cls, item):
+        try:
+            cls(item)
+        except ValueError:
+            return False
+        else:
+            return True
+
+
+class MyPyllantEnum(Enum, metaclass=MyPyllantEnumMeta):
     def __str__(self):
         """
         Return 'HOUR' instead of 'DeviceDataBucketResolution.HOUR'
@@ -58,6 +69,11 @@ class ZoneHeatingState(MyPyllantEnum):
     COOLING_DOWN = "COOLING_DOWN"
 
 
+class ZoneTimeProgramType(MyPyllantEnum):
+    HEATING = "heating"
+    COOLING = "cooling"
+
+
 class DHWCurrentSpecialFunction(MyPyllantEnum):
     CYLINDER_BOOST = "CYLINDER_BOOST"
     REGULAR = "REGULAR"
@@ -67,6 +83,18 @@ class DHWOperationMode(MyPyllantEnum):
     MANUAL = "MANUAL"
     TIME_CONTROLLED = "TIME_CONTROLLED"
     OFF = "OFF"
+
+
+class VentilationOperationMode(MyPyllantEnum):
+    NORMAL = "NORMAL"
+    REDUCED = "REDUCED"
+    TIME_CONTROLLED = "TIME_CONTROLLED"
+    OFF = "OFF"
+
+
+class VentilationFanStageType(MyPyllantEnum):
+    DAY = "DAY"
+    NIGHT = "NIGHT"
 
 
 T = TypeVar("T")
@@ -129,6 +157,16 @@ class ZoneTimeProgram(MyPyllantDataClass):
     sunday: list[ZoneTimeProgramDay]
     meta_info: dict | None = None
 
+    def set_setpoint(self, temperature: float):
+        """
+        Sets the setpoint on all weekdays of a time program to the new value
+        """
+        weekday_names = calendar.day_name
+        for w in weekday_names:
+            day_list: list[ZoneTimeProgramDay] = getattr(self, w.lower())
+            for d in day_list:
+                d.setpoint = temperature
+
 
 @dataclass
 class ZoneHeating(MyPyllantDataClass):
@@ -136,6 +174,14 @@ class ZoneHeating(MyPyllantDataClass):
     operation_mode_heating: ZoneHeatingOperatingMode
     time_program_heating: ZoneTimeProgram
     set_back_temperature: float
+
+
+@dataclass
+class ZoneCooling(MyPyllantDataClass):
+    setpoint_cooling: float
+    manual_mode_setpoint_cooling: float
+    operation_mode_cooling: str  # TODO: Need all values
+    time_program_cooling: ZoneTimeProgram
 
 
 @dataclass
@@ -149,6 +195,7 @@ class Zone(MyPyllantDataClass):
     heating_state: ZoneHeatingState
     heating: ZoneHeating
     current_special_function: ZoneCurrentSpecialFunction
+    cooling: ZoneCooling | None = None
     current_room_temperature: float | None = None
     desired_room_temperature_setpoint_heating: float | None = None
     desired_room_temperature_setpoint_cooling: float | None = None
@@ -218,6 +265,16 @@ class DomesticHotWater(MyPyllantDataClass):
 
 
 @dataclass
+class Ventilation(MyPyllantDataClass):
+    system_id: str
+    index: int
+    maximum_day_fan_stage: int
+    maximum_night_fan_stage: int
+    operation_mode_ventilation: VentilationOperationMode
+    time_program_ventilation: dict
+
+
+@dataclass
 class System(MyPyllantDataClass):
     id: str
     state: dict
@@ -232,6 +289,7 @@ class System(MyPyllantDataClass):
     zones: list[Zone] = field(default_factory=list)
     circuits: list[Circuit] = field(default_factory=list)
     domestic_hot_water: list[DomesticHotWater] = field(default_factory=list)
+    ventilation: list[Ventilation] = field(default_factory=list)
     devices: list[Device] = field(default_factory=list)
 
     @classmethod
@@ -251,6 +309,10 @@ class System(MyPyllantDataClass):
         system.domestic_hot_water = [
             DomesticHotWater.from_api(system_id=system.id, **d)
             for d in system.merge_object("dhw")
+        ]
+        system.ventilation = [
+            Ventilation.from_api(system_id=system.id, **d)
+            for d in system.merge_object("ventilation")
         ]
         system.devices = [
             Device.from_api(system_id=system.id, type=k, brand=system.brand, **v)

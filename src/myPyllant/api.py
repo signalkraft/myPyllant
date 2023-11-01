@@ -32,10 +32,14 @@ from myPyllant.models import (
     DHWTimeProgram,
     DomesticHotWater,
     System,
+    Ventilation,
+    VentilationFanStageType,
+    VentilationOperationMode,
     Zone,
     ZoneCurrentSpecialFunction,
     ZoneHeatingOperatingMode,
     ZoneTimeProgram,
+    ZoneTimeProgramType,
 )
 from myPyllant.utils import (
     datetime_format,
@@ -392,6 +396,23 @@ class MyPyllantAPI:
                 headers=self.get_authorized_headers(),
             )
 
+    async def set_time_program_temperature(
+        self,
+        zone: Zone,
+        program_type: str,
+        temperature: float,
+    ):
+        logger.debug(f"Setting time program temp {zone.name}")
+
+        if program_type not in ZoneTimeProgramType:
+            raise ValueError(
+                "Type must be either heating or cooling, not %s", program_type
+            )
+
+        time_program = zone.heating.time_program_heating
+        time_program.set_setpoint(temperature)
+        return await self.set_zone_time_program(zone, program_type, time_program)
+
     async def set_manual_mode_setpoint(
         self,
         zone: Zone,
@@ -429,8 +450,10 @@ class MyPyllantAPI:
     async def set_zone_time_program(
         self, zone: Zone, program_type: str, time_program: ZoneTimeProgram
     ):
-        if program_type not in ["heating", "cooling"]:
-            raise ValueError("Type must be either heating or cooling")
+        if program_type not in ZoneTimeProgramType:
+            raise ValueError(
+                "Type must be either heating or cooling, not %s", program_type
+            )
         url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/time-windows"
         data = asdict(time_program)
         data["type"] = program_type
@@ -531,6 +554,40 @@ class MyPyllantAPI:
         return await self.aiohttp_session.patch(
             url,
             json=dict_to_camel_case(data),
+            headers=self.get_authorized_headers(),
+        )
+
+    async def set_ventilation_operation_mode(
+        self, ventilation: Ventilation, mode: VentilationOperationMode
+    ):
+        url = (
+            f"{API_URL_BASE}/systems/{ventilation.system_id}/"
+            f"tli/ventilation/{ventilation.index}/operation-mode"
+        )
+        return await self.aiohttp_session.patch(
+            url,
+            json={
+                "operationMode": str(mode),
+            },
+            headers=self.get_authorized_headers(),
+        )
+
+    async def set_ventilation_fan_stage(
+        self,
+        ventilation: Ventilation,
+        maximum_fan_stage: int,
+        fan_stage_type: VentilationFanStageType,
+    ):
+        url = (
+            f"{API_URL_BASE}/systems/{ventilation.system_id}/"
+            f"tli/ventilation/{ventilation.index}/fan-stage"
+        )
+        return await self.aiohttp_session.patch(
+            url,
+            json={
+                "maximumFanStage": maximum_fan_stage,
+                "type": str(fan_stage_type),
+            },
             headers=self.get_authorized_headers(),
         )
 
