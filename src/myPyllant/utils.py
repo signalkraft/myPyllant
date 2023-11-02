@@ -107,3 +107,8 @@ def add_default_parser_args(parser: argparse.ArgumentParser):
         choices=COUNTRIES[DEFAULT_BRAND].keys(),
         required=False,
     )
+
+
+def version_tuple(v):
+    # See https://stackoverflow.com/a/11887825
+    return tuple(map(int, (v.split("."))))

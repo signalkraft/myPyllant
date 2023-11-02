@@ -6,14 +6,22 @@ import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from enum import Enum, EnumMeta
+from importlib.metadata import version
 from typing import TypeVar
 
 from dacite import Config, from_dict
 
 from myPyllant.const import BRANDS
-from myPyllant.utils import datetime_parse
+from myPyllant.utils import datetime_parse, version_tuple
 
 logger = logging.getLogger(__name__)
+
+
+if version_tuple(version("dacite")) < version_tuple("1.7.0"):
+    raise Exception(
+        "Invalid version of dacite library detected. You are probably using another integration like "
+        "Govee which is installing a conflicting, older version."
+    )
 
 
 class MyPyllantEnumMeta(EnumMeta):
