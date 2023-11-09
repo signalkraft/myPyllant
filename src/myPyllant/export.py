@@ -56,7 +56,12 @@ async def main(
     end=None,
 ):
     async with MyPyllantAPI(user, password, brand, country) as api:
-        async for system in api.get_systems():
+        async for system in api.get_systems(
+            include_timezone=True,
+            include_connection_status=True,
+            include_diagnostic_trouble_codes=True,
+            include_mpc=True,
+        ):
             if data:
                 data_list = []
                 for device in system.devices:

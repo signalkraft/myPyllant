@@ -17,20 +17,39 @@ Not affiliated with Vaillant, the developers take no responsibility for anything
 
 ```shell
 pip install myPyllant
-python3 -m myPyllant.export user password brand --country country
-# See python3 -m myPyllant.export -h for more options and a list of countries
 ```
 
-..or use Docker:
+..or use Docker, if you just want to use it as a CLI tool:
 
 ```shell
 docker run -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.export user password brand --country country
 ```
 
+## Usage
+
+
+### Exporting Data about your System
+
+```bash
+python3 -m myPyllant.export user password brand --country country
+# See python3 -m myPyllant.export -h for more options and a list of countries
+```
+
 The `--data` argument exports historical data of the devices in your system.
 Without this keyword, information about your system will be exported as JSON.
 
-## Usage
+### Exporting Energy Reports
+
+```bash
+python3 -m myPyllant.report user password brand --country country
+# Wrote 2023 report to energy_data_2023_ArothermPlus_XYZ.csv
+# Wrote 2023 report to energy_data_2023_HydraulicStation_XYZ.csv
+```
+
+Writes a report for each heat generator, by default for the current year. You can provide `--year` to select
+a different year.
+
+### Using the API in Python
 
 ```python
 #!/usr/bin/env python3

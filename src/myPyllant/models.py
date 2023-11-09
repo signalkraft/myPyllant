@@ -299,6 +299,7 @@ class System(MyPyllantDataClass):
     domestic_hot_water: list[DomesticHotWater] = field(default_factory=list)
     ventilation: list[Ventilation] = field(default_factory=list)
     devices: list[Device] = field(default_factory=list)
+    mpc: dict = field(default_factory=dict)
 
     @classmethod
     def from_api(cls, **kwargs):
@@ -506,3 +507,9 @@ class DeviceData(MyPyllantDataClass):
             DeviceDataBucket.from_api(**dd) for dd in kwargs.pop("data", [])
         ]
         return super().from_api(**kwargs)
+
+
+@dataclass
+class SystemReport(MyPyllantDataClass):
+    file_name: str
+    file_content: str

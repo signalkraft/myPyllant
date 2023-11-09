@@ -135,6 +135,15 @@ async def main(user, password, brand, country=None):
                 )
                 fh.write(json.dumps(anonymized_current_system, indent=2))
 
+        mpc_url = f"{API_URL_BASE}/hem/{claims[0]['systemId']}/mpc"
+        async with api.aiohttp_session.get(
+            mpc_url, headers=api.get_authorized_headers()
+        ) as mpc_resp:
+            with open(json_dir / "mpc.json", "w") as fh:
+                mpc = await mpc_resp.json()
+                anonymized_mpc = _recursive_data_anonymize(copy.deepcopy(mpc), SALT)
+                fh.write(json.dumps(anonymized_mpc, indent=2))
+
         device = current_system["primary_heat_generator"]
         start = datetime.now().replace(
             microsecond=0, second=0, minute=0, hour=0

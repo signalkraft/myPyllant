@@ -32,6 +32,7 @@ from myPyllant.models import (
     DHWTimeProgram,
     DomesticHotWater,
     System,
+    SystemReport,
     Ventilation,
     VentilationFanStageType,
     VentilationOperationMode,
@@ -252,6 +253,9 @@ class MyPyllantAPI:
         }
 
     async def get_claims(self) -> AsyncIterator[Claim]:
+        """
+        Returns claimed systems
+        """
         async with self.aiohttp_session.get(
             f"{API_URL_BASE}/claims", headers=self.get_authorized_headers()
         ) as claims_resp:
@@ -260,10 +264,24 @@ class MyPyllantAPI:
 
     async def get_systems(
         self,
-        include_timezone=False,
-        include_connection_status=False,
-        include_diagnostic_trouble_codes=False,
+        include_timezone: bool = False,
+        include_connection_status: bool = False,
+        include_diagnostic_trouble_codes: bool = False,
+        include_mpc: bool = False,
     ) -> AsyncIterator[System]:
+        """
+        Returns an async generator of systems under control of the user
+
+        Parameters:
+            include_timezone: Fetches timezone information for each system
+            include_connection_status: Fetches connection status for each system
+            include_diagnostic_trouble_codes: Fetches diagnostic trouble codes for each system
+            include_mpc: Fetches MPC data for each system
+
+        Examples:
+            >>> async for system in MyPyllantAPI(**kwargs).get_systems():
+            >>>    print(system.water_pressure)
+        """
         logger.debug(
             f"Getting systems with include_timezone={include_timezone}"
             f" and include_connection_status={include_connection_status}"
@@ -302,6 +320,7 @@ class MyPyllantAPI:
                 )
                 if include_diagnostic_trouble_codes
                 else None,
+                mpc=await self.get_mpc(claim.system_id) if include_mpc else {},
                 current_system=dict_to_snake_case(current_system_json),
                 **dict_to_snake_case(system_json),
             )
@@ -314,6 +333,9 @@ class MyPyllantAPI:
         data_from: datetime.datetime | None = None,
         data_to: datetime.datetime | None = None,
     ) -> AsyncIterator[DeviceData]:
+        """
+        Gets all energy data for a device
+        """
         for data in device.data:
             data_from = data_from or data.data_from
             if not data_from:
@@ -344,6 +366,19 @@ class MyPyllantAPI:
                     device=device,
                     **dict_to_snake_case(device_buckets_json),
                 )
+
+    async def get_yearly_reports(
+        self,
+        system: System,
+        year: int,
+    ) -> AsyncIterator[SystemReport]:
+        url = f"{API_URL_BASE}/emf/v2/{system.id}/report/{year}"
+        async with self.aiohttp_session.get(
+            url, headers=self.get_authorized_headers()
+        ) as report_resp:
+            reports_json = await report_resp.json()
+            for report in dict_to_snake_case(reports_json):
+                yield SystemReport.from_api(**report)
 
     async def set_zone_heating_operating_mode(
         self, zone: Zone, mode: ZoneHeatingOperatingMode
@@ -640,5 +675,18 @@ class MyPyllantAPI:
         except ClientResponseError as e:
             logger.warning("Could not get diagnostic trouble codes", exc_info=e)
             return None
+        result = await response.json()
+        return dict_to_snake_case(result)
+
+    async def get_mpc(self, system: System | str) -> dict:
+        url = f"{API_URL_BASE}/hem/{self.get_system_id(system)}/mpc"
+        try:
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+        except ClientResponseError as e:
+            logger.warning("Could not get MPC data", exc_info=e)
+            return {}
         result = await response.json()
         return dict_to_snake_case(result)

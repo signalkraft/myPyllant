@@ -201,6 +201,12 @@ def _mypyllant_aioresponses():
                     payload=self.test_data.get("diagnostic_trouble_codes", []),
                     repeat=True,
                 )
+                self.get(
+                    re.compile(r".*/mpc$"),
+                    status=200,
+                    payload=self.test_data.get("mpc", {"devices": []}),
+                    repeat=True,
+                )
             return self
 
     return _mypyllant_aioresponses
