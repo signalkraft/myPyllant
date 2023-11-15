@@ -3,7 +3,7 @@ from dacite import WrongTypeError
 
 from myPyllant.api import MyPyllantAPI
 
-from ..models import Claim, System, ZoneHeating, ZoneHeatingOperatingMode
+from ..models import Home, System, ZoneHeating, ZoneHeatingOperatingMode
 from .test_api import list_test_data
 
 
@@ -15,8 +15,8 @@ async def test_systems(
         system = await anext(mocked_api.get_systems())
 
         assert isinstance(system, System), "Expected System return type"
-        assert isinstance(system.claim, Claim)
-        assert isinstance(system.claim.system_id, str)
+        assert isinstance(system.home, Home)
+        assert isinstance(system.home.system_id, str)
 
 
 async def test_type_validation() -> None:

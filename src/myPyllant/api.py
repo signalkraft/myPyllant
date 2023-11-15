@@ -24,13 +24,13 @@ from myPyllant.const import (
     TOKEN_URL,
 )
 from myPyllant.models import (
-    Claim,
     Device,
     DeviceData,
     DeviceDataBucketResolution,
     DHWOperationMode,
     DHWTimeProgram,
     DomesticHotWater,
+    Home,
     System,
     SystemReport,
     Ventilation,
@@ -252,15 +252,15 @@ class MyPyllantAPI:
             "Connection": "keep-alive",
         }
 
-    async def get_claims(self) -> AsyncIterator[Claim]:
+    async def get_homes(self) -> AsyncIterator[Home]:
         """
         Returns claimed systems
         """
         async with self.aiohttp_session.get(
-            f"{API_URL_BASE}/claims", headers=self.get_authorized_headers()
-        ) as claims_resp:
-            for claim_json in await claims_resp.json():
-                yield Claim.from_api(**dict_to_snake_case(claim_json))
+            f"{API_URL_BASE}/homes", headers=self.get_authorized_headers()
+        ) as homes_resp:
+            for home_json in await homes_resp.json():
+                yield Home.from_api(**dict_to_snake_case(home_json))
 
     async def get_systems(
         self,
@@ -286,15 +286,11 @@ class MyPyllantAPI:
             f"Getting systems with include_timezone={include_timezone}"
             f" and include_connection_status={include_connection_status}"
         )
-        claims = self.get_claims()
-        async for claim in claims:
-            control_identifier = await self.get_control_identifier(claim.system_id)
-            system_url = (
-                f"{API_URL_BASE}/systems/{claim.system_id}/{control_identifier}"
-            )
-            current_system_url = (
-                f"{API_URL_BASE}/emf/v2/{claim.system_id}/currentSystem"
-            )
+        homes = self.get_homes()
+        async for home in homes:
+            control_identifier = await self.get_control_identifier(home.system_id)
+            system_url = f"{API_URL_BASE}/systems/{home.system_id}/{control_identifier}"
+            current_system_url = f"{API_URL_BASE}/emf/v2/{home.system_id}/currentSystem"
 
             async with self.aiohttp_session.get(
                 system_url, headers=self.get_authorized_headers()
@@ -308,19 +304,19 @@ class MyPyllantAPI:
 
             system = System.from_api(
                 brand=self.brand,
-                claim=claim,
-                timezone=await self.get_time_zone(claim.system_id)
+                home=home,
+                timezone=await self.get_time_zone(home.system_id)
                 if include_timezone
                 else None,
-                connected=await self.get_connection_status(claim.system_id)
+                connected=await self.get_connection_status(home.system_id)
                 if include_connection_status
                 else None,
                 diagnostic_trouble_codes=await self.get_diagnostic_trouble_codes(
-                    claim.system_id
+                    home.system_id
                 )
                 if include_diagnostic_trouble_codes
                 else None,
-                mpc=await self.get_mpc(claim.system_id) if include_mpc else {},
+                mpc=await self.get_mpc(home.system_id) if include_mpc else {},
                 current_system=dict_to_snake_case(current_system_json),
                 **dict_to_snake_case(system_json),
             )

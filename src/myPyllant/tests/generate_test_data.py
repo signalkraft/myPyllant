@@ -25,6 +25,11 @@ add_default_parser_args(parser)
 parser.add_argument(
     "--debug", help="Print debug information", action=argparse.BooleanOptionalAction
 )
+parser.add_argument(
+    "--system",
+    help="If you have multiple systems, you need to pick one",
+    required=False,
+)
 
 SALT = secrets.token_bytes(16)
 JSON_DIR = Path(__file__).resolve().parent / "json"
@@ -45,7 +50,7 @@ def user_json_dir(user: str) -> Path:
     )
 
 
-async def main(user, password, brand, country=None):
+async def main(user, password, brand, country=None, system_index=None):
     """
     Generate json data for running testcases.
 
@@ -64,21 +69,40 @@ async def main(user, password, brand, country=None):
     json_dir.mkdir(parents=True, exist_ok=True)
 
     async with MyPyllantAPI(user, password, brand, country) as api:
-        claims_url = f"{API_URL_BASE}/claims"
+        homes_url = f"{API_URL_BASE}/homes"
         async with api.aiohttp_session.get(
-            claims_url, headers=api.get_authorized_headers()
-        ) as claims_resp:
-            claims = await claims_resp.json()
-            with open(json_dir / "claims.json", "w") as fh:
-                anonymized_system = _recursive_data_anonymize(
-                    copy.deepcopy(claims), SALT
-                )
-                for system in anonymized_system:
+            homes_url, headers=api.get_authorized_headers()
+        ) as homes_resp:
+            homes = await homes_resp.json()
+            with open(json_dir / "homes.json", "w") as fh:
+                anonymized_homes = _recursive_data_anonymize(copy.deepcopy(homes), SALT)
+                for system in anonymized_homes:
                     if "address" in system:
                         system.pop("address")
-                fh.write(json.dumps(anonymized_system, indent=2))
+                fh.write(json.dumps(anonymized_homes, indent=2))
 
-        control_identifier_url = f"{API_URL_BASE}/systems/{claims[0]['systemId']}/meta-info/control-identifier"
+        if not homes:
+            # No homes means no systems to generate test data for
+            print("No homes found.")
+            print(f"Wrote homes.json to {json_dir}")
+            exit(0)
+        elif len(homes) > 1:
+            # Multiple systems are claimed by the same user account
+            if system_index is not None and 0 <= system_index < len(homes):
+                system_id = homes[system_index]["systemId"]
+            else:
+                print(
+                    f"Multiple systems found. "
+                    f"Please pick a valid --system, choices are {', '.join([str(i) for i in range(0, len(homes))])}"
+                )
+                exit(1)
+        else:
+            # Only one system is claimed
+            system_id = homes[0]["systemId"]
+
+        control_identifier_url = (
+            f"{API_URL_BASE}/systems/{system_id}/meta-info/control-identifier"
+        )
         async with api.aiohttp_session.get(
             control_identifier_url, headers=api.get_authorized_headers()
         ) as ci_response:
@@ -86,16 +110,14 @@ async def main(user, password, brand, country=None):
                 control_identifier = await ci_response.json()
                 fh.write(json.dumps(control_identifier, indent=2))
 
-        tz_url = f"{API_URL_BASE}/systems/{claims[0]['systemId']}/meta-info/time-zone"
+        tz_url = f"{API_URL_BASE}/systems/{system_id}/meta-info/time-zone"
         async with api.aiohttp_session.get(
             tz_url, headers=api.get_authorized_headers()
         ) as tz_response:
             with open(json_dir / "time_zone.json", "w") as fh:
                 fh.write(json.dumps(await tz_response.json(), indent=2))
 
-        dtc_url = (
-            f"{API_URL_BASE}/systems/{claims[0]['systemId']}/diagnostic-trouble-codes"
-        )
+        dtc_url = f"{API_URL_BASE}/systems/{system_id}/diagnostic-trouble-codes"
         async with api.aiohttp_session.get(
             dtc_url, headers=api.get_authorized_headers()
         ) as dtc_response:
@@ -104,27 +126,27 @@ async def main(user, password, brand, country=None):
             with open(json_dir / "diagnostic_trouble_codes.json", "w") as fh:
                 fh.write(json.dumps(anonymized_dtc, indent=2))
 
-        connection_status_url = f"{API_URL_BASE}/systems/{claims[0]['systemId']}/meta-info/connection-status"
+        connection_status_url = (
+            f"{API_URL_BASE}/systems/{system_id}/meta-info/connection-status"
+        )
         async with api.aiohttp_session.get(
             connection_status_url, headers=api.get_authorized_headers()
         ) as status_resp:
             with open(json_dir / "connection_status.json", "w") as fh:
                 fh.write(json.dumps(await status_resp.json(), indent=2))
 
-        system_url = f"{API_URL_BASE}/systems/{claims[0]['systemId']}/{control_identifier['controlIdentifier']}"
+        system_url = f"{API_URL_BASE}/systems/{system_id}/{control_identifier['controlIdentifier']}"
         async with api.aiohttp_session.get(
             system_url, headers=api.get_authorized_headers()
         ) as system_resp:
             with open(json_dir / "system.json", "w") as fh:
                 system = await system_resp.json()
-                anonymized_system = _recursive_data_anonymize(
+                anonymized_homes = _recursive_data_anonymize(
                     copy.deepcopy(system), SALT
                 )
-                fh.write(json.dumps(anonymized_system, indent=2))
+                fh.write(json.dumps(anonymized_homes, indent=2))
 
-        current_system_url = (
-            f"{API_URL_BASE}/emf/v2/{claims[0]['systemId']}/currentSystem"
-        )
+        current_system_url = f"{API_URL_BASE}/emf/v2/{system_id}/currentSystem"
         async with api.aiohttp_session.get(
             current_system_url, headers=api.get_authorized_headers()
         ) as current_system_resp:
@@ -135,7 +157,7 @@ async def main(user, password, brand, country=None):
                 )
                 fh.write(json.dumps(anonymized_current_system, indent=2))
 
-        mpc_url = f"{API_URL_BASE}/hem/{claims[0]['systemId']}/mpc"
+        mpc_url = f"{API_URL_BASE}/hem/{system_id}/mpc"
         async with api.aiohttp_session.get(
             mpc_url, headers=api.get_authorized_headers()
         ) as mpc_resp:
@@ -157,7 +179,7 @@ async def main(user, password, brand, country=None):
             "endDate": datetime_format(end),
         }
         device_buckets_url = (
-            f"{API_URL_BASE}/emf/v2/{claims[0]['systemId']}/"
+            f"{API_URL_BASE}/emf/v2/{system_id}/"
             f"devices/{device['device_uuid']}/buckets?{urlencode(querystring)}"
         )
         async with api.aiohttp_session.get(
@@ -199,4 +221,4 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
 
-    asyncio.run(main(args.user, args.password, args.brand, args.country))
+    asyncio.run(main(args.user, args.password, args.brand, args.country, args.system))

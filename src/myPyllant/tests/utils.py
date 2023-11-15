@@ -22,7 +22,7 @@ def _mypyllant_aioresponses():
             if self.test_quota:
                 e = ClientResponseError(
                     request_info=RequestInfo(
-                        url="https://api.vaillant-group.com/service-connected-control/end-user-app-api/v1/claims",
+                        url="https://api.vaillant-group.com/service-connected-control/end-user-app-api/v1/homes",
                         method="GET",
                         headers=None,
                     ),
@@ -152,9 +152,9 @@ def _mypyllant_aioresponses():
             if self.test_data:
                 # Create endpoints with stored JSON test data
                 self.get(
-                    f"{API_URL_BASE}/claims",
+                    f"{API_URL_BASE}/homes",
                     status=200,
-                    payload=self.test_data["claims"],
+                    payload=self.test_data["homes"],
                     repeat=True,
                 )
                 self.get(

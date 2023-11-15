@@ -10,6 +10,7 @@ from importlib.metadata import version
 from typing import TypeVar
 
 from dacite import Config, from_dict
+from dacite.dataclasses import get_fields
 
 from myPyllant.const import BRANDS
 from myPyllant.utils import datetime_parse, version_tuple
@@ -108,17 +109,24 @@ class VentilationFanStageType(MyPyllantEnum):
 T = TypeVar("T")
 
 
-@dataclass
+@dataclass(kw_only=True)
 class MyPyllantDataClass:
     """
     Base class that runs type validation in __init__ and can create an instance from API values
     """
+
+    extra_fields: dict = field(default_factory=dict)
 
     @classmethod
     def from_api(cls: type[T], **kwargs) -> T:
         """
         Creates enums & dates from strings before calling __init__
         """
+        dataclass_fields = get_fields(cls)
+        extra_fields = set(kwargs.keys()) - {f.name for f in dataclass_fields}
+        if extra_fields:
+            kwargs["extra_fields"] = {f: kwargs[f] for f in extra_fields}
+
         return from_dict(
             data_class=cls,
             data=kwargs,
@@ -127,7 +135,7 @@ class MyPyllantDataClass:
 
 
 @dataclass
-class Claim(MyPyllantDataClass):
+class Home(MyPyllantDataClass):
     country_code: str
     nomenclature: str
     serial_number: str
@@ -288,7 +296,7 @@ class System(MyPyllantDataClass):
     state: dict
     properties: dict
     configuration: dict
-    claim: Claim
+    home: Home
     brand: str
     timezone: datetime.tzinfo | None = None
     connected: bool | None = None
@@ -303,10 +311,11 @@ class System(MyPyllantDataClass):
 
     @classmethod
     def from_api(cls, **kwargs):
-        if "claim" in kwargs and "id" not in kwargs:
-            kwargs["id"] = kwargs["claim"].system_id
+        if "home" in kwargs and "id" not in kwargs:
+            kwargs["id"] = kwargs["home"].system_id
         system: System = super().from_api(**kwargs)
         logger.debug(f"Creating related models from state: {kwargs}")
+        system.extra_fields = system.merge_extra_fields()
         system.zones = [
             Zone.from_api(system_id=system.id, **z)
             for z in system.merge_object("zones")
@@ -345,6 +354,14 @@ class System(MyPyllantDataClass):
         if len(devices) > 0:
             return devices[0]
         return None
+
+    def merge_extra_fields(self) -> dict:
+        return (
+            self.extra_fields
+            | self.configuration.get("system", {})
+            | self.state.get("system", {})
+            | self.properties.get("system", {})
+        )
 
     def merge_object(self, obj_name) -> Iterator[dict]:
         """
@@ -399,8 +416,8 @@ class System(MyPyllantDataClass):
     def system_name(self) -> str:
         if self.primary_heat_generator:
             return self.primary_heat_generator.product_name_display
-        elif self.claim:
-            return self.claim.nomenclature
+        elif self.home:
+            return self.home.nomenclature
         else:
             return "System"
 
