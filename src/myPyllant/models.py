@@ -6,23 +6,15 @@ import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from enum import Enum, EnumMeta
-from importlib.metadata import version
 from typing import TypeVar
 
 from dacite import Config, from_dict
 from dacite.dataclasses import get_fields
 
 from myPyllant.const import BRANDS
-from myPyllant.utils import datetime_parse, version_tuple
+from myPyllant.utils import datetime_parse
 
 logger = logging.getLogger(__name__)
-
-
-if version_tuple(version("dacite")) < version_tuple("1.7.0"):
-    raise Exception(
-        "Invalid version of dacite library detected. You are probably using another integration like "
-        "Govee which is installing a conflicting, older version."
-    )
 
 
 class MyPyllantEnumMeta(EnumMeta):
@@ -173,13 +165,22 @@ class ZoneTimeProgram(MyPyllantDataClass):
     sunday: list[ZoneTimeProgramDay]
     meta_info: dict | None = None
 
-    def set_setpoint(self, temperature: float):
+    def set_setpoint(
+        self, temperature: float, update_similar_to_dow: str | None = None
+    ):
         """
         Sets the setpoint on all weekdays of a time program to the new value
         """
-        weekday_names = calendar.day_name
+        weekday_names = [w.lower() for w in calendar.day_name]
+        if update_similar_to_dow and update_similar_to_dow not in weekday_names:
+            raise ValueError(
+                "%s is not a valid weekday, sue one of %s or None",
+                update_similar_to_dow,
+                ", ".join(weekday_names),
+            )
+        # TODO: Implement update_similar_to_dow check
         for w in weekday_names:
-            day_list: list[ZoneTimeProgramDay] = getattr(self, w.lower())
+            day_list: list[ZoneTimeProgramDay] = getattr(self, w)
             for d in day_list:
                 d.setpoint = temperature
 

@@ -191,7 +191,7 @@ class MyPyllantAPI:
             parsed_url = urlparse(resp.headers["Location"])
             code = parse_qs(parsed_url.query)["code"]
 
-        # Obtaining a access token and refresh token
+        # Obtaining access token and refresh token
         token_payload = {
             "grant_type": "authorization_code",
             "client_id": "myvaillant",
@@ -254,7 +254,10 @@ class MyPyllantAPI:
 
     async def get_homes(self) -> AsyncIterator[Home]:
         """
-        Returns claimed systems
+        Returns configured homes and their system IDs
+
+        Returns:
+            An Async Iterator with all the configured `Home` objects for the logged-in user
         """
         async with self.aiohttp_session.get(
             f"{API_URL_BASE}/homes", headers=self.get_authorized_headers()
@@ -278,14 +281,13 @@ class MyPyllantAPI:
             include_diagnostic_trouble_codes: Fetches diagnostic trouble codes for each system
             include_mpc: Fetches MPC data for each system
 
+        Returns:
+            An Async Iterator with all the `System` objects
+
         Examples:
             >>> async for system in MyPyllantAPI(**kwargs).get_systems():
             >>>    print(system.water_pressure)
         """
-        logger.debug(
-            f"Getting systems with include_timezone={include_timezone}"
-            f" and include_connection_status={include_connection_status}"
-        )
         homes = self.get_homes()
         async for home in homes:
             control_identifier = await self.get_control_identifier(home.system_id)
@@ -331,6 +333,13 @@ class MyPyllantAPI:
     ) -> AsyncIterator[DeviceData]:
         """
         Gets all energy data for a device
+
+        Parameters:
+            device: The device
+            data_resolution: Which resolution level (i.e. day, month)
+            data_from: Starting datetime
+            data_to: End datetime
+
         """
         for data in device.data:
             data_from = data_from or data.data_from
@@ -368,6 +377,13 @@ class MyPyllantAPI:
         system: System,
         year: int,
     ) -> AsyncIterator[SystemReport]:
+        """
+        Returns an async generator of systems under control of the user
+
+        Parameters:
+            system: The System object or system ID string
+            year: The year of the report
+        """
         url = f"{API_URL_BASE}/emf/v2/{system.id}/report/{year}"
         async with self.aiohttp_session.get(
             url, headers=self.get_authorized_headers()
@@ -379,6 +395,9 @@ class MyPyllantAPI:
     async def set_zone_heating_operating_mode(
         self, zone: Zone, mode: ZoneHeatingOperatingMode
     ):
+        """
+        Sets the heating operating mode for a zone
+        """
         url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/heating-operation-mode"
         return await self.aiohttp_session.patch(
             url,
@@ -395,6 +414,15 @@ class MyPyllantAPI:
         duration_hours: float | None = None,
         default_duration: float | None = None,
     ):
+        """
+        Temporarily overwrites the desired temperature in a zone
+
+        Parameters:
+            zone: The target zone
+            temperature: The target temperature
+            duration_hours: Optional, sets overwrite for this many hours
+            default_duration: Optional, falls back to this default duration if duration_hours is not given
+        """
         logger.debug(
             f"Setting quick veto for {zone.name} in {zone.current_special_function} mode"
         )
@@ -432,6 +460,7 @@ class MyPyllantAPI:
         zone: Zone,
         program_type: str,
         temperature: float,
+        update_similar_to_dow: str | None = None,
     ):
         logger.debug(f"Setting time program temp {zone.name}")
 
@@ -441,7 +470,7 @@ class MyPyllantAPI:
             )
 
         time_program = zone.heating.time_program_heating
-        time_program.set_setpoint(temperature)
+        time_program.set_setpoint(temperature, update_similar_to_dow)
         return await self.set_zone_time_program(zone, program_type, time_program)
 
     async def set_manual_mode_setpoint(
@@ -450,6 +479,14 @@ class MyPyllantAPI:
         temperature: float,
         setpoint_type: str = "HEATING",
     ):
+        """
+        Sets the desired temperature when in manual mode
+
+        Parameters:
+            zone: The target zone
+            temperature: The target temperature
+            setpoint_type: Either HEATING or COOLING
+        """
         logger.debug("Setting manual mode setpoint for %s", zone.name)
         url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/manual-mode-setpoint"
         payload = {
@@ -463,6 +500,12 @@ class MyPyllantAPI:
         )
 
     async def cancel_quick_veto_zone_temperature(self, zone: Zone):
+        """
+        Cancels a previously set quick veto in a zone
+
+        Parameters:
+            zone: The target zone
+        """
         url = (
             f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/quick-veto"
         )
@@ -471,6 +514,13 @@ class MyPyllantAPI:
         )
 
     async def set_set_back_temperature(self, zone: Zone, temperature: float):
+        """
+        Sets the temperature that a zone gets lowered to in away mode
+
+        Parameters:
+            zone: The target zone
+            temperature: The setback temperature
+        """
         url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/set-back-temperature"
         return await self.aiohttp_session.patch(
             url,
@@ -481,6 +531,14 @@ class MyPyllantAPI:
     async def set_zone_time_program(
         self, zone: Zone, program_type: str, time_program: ZoneTimeProgram
     ):
+        """
+        Sets the temperature that a zone gets lowered to in away mode
+
+        Parameters:
+            zone: The target zone
+            program_type: Which program to set
+            time_program: The time schedule
+        """
         if program_type not in ZoneTimeProgramType:
             raise ValueError(
                 "Type must be either heating or cooling, not %s", program_type
@@ -501,6 +559,14 @@ class MyPyllantAPI:
         start: datetime.datetime | None = None,
         end: datetime.datetime | None = None,
     ):
+        """
+        Sets away mode / holiday mode on a system
+
+        Parameters:
+            system: The target system
+            start: Optional, datetime when the system goes into away mode. Defaults to now
+            end: Optional, datetime when away mode should end. Defaults to one year from now
+        """
         if not start:
             start = datetime.datetime.now()
         if not end:
@@ -518,6 +584,12 @@ class MyPyllantAPI:
         )
 
     async def cancel_holiday(self, system: System):
+        """
+        Cancels a previously set away mode / holiday mode on a system
+
+        Parameters:
+            system: The target system
+        """
         url = f"{API_URL_BASE}/systems/{system.id}/tli/away-mode"
         return await self.aiohttp_session.delete(
             url, headers=self.get_authorized_headers()
@@ -526,6 +598,13 @@ class MyPyllantAPI:
     async def set_domestic_hot_water_temperature(
         self, domestic_hot_water: DomesticHotWater, temperature: int | float
     ):
+        """
+        Sets the desired hot water temperature
+
+        Parameters:
+            domestic_hot_water: The water heater
+            temperature: The desired temperature, only whole numbers are supported by the API, floats get rounded
+        """
         if isinstance(temperature, float):
             logger.warning("Domestic hot water can only be set to whole numbers")
             temperature = int(round(temperature, 0))
@@ -538,12 +617,24 @@ class MyPyllantAPI:
         )
 
     async def boost_domestic_hot_water(self, domestic_hot_water: DomesticHotWater):
+        """
+        Temporarily boosts hot water temperature
+
+        Parameters:
+            domestic_hot_water: The water heater
+        """
         url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/boost"
         return await self.aiohttp_session.post(
             url, json={}, headers=self.get_authorized_headers()
         )
 
     async def cancel_hot_water_boost(self, domestic_hot_water: DomesticHotWater):
+        """
+        Cancels hot water boost
+
+        Parameters:
+            domestic_hot_water: The water heater
+        """
         url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/boost"
         return await self.aiohttp_session.delete(
             url, headers=self.get_authorized_headers()
@@ -552,6 +643,13 @@ class MyPyllantAPI:
     async def set_domestic_hot_water_operation_mode(
         self, domestic_hot_water: DomesticHotWater, mode: DHWOperationMode
     ):
+        """
+        Sets the operation mode for water heating
+
+        Parameters:
+            domestic_hot_water: The water heater
+            mode: The operation mode
+        """
         url = (
             f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/"
             f"tli/domestic-hot-water/{domestic_hot_water.index}/operation-mode"
@@ -567,6 +665,13 @@ class MyPyllantAPI:
     async def set_domestic_hot_water_time_program(
         self, domestic_hot_water: DomesticHotWater, time_program: DHWTimeProgram
     ):
+        """
+        Sets the schedule for heating water
+
+        Parameters:
+            domestic_hot_water: The water heater
+            time_program: The schedule
+        """
         url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/time-windows"
         data = asdict(time_program)
         del data["meta_info"]
@@ -579,6 +684,13 @@ class MyPyllantAPI:
     async def set_domestic_hot_water_circulation_time_program(
         self, domestic_hot_water: DomesticHotWater, time_program: DHWTimeProgram
     ):
+        """
+        Sets the schedule for the water circulation pump
+
+        Parameters:
+            domestic_hot_water: The water heater
+            time_program: The schedule
+        """
         url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/circulation-pump-time-windows"
         data = asdict(time_program)
         del data["meta_info"]
@@ -591,6 +703,13 @@ class MyPyllantAPI:
     async def set_ventilation_operation_mode(
         self, ventilation: Ventilation, mode: VentilationOperationMode
     ):
+        """
+        Sets the operation mode for a ventilation device
+
+        Parameters:
+            ventilation: The ventilation device
+            mode: The operation mode
+        """
         url = (
             f"{API_URL_BASE}/systems/{ventilation.system_id}/"
             f"tli/ventilation/{ventilation.index}/operation-mode"
@@ -609,6 +728,14 @@ class MyPyllantAPI:
         maximum_fan_stage: int,
         fan_stage_type: VentilationFanStageType,
     ):
+        """
+        Sets the maximum fan stage for a stage type
+
+        Parameters:
+            ventilation: The ventilation device
+            maximum_fan_stage: The maximum fan speed, from 1-6
+            fan_stage_type: The fan stage type (day or night)
+        """
         url = (
             f"{API_URL_BASE}/systems/{ventilation.system_id}/"
             f"tli/ventilation/{ventilation.index}/fan-stage"
@@ -623,6 +750,12 @@ class MyPyllantAPI:
         )
 
     async def get_connection_status(self, system: System | str) -> bool:
+        """
+        Returns whether the system is online
+
+        Parameters:
+            system: The System object or system ID string
+        """
         url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/meta-info/connection-status"
         response = await self.aiohttp_session.get(
             url,
@@ -635,6 +768,12 @@ class MyPyllantAPI:
             return False
 
     async def get_control_identifier(self, system: System | str) -> str | None:
+        """
+        The control identifier is used in the URL to request system information (usually `tli`)
+
+        Parameters:
+            system: The System object or system ID string
+        """
         url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/meta-info/control-identifier"
         response = await self.aiohttp_session.get(
             url,
@@ -647,6 +786,12 @@ class MyPyllantAPI:
             return DEFAULT_CONTROL_IDENTIFIER
 
     async def get_time_zone(self, system: System | str) -> datetime.tzinfo | None:
+        """
+        Gets the configured timezone for a system
+
+        Parameters:
+            system: The System object or system ID string
+        """
         url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/meta-info/time-zone"
         response = await self.aiohttp_session.get(
             url,
@@ -662,6 +807,12 @@ class MyPyllantAPI:
     async def get_diagnostic_trouble_codes(
         self, system: System | str
     ) -> list[dict] | None:
+        """
+        Returns a list of trouble codes by device
+
+        Parameters:
+            system: The System object or system ID string
+        """
         url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/diagnostic-trouble-codes"
         try:
             response = await self.aiohttp_session.get(
@@ -675,6 +826,14 @@ class MyPyllantAPI:
         return dict_to_snake_case(result)
 
     async def get_mpc(self, system: System | str) -> dict:
+        """
+        Gets MPC data. What is MPC data? No idea, I just saw it getting requested by the app. It seems to be empty?
+
+        TODO: Figure out what this is
+
+        Parameters:
+            system: The System object or system ID string
+        """
         url = f"{API_URL_BASE}/hem/{self.get_system_id(system)}/mpc"
         try:
             response = await self.aiohttp_session.get(
