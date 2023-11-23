@@ -17,6 +17,7 @@ async def test_systems(
         assert isinstance(system, System), "Expected System return type"
         assert isinstance(system.home, Home)
         assert isinstance(system.home.system_id, str)
+        await mocked_api.aiohttp_session.close()
 
 
 async def test_type_validation() -> None:
@@ -56,6 +57,7 @@ async def test_trouble_codes(
 
         system.diagnostic_trouble_codes = [{"codes": []}]
         assert not system.has_diagnostic_trouble_codes
+        await mocked_api.aiohttp_session.close()
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
@@ -69,3 +71,4 @@ async def test_ventilation(
         assert isinstance(system.ventilation, list)
         devices = [d for d in system.devices if d.type == "ventilation"]
         assert devices[0].device_type == "VENTILATION"
+        await mocked_api.aiohttp_session.close()

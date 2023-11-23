@@ -5,13 +5,19 @@
 
 A Python library to interact with the API behind the myVAILLANT app ((and branded versions of it, such as the MiGo app from Saunier Duval). Needs at least Python 3.10.
 
-Not affiliated with Vaillant, the developers take no responsibility for anything that happens to your devices because of this library.
+> [!WARNING]  
+> If you're using sensoAPP or the multiMATIC app, this library won't work for you. Try the [pymultiMATIC](https://github.com/thomasgermain/pymultiMATIC) library instead and check [Vaillant's website](https://www.vaillant.de/heizung/produkte/mobile-apps/myvaillant-app/) for more information.
+> 
+> This integration is not affiliated with Vaillant, the developers take no responsibility for anything that happens to your devices because of this library.
 
 ![myPyllant](https://raw.githubusercontent.com/signalkraft/myPyllant/main/logo.png)
 
+* [Documentation](https://signalkraft.com/mypyllant-component/2-library/)
+* [Home Assistant component](https://github.com/signalkraft/mypyllant-component)
+
 ## Install and Test
 
-> **Warning**
+> [!WARNING]  
 > 
 > You need at least Python 3.10
 
@@ -26,7 +32,6 @@ docker run -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.export 
 ```
 
 ## Usage
-
 
 ### Exporting Data about your System
 
@@ -166,24 +171,8 @@ With docker, the results will be put into `test_data/`.
 
 You can then either create a PR with the created folder, or zip it and attach it to an issue.
 
-### Reverse Engineering API requests of the myVAILLANT app
+## Acknowledgements
 
-You'll need an Android device and a computer with ADB on the same network.
-
-1. Run mitmproxy, for example in Docker: `docker run --rm -it -v ~/.mitmproxy:/home/mitmproxy/.mitmproxy -p 0.0.0.0:8080:8080 -p 127.0.0.1:8081:8081 mitmproxy/mitmproxy mitmweb --web-host 0.0.0.0`
-2. In the WIFI connection settings of your Android device, set a manual proxy to the IP of the computer running mitmproxy on port 8080, with an exception for `identity.vaillant-group.com` (which opens in your browser and uses HSTS)
-3. Visit http://mitm.it/ on your Android device, download the CA cert & install it through the settings app
-4. Install ADB and connect your Android device to USB in debug mode
-5. Look for the myVAILLANT APK and download it
-6. Run https://github.com/mitmproxy/android-unpinner on the APK and wait for it to launch the modified app on your Android device with ADB
-7. You should see all API calls in mitmproxy's web interface on http://127.0.0.1:8081 now. If you can't log in because of a certificate error, make sure you added the exception to the proxy settings.
-   If you can log in, but the app reports an error, the unpinning didn't work. You can try https://github.com/NVISOsecurity/MagiskTrustUserCertson if you have a rooted Android device
-
-## Notes
-
-* Auth is loosely based on https://github.com/TA2k/ioBroker.vaillant
-* Most API endpoints are reverse-engineered from the myVaillant app, using https://github.com/mitmproxy/mitmproxy
-* Setting weekly time tables for heating and domestic hot water is still missing
-* There is a home assistant component based on this library here: https://github.com/signalkraft/mypyllant-component
-
-Logo based on [Hase Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/hase) & [Ouroboros Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/ouroboros).
+* Auth is loosely based on [ioBroker.vaillant](https://github.com/TA2k/ioBroker.vaillant)
+* Most API endpoints are reverse-engineered from the myVaillant app, using [mitmproxy](https://github.com/mitmproxy/mitmproxy)
+* Logo based on [Hase Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/hase) & [Ouroboros Icons erstellt von Freepik - Flaticon](https://www.flaticon.com/de/kostenlose-icons/ouroboros).

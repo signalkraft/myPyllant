@@ -75,4 +75,4 @@ repos:
       entry: run_pytest.sh --no-cov
       language: script
       pass_filenames: false
-      always_run: true
+      files: ^src/.+\.(py|json|yaml)$

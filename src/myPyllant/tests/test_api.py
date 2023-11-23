@@ -240,3 +240,4 @@ async def test_no_system(mypyllant_aioresponses, mocked_api) -> None:
         system = await anext(mocked_api.get_systems())
         assert system.outdoor_temperature == 15.5625
         assert system.water_pressure == 1.0
+        await mocked_api.aiohttp_session.close()
