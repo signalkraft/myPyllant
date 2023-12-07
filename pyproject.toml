@@ -12,9 +12,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-  "aiohttp~=3.8.5",
-  "dacite~=1.7.0",
-  "python-dateutil~=2.8.0",
+  "aiohttp>=3.8.0",
+  "dacite>=1.7.0",
+  "python-dateutil>=2.8.0",
 ]
 dynamic = ["version"]
 

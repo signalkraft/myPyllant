@@ -137,6 +137,12 @@ class MyPyllantAPI:
             return system
 
     async def login(self):
+        code, code_verifier = await self.get_code()
+        self.oauth_session = await self.get_token(code, code_verifier)
+        logger.debug("Got session %s", self.oauth_session)
+        self.set_session_expires()
+
+    async def get_code(self):
         """
         This should really be done in the browser with OIDC, but that's not easy without support from Vaillant
 
@@ -155,42 +161,52 @@ class MyPyllantAPI:
         }
 
         # Grabbing the login URL from the HTML form of the login page
+        code = None
         try:
             async with self.aiohttp_session.get(
                 AUTHENTICATE_URL.format(realm=get_realm(self.brand, self.country))
                 + "?"
-                + urlencode(auth_querystring)
+                + urlencode(auth_querystring),
+                allow_redirects=False,
             ) as resp:
                 login_html = await resp.text()
+                if "Location" in resp.headers:
+                    parsed_url = urlparse(resp.headers["Location"])
+                    code = parse_qs(parsed_url.query).get("code")
         except ClientResponseError as e:
             raise LoginEndpointInvalid from e
 
-        result = re.search(
-            LOGIN_URL.format(realm=get_realm(self.brand, self.country)) + r"\?([^\"]*)",
-            login_html,
-        )
-        login_url = unescape(result.group())
-
-        logger.debug("Got login url %s", login_url)
-
-        login_payload = {
-            "username": self.username,
-            "password": self.password,
-            "credentialId": "",
-        }
-        # Obtaining the code
-        async with self.aiohttp_session.post(
-            login_url, data=login_payload, allow_redirects=False
-        ) as resp:
-            logger.debug("Got login response headers %s", resp.headers)
-            if "Location" not in resp.headers:
-                raise AuthenticationFailed("Login failed")
-            logger.debug(
-                f'Got location from authorize endpoint: {resp.headers["Location"]}'
+        if not code:
+            result = re.search(
+                LOGIN_URL.format(realm=get_realm(self.brand, self.country))
+                + r"\?([^\"]*)",
+                login_html,
             )
-            parsed_url = urlparse(resp.headers["Location"])
-            code = parse_qs(parsed_url.query)["code"]
+            login_url = unescape(result.group())
+            if not login_url:
+                raise AuthenticationFailed("Could not get login URL")
 
+            logger.debug("Got login url %s", login_url)
+            login_payload = {
+                "username": self.username,
+                "password": self.password,
+                "credentialId": "",
+            }
+            # Obtaining the code
+            async with self.aiohttp_session.post(
+                login_url, data=login_payload, allow_redirects=False
+            ) as resp:
+                logger.debug("Got login response headers %s", resp.headers)
+                if "Location" not in resp.headers:
+                    raise AuthenticationFailed("Login failed")
+                logger.debug(
+                    f'Got location from authorize endpoint: {resp.headers["Location"]}'
+                )
+                parsed_url = urlparse(resp.headers["Location"])
+                code = parse_qs(parsed_url.query)["code"]
+        return code, code_verifier
+
+    async def get_token(self, code, code_verifier):
         # Obtaining access token and refresh token
         token_payload = {
             "grant_type": "authorization_code",
@@ -211,9 +227,7 @@ class MyPyllantAPI:
                     f"Could not log in, got status {resp.status} this response: {login_json}"
                 )
                 raise Exception(login_json)
-            self.oauth_session = login_json
-            logger.debug("Got session %s", self.oauth_session)
-            self.set_session_expires()
+            return login_json
 
     def set_session_expires(self):
         self.oauth_session_expires = datetime.datetime.now() + datetime.timedelta(
