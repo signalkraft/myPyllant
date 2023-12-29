@@ -15,10 +15,9 @@ from myPyllant.models import (
     Zone,
     ZoneCurrentSpecialFunction,
 )
-
+from .generate_test_data import JSON_DIR
 from ..const import DEFAULT_QUICK_VETO_DURATION
 from ..utils import datetime_format
-from .generate_test_data import JSON_DIR
 
 
 def list_test_data():
@@ -30,7 +29,7 @@ def list_test_data():
 
 def load_test_data(data_dir: Path):
     user_data = {}
-    for f in data_dir.glob("*.json"):
+    for f in data_dir.rglob("*.json"):
         user_data[f.stem] = json.loads(f.read_text())
     return user_data
 
