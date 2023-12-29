@@ -45,7 +45,7 @@ def user_json_dir(user: str) -> Path:
     )
 
 
-async def main(user, password, brand, country=None):
+async def main(user, password, brand, country=None, write_results=True):
     """
     Generate json data for running testcases.
 
@@ -53,6 +53,7 @@ async def main(user, password, brand, country=None):
     :param password:
     :param brand:
     :param country:
+    :param write_results:
     :return:
     """
     from myPyllant.api import MyPyllantAPI
@@ -60,8 +61,24 @@ async def main(user, password, brand, country=None):
     from myPyllant.models import DeviceDataBucketResolution
     from myPyllant.utils import datetime_format
 
+    results = {}
     json_dir = user_json_dir(user)
     json_dir.mkdir(parents=True, exist_ok=True)
+
+    def create_result(result, name, directory=None):
+        if write_results:
+            if directory:
+                write_dir = json_dir / directory
+            else:
+                write_dir = json_dir
+            with open(write_dir / f"{name}.json", "w") as fh_json:
+                fh_json.write(json.dumps(result, indent=2))
+        if directory:
+            if directory not in results:
+                results[directory] = {}
+            results[directory][name] = result
+        else:
+            results[name] = result
 
     async with MyPyllantAPI(user, password, brand, country) as api:
         homes_url = f"{API_URL_BASE}/homes"
@@ -69,12 +86,15 @@ async def main(user, password, brand, country=None):
             homes_url, headers=api.get_authorized_headers()
         ) as homes_resp:
             homes = await homes_resp.json()
-            with open(json_dir / "homes.json", "w") as fh:
-                anonymized_homes = _recursive_data_anonymize(copy.deepcopy(homes), SALT)
-                for system in anonymized_homes:
-                    if "address" in system:
-                        system.pop("address")
-                fh.write(json.dumps(anonymized_homes, indent=2))
+            anonymized_homes = _recursive_data_anonymize(copy.deepcopy(homes), SALT)
+            for system in anonymized_homes:
+                if "address" in system:
+                    system.pop("address")
+
+            create_result(
+                anonymized_homes,
+                name="homes",
+            )
 
         if not homes:
             # No homes means no systems to generate test data for
@@ -96,20 +116,22 @@ async def main(user, password, brand, country=None):
             async with api.aiohttp_session.get(
                 control_identifier_url, headers=api.get_authorized_headers()
             ) as ci_response:
-                with open(
-                    json_dir / anonymized_system_id / "control_identifier.json", "w"
-                ) as fh:
-                    control_identifier = await ci_response.json()
-                    fh.write(json.dumps(control_identifier, indent=2))
+                control_identifier = await ci_response.json()
+                create_result(
+                    control_identifier,
+                    "control_identifier",
+                    anonymized_system_id,
+                )
 
             tz_url = f"{API_URL_BASE}/systems/{real_system_id}/meta-info/time-zone"
             async with api.aiohttp_session.get(
                 tz_url, headers=api.get_authorized_headers()
             ) as tz_response:
-                with open(
-                    json_dir / anonymized_system_id / "time_zone.json", "w"
-                ) as fh:
-                    fh.write(json.dumps(await tz_response.json(), indent=2))
+                create_result(
+                    await tz_response.json(),
+                    "time_zone",
+                    anonymized_system_id,
+                )
 
             dtc_url = (
                 f"{API_URL_BASE}/systems/{real_system_id}/diagnostic-trouble-codes"
@@ -119,11 +141,11 @@ async def main(user, password, brand, country=None):
             ) as dtc_response:
                 dtc = await dtc_response.json()
                 anonymized_dtc = _recursive_data_anonymize(copy.deepcopy(dtc), SALT)
-                with open(
-                    json_dir / anonymized_system_id / "diagnostic_trouble_codes.json",
-                    "w",
-                ) as fh:
-                    fh.write(json.dumps(anonymized_dtc, indent=2))
+                create_result(
+                    anonymized_dtc,
+                    "diagnostic_trouble_codes",
+                    anonymized_system_id,
+                )
 
             connection_status_url = (
                 f"{API_URL_BASE}/systems/{real_system_id}/meta-info/connection-status"
@@ -131,43 +153,51 @@ async def main(user, password, brand, country=None):
             async with api.aiohttp_session.get(
                 connection_status_url, headers=api.get_authorized_headers()
             ) as status_resp:
-                with open(
-                    json_dir / anonymized_system_id / "connection_status.json", "w"
-                ) as fh:
-                    fh.write(json.dumps(await status_resp.json(), indent=2))
+                create_result(
+                    await status_resp.json(),
+                    "connection_status",
+                    anonymized_system_id,
+                )
 
             system_url = f"{API_URL_BASE}/systems/{real_system_id}/{control_identifier['controlIdentifier']}"
             async with api.aiohttp_session.get(
                 system_url, headers=api.get_authorized_headers()
             ) as system_resp:
-                with open(json_dir / anonymized_system_id / "system.json", "w") as fh:
-                    system = await system_resp.json()
-                    anonymized_homes = _recursive_data_anonymize(
-                        copy.deepcopy(system), SALT
-                    )
-                    fh.write(json.dumps(anonymized_homes, indent=2))
+                system = await system_resp.json()
+                anonymized_homes = _recursive_data_anonymize(
+                    copy.deepcopy(system), SALT
+                )
+                create_result(
+                    anonymized_homes,
+                    "system",
+                    anonymized_system_id,
+                )
 
             current_system_url = f"{API_URL_BASE}/emf/v2/{real_system_id}/currentSystem"
             async with api.aiohttp_session.get(
                 current_system_url, headers=api.get_authorized_headers()
             ) as current_system_resp:
-                with open(
-                    json_dir / anonymized_system_id / "current_system.json", "w"
-                ) as fh:
-                    current_system = await current_system_resp.json()
-                    anonymized_current_system = _recursive_data_anonymize(
-                        copy.deepcopy(current_system), SALT
-                    )
-                    fh.write(json.dumps(anonymized_current_system, indent=2))
+                current_system = await current_system_resp.json()
+                anonymized_current_system = _recursive_data_anonymize(
+                    copy.deepcopy(current_system), SALT
+                )
+                create_result(
+                    anonymized_current_system,
+                    "current_system",
+                    anonymized_system_id,
+                )
 
             mpc_url = f"{API_URL_BASE}/hem/{real_system_id}/mpc"
             async with api.aiohttp_session.get(
                 mpc_url, headers=api.get_authorized_headers()
             ) as mpc_resp:
-                with open(json_dir / anonymized_system_id / "mpc.json", "w") as fh:
-                    mpc = await mpc_resp.json()
-                    anonymized_mpc = _recursive_data_anonymize(copy.deepcopy(mpc), SALT)
-                    fh.write(json.dumps(anonymized_mpc, indent=2))
+                mpc = await mpc_resp.json()
+                anonymized_mpc = _recursive_data_anonymize(copy.deepcopy(mpc), SALT)
+                create_result(
+                    anonymized_mpc,
+                    "mpc",
+                    anonymized_system_id,
+                )
 
             device = current_system["primary_heat_generator"]
             start = datetime.now().replace(
@@ -188,12 +218,17 @@ async def main(user, password, brand, country=None):
             async with api.aiohttp_session.get(
                 device_buckets_url, headers=api.get_authorized_headers()
             ) as device_buckets_resp:
-                with open(
-                    json_dir / anonymized_system_id / "device_buckets.json", "w"
-                ) as fh:
-                    device_buckets = await device_buckets_resp.json()
-                    fh.write(json.dumps(device_buckets, indent=2))
+                device_buckets = await device_buckets_resp.json()
+                create_result(
+                    device_buckets,
+                    "device_buckets",
+                    anonymized_system_id,
+                )
             print(f"Wrote test data to {json_dir}")
+
+    if not write_results:
+        print(results)
+        return results
 
 
 def _recursive_data_anonymize(
