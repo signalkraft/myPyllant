@@ -343,14 +343,22 @@ class System(MyPyllantDataClass):
         ]
         return system
 
+    def apply_diagnostic(self, device):
+        dtc = self.diagnostic_trouble_codes_by_serial_number(
+            device["device_serial_number"]
+        )
+        device["diagnostic_trouble_codes"] = dtc
+
     @property
     def raw_devices(self) -> Iterator[tuple[str, dict]]:
         for key, device in self.current_system.items():
+            if isinstance(device, list) and key == "secondary_heat_generators":
+                for secdevice in device:
+                    if isinstance(secdevice, dict) and "device_uuid" in secdevice:
+                        self.apply_diagnostic(secdevice)
+                        yield key, secdevice
             if isinstance(device, dict) and "device_uuid" in device:
-                dtc = self.diagnostic_trouble_codes_by_serial_number(
-                    device["device_serial_number"]
-                )
-                device["diagnostic_trouble_codes"] = dtc
+                self.apply_diagnostic(device)
                 yield key, device
 
     @property
