@@ -114,11 +114,14 @@ async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
         system = await anext(mocked_api.get_systems())
 
         expected = 0
-        for key, item in test_data.items():
-            if "current_system" not in item or key != system.id:
+        for test_key, item in test_data.items():
+            if "current_system" not in item or test_key != system.id:
                 continue
-            for key, device in item["current_system"].items():
-                if isinstance(device, list) and key == "secondary_heat_generators":
+            for device_key, device in item["current_system"].items():
+                if (
+                    isinstance(device, list)
+                    and device_key == "secondary_heat_generators"
+                ):
                     expected += len(device)
                 if isinstance(device, dict) and "device_uuid" in device:
                     expected += 1
