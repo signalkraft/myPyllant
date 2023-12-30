@@ -1,6 +1,8 @@
 import json
+from collections import defaultdict
 from datetime import datetime, timedelta, tzinfo
 from pathlib import Path
+from typing import Any
 
 import pytest
 from freezegun import freeze_time
@@ -28,9 +30,12 @@ def list_test_data():
 
 
 def load_test_data(data_dir: Path):
-    user_data = {}
+    user_data: dict[str, Any] = defaultdict(dict)
     for f in data_dir.rglob("*.json"):
-        user_data[f.stem] = json.loads(f.read_text())
+        if f.parent != data_dir:
+            user_data[f.parent.stem][f.stem] = json.loads(f.read_text())
+        else:
+            user_data[f.stem] = json.loads(f.read_text())
     return user_data
 
 

@@ -11,7 +11,7 @@ async def test_export(mypyllant_aioresponses, capsys, test_data) -> None:
     with mypyllant_aioresponses(test_data) as _:
         await export_main("test@example.com", "test", "vaillant", "germany")
         captured = capsys.readouterr()
-        assert isinstance(json.loads(captured.out), dict)
+        assert isinstance(json.loads(captured.out), list)
 
 
 @pytest.mark.parametrize("test_data", list_test_data())

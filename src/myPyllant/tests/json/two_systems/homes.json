@@ -1,0 +1,48 @@
+[
+  {
+    "homeName": "52c8ef471d9ff231420ef22df5c9572a8da78fce",
+    "serialNumber": "8f7515b88aabe98dfba5a54b563422eb8f175f1e",
+    "systemId": "eed6a6500c47dc8f433846e845bb662e13fe469e",
+    "productMetadata": {
+      "productType": "VR921",
+      "productionYear": "23",
+      "productionWeek": "15",
+      "articleNumber": "0020260962"
+    },
+    "state": "CLAIMED",
+    "migrationState": "FINISHED",
+    "firmware": {
+      "version": "0357.40.32",
+      "updateEnabled": true,
+      "updateRequired": false
+    },
+    "nomenclature": "VR 921",
+    "cag": false,
+    "countryCode": "DE",
+    "productInformation": "VR921",
+    "firmwareVersion": "0357.40.32"
+  },
+  {
+    "homeName": "bf44b439a6f4c2ffc8b85b30c767f276bbff05e4",
+    "serialNumber": "f9a92242ca7f3a2334a9d967e8fe6a5206665fc9",
+    "systemId": "e763593de7370e8d6f90fea50daacd9883e2e532",
+    "productMetadata": {
+      "productType": "VR921",
+      "productionYear": "23",
+      "productionWeek": "15",
+      "articleNumber": "0020260962"
+    },
+    "state": "CLAIMED",
+    "migrationState": "FINISHED",
+    "firmware": {
+      "version": "0357.40.32",
+      "updateEnabled": true,
+      "updateRequired": false
+    },
+    "nomenclature": "VR 921",
+    "cag": false,
+    "countryCode": "DE",
+    "productInformation": "VR921",
+    "firmwareVersion": "0357.40.32"
+  }
+]

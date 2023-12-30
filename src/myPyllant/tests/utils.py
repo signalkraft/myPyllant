@@ -1,6 +1,6 @@
 import re
 
-from aioresponses import aioresponses
+from aioresponses import CallbackResult, aioresponses
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.const import API_URL_BASE, LOGIN_URL
@@ -139,6 +139,45 @@ def _mypyllant_aioresponses():
                 repeat=True,
             )
 
+            def get_test_data(url: str, key: str, default=None) -> CallbackResult:
+                """
+                Return test data CallbackResult based on the URL and key
+                """
+                url_parts = url.replace(API_URL_BASE, "").split("/")
+                if url_parts[1] == "emf":
+                    system_id = url_parts[3]
+                else:
+                    system_id = url_parts[2]
+                return CallbackResult(
+                    status=200, payload=self.test_data[system_id].get(key, default)
+                )
+
+            def test_data_by_system(url, **kwargs):
+                """
+                Return test data based on the system ID in the URL
+                """
+                url = str(url)
+                result = None
+
+                match url:
+                    case url if re.match(r".*currentSystem$", url):
+                        result = get_test_data(url, "current_system")
+                    case url if re.match(r".*buckets\?.*", url):
+                        result = get_test_data(url, "device_buckets")
+                    case url if re.match(r".*systems/.*/tli", url):
+                        result = get_test_data(url, "system")
+                    case url if re.match(r".*meta-info/control-identifier$", url):
+                        result = get_test_data(url, "control_identifier")
+                    case url if re.match(r".*meta-info/time-zone", url):
+                        result = get_test_data(url, "time_zone")
+                    case url if re.match(r".*meta-info/connection-status", url):
+                        result = get_test_data(url, "connection_status")
+                    case url if re.match(r".*diagnostic-trouble-codes$", url):
+                        result = get_test_data(url, "diagnostic_trouble_codes", [])
+                    case url if re.match(r".*/mpc$", url):
+                        result = get_test_data(url, "mpc", {"devices": []})
+                return result
+
             if self.test_data:
                 # Create endpoints with stored JSON test data
                 self.get(
@@ -147,54 +186,11 @@ def _mypyllant_aioresponses():
                     payload=self.test_data["homes"],
                     repeat=True,
                 )
+                system_ids = [h["systemId"] for h in self.test_data["homes"]]
+                # Handle URLs that contain a system ID
                 self.get(
-                    re.compile(r".*currentSystem$"),
-                    status=200,
-                    payload=self.test_data["current_system"],
-                    repeat=True,
-                )
-                self.get(
-                    re.compile(r".*buckets\?.*"),
-                    status=200,
-                    payload=self.test_data["device_buckets"],
-                    repeat=True,
-                )
-                self.get(
-                    re.compile(
-                        rf".*systems/.*/{self.test_data['control_identifier']['controlIdentifier']}"
-                    ),
-                    status=200,
-                    payload=self.test_data["system"],
-                    repeat=True,
-                )
-                self.get(
-                    re.compile(r".*meta-info/control-identifier$"),
-                    status=200,
-                    payload=self.test_data["control_identifier"],
-                    repeat=True,
-                )
-                self.get(
-                    re.compile(r".*meta-info/time-zone"),
-                    status=200,
-                    payload=self.test_data["time_zone"],
-                    repeat=True,
-                )
-                self.get(
-                    re.compile(r".*meta-info/connection-status"),
-                    status=200,
-                    payload=self.test_data["connection_status"],
-                    repeat=True,
-                )
-                self.get(
-                    re.compile(r".*diagnostic-trouble-codes$"),
-                    status=200,
-                    payload=self.test_data.get("diagnostic_trouble_codes", []),
-                    repeat=True,
-                )
-                self.get(
-                    re.compile(r".*/mpc$"),
-                    status=200,
-                    payload=self.test_data.get("mpc", {"devices": []}),
+                    re.compile(rf".*({'|'.join(system_ids)}).*"),
+                    callback=test_data_by_system,
                     repeat=True,
                 )
             return self

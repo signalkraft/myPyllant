@@ -56,6 +56,7 @@ async def main(
     end=None,
 ):
     async with MyPyllantAPI(user, password, brand, country) as api:
+        export_list = []
         async for system in api.get_systems(
             include_timezone=True,
             include_connection_status=True,
@@ -63,7 +64,6 @@ async def main(
             include_mpc=True,
         ):
             if data:
-                data_list = []
                 for device in system.devices:
                     data = [
                         asdict(d)
@@ -71,17 +71,19 @@ async def main(
                             device, resolution, start, end
                         )
                     ]
-                    data_list.append(dict(device=asdict(device), data=data))
-                sys.stdout.write(
-                    json.dumps(
-                        data_list,
-                        indent=2,
-                        default=str,
-                    )
-                )
+                    export_list.append(dict(device=asdict(device), data=data))
+
             else:
-                sys.stdout.write(json.dumps(asdict(system), indent=2, default=str))
-                sys.stdout.write("\n")
+                export_list.append(asdict(system))
+
+        sys.stdout.write(
+            json.dumps(
+                export_list,
+                indent=2,
+                default=str,
+            )
+        )
+        sys.stdout.write("\n")
 
 
 if __name__ == "__main__":
