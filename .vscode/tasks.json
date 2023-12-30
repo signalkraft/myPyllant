@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run precommit",
+            "type": "shell",
+            "command": "scripts/precommit",
+            "problemMatcher": []
+        }
+    ]
+}
