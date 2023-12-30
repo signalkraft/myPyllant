@@ -5,12 +5,11 @@ import asyncio
 import json
 import logging
 import sys
-from dataclasses import asdict
 from datetime import datetime
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.models import DeviceDataBucketResolution
-from myPyllant.utils import add_default_parser_args, DataClassJSONEncoder
+from myPyllant.utils import add_default_parser_args
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API.")
 add_default_parser_args(parser)
@@ -66,15 +65,15 @@ async def main(
             if data:
                 for device in system.devices:
                     data = [
-                        asdict(d)
+                        d.prepare_dict()
                         async for d in api.get_data_by_device(
                             device, resolution, start, end
                         )
                     ]
-                    export_list.append(dict(device=asdict(device), data=data))
+                    export_list.append(dict(device=device.prepare_dict(), data=data))
 
             else:
-                export_list.append(asdict(system))
+                export_list.append(system.prepare_dict())
 
         return export_list
 
@@ -92,7 +91,6 @@ if __name__ == "__main__":
             result,
             indent=2,
             default=str,
-            cls=DataClassJSONEncoder,
         )
     )
     sys.stdout.write("\n")

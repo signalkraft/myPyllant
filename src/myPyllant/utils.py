@@ -1,13 +1,11 @@
 import argparse
 import base64
 import hashlib
-import json
 import random
 import re
 import string
-from dataclasses import asdict
-from datetime import datetime
-
+from datetime import datetime, tzinfo
+from enum import Enum
 
 from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
@@ -117,7 +115,16 @@ def version_tuple(v):
     return tuple(map(int, (v.split("."))))
 
 
-class DataClassJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        result = asdict(obj)
-        return result
+def prepare_field_value_for_dict(value):
+    from myPyllant.models import MyPyllantDataClass
+
+    match value:
+        case tzinfo() | Enum():
+            value = str(value)
+        case MyPyllantDataClass():
+            value = value.prepare_dict()
+        case dict():
+            value = {k: prepare_field_value_for_dict(v) for k, v in value.items()}
+        case list():
+            value = [prepare_field_value_for_dict(v) for v in value]
+    return value

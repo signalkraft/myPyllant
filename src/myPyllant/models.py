@@ -4,7 +4,7 @@ import calendar
 import datetime
 import logging
 from collections.abc import Iterator
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from enum import Enum, EnumMeta
 from typing import TypeVar
 
@@ -12,7 +12,7 @@ from dacite import Config, from_dict
 from dacite.dataclasses import get_fields
 
 from myPyllant.const import BRANDS
-from myPyllant.utils import datetime_parse
+from myPyllant.utils import datetime_parse, prepare_field_value_for_dict
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +124,10 @@ class MyPyllantDataClass:
             data=kwargs,
             config=Config(cast=[Enum], type_hooks={datetime.datetime: datetime_parse}),
         )
+
+    def prepare_dict(self) -> dict:
+        data = asdict(self)
+        return prepare_field_value_for_dict(data)
 
 
 @dataclass

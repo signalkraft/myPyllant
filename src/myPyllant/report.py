@@ -14,6 +14,7 @@ add_default_parser_args(parser)
 parser.add_argument(
     "--year",
     help="Year of the report, defaults to current year",
+    type=int,
     default=date.today().year,
     required=False,
 )
@@ -22,20 +23,17 @@ parser.add_argument(
 )
 
 
-async def main(
-    user,
-    password,
-    brand,
-    country=None,
-    year=None,
-):
+async def main(user, password, brand, year: int, country=None, write_results=True):
     async with MyPyllantAPI(user, password, brand, country) as api:
         async for system in api.get_systems():
             reports = api.get_yearly_reports(system, year)
             async for report in reports:
-                with open(report.file_name, "w") as fh:
-                    fh.write(report.file_content)
-                sys.stdout.write(f"Wrote {year} report to {report.file_name}\n")
+                if write_results:
+                    with open(report.file_name, "w") as fh:
+                        fh.write(report.file_content)
+                    sys.stdout.write(f"Wrote {year} report to {report.file_name}\n")
+                else:
+                    yield report
 
 
 if __name__ == "__main__":

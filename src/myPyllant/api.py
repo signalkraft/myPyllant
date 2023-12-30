@@ -389,7 +389,7 @@ class MyPyllantAPI:
     async def get_yearly_reports(
         self,
         system: System,
-        year: int,
+        year: int | None = None,
     ) -> AsyncIterator[SystemReport]:
         """
         Returns an async generator of systems under control of the user
