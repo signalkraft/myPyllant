@@ -4,7 +4,7 @@ from dacite import WrongTypeError
 from myPyllant.api import MyPyllantAPI
 
 from ..models import Home, System, ZoneHeating, ZoneHeatingOperatingMode
-from .test_api import list_test_data
+from .utils import list_test_data
 
 
 @pytest.mark.parametrize("test_data", list_test_data())

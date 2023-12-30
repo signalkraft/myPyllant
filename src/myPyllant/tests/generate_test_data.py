@@ -63,7 +63,8 @@ async def main(user, password, brand, country=None, write_results=True):
 
     results = {}
     json_dir = user_json_dir(user)
-    json_dir.mkdir(parents=True, exist_ok=True)
+    if write_results:
+        json_dir.mkdir(parents=True, exist_ok=True)
 
     def create_result(result, name, directory=None):
         if write_results:
@@ -99,8 +100,11 @@ async def main(user, password, brand, country=None, write_results=True):
         if not homes:
             # No homes means no systems to generate test data for
             print("No homes found.")
-            print(f"Wrote homes.json to {json_dir}")
-            exit(0)
+            if write_results:
+                print(f"Wrote homes.json to {json_dir}")
+                exit(0)
+            else:
+                return results
 
         for home in homes:
             anonymized_home = _recursive_data_anonymize(copy.deepcopy(home), SALT)
@@ -108,7 +112,8 @@ async def main(user, password, brand, country=None, write_results=True):
             real_system_id = home["systemId"]
             print(f"Generating test data for {anonymized_system_id}")
 
-            (json_dir / anonymized_system_id).mkdir(parents=True, exist_ok=True)
+            if write_results:
+                (json_dir / anonymized_system_id).mkdir(parents=True, exist_ok=True)
 
             control_identifier_url = (
                 f"{API_URL_BASE}/systems/{real_system_id}/meta-info/control-identifier"
@@ -204,30 +209,31 @@ async def main(user, password, brand, country=None, write_results=True):
                 microsecond=0, second=0, minute=0, hour=0
             ) - timedelta(days=1)
             end = datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-            querystring = {
-                "resolution": DeviceDataBucketResolution.HOUR,
-                "operationMode": device["data"][0]["operation_mode"],
-                "energyType": device["data"][0]["value_type"],
-                "startDate": datetime_format(start),
-                "endDate": datetime_format(end),
-            }
-            device_buckets_url = (
-                f"{API_URL_BASE}/emf/v2/{real_system_id}/"
-                f"devices/{device['device_uuid']}/buckets?{urlencode(querystring)}"
-            )
-            async with api.aiohttp_session.get(
-                device_buckets_url, headers=api.get_authorized_headers()
-            ) as device_buckets_resp:
-                device_buckets = await device_buckets_resp.json()
+            if device and "data" in device:
+                querystring = {
+                    "resolution": DeviceDataBucketResolution.HOUR,
+                    "operationMode": device["data"][0]["operation_mode"],
+                    "energyType": device["data"][0]["value_type"],
+                    "startDate": datetime_format(start),
+                    "endDate": datetime_format(end),
+                }
+                device_buckets_url = (
+                    f"{API_URL_BASE}/emf/v2/{real_system_id}/"
+                    f"devices/{device['device_uuid']}/buckets?{urlencode(querystring)}"
+                )
+                async with api.aiohttp_session.get(
+                    device_buckets_url, headers=api.get_authorized_headers()
+                ) as device_buckets_resp:
+                    device_buckets = await device_buckets_resp.json()
                 create_result(
                     device_buckets,
                     "device_buckets",
                     anonymized_system_id,
                 )
-            print(f"Wrote test data to {json_dir}")
 
-    if not write_results:
-        print(results)
+    if write_results:
+        print(f"Wrote test data to {json_dir}")
+    else:
         return results
 
 

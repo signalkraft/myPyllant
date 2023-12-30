@@ -1,7 +1,7 @@
 import pytest as pytest
 
 from ..sample import main
-from .test_api import list_test_data
+from .utils import list_test_data
 
 
 @pytest.mark.parametrize("test_data", list_test_data())

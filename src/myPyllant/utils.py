@@ -1,10 +1,13 @@
 import argparse
 import base64
 import hashlib
+import json
 import random
 import re
 import string
+from dataclasses import asdict
 from datetime import datetime
+
 
 from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
 
@@ -112,3 +115,9 @@ def add_default_parser_args(parser: argparse.ArgumentParser):
 def version_tuple(v):
     # See https://stackoverflow.com/a/11887825
     return tuple(map(int, (v.split("."))))
+
+
+class DataClassJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        result = asdict(obj)
+        return result

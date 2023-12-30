@@ -1,9 +1,14 @@
+import json
 import re
+from collections import defaultdict
+from pathlib import Path
+from typing import Any
 
 from aioresponses import CallbackResult, aioresponses
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.const import API_URL_BASE, LOGIN_URL
+from myPyllant.tests.generate_test_data import JSON_DIR
 from myPyllant.utils import get_realm
 
 
@@ -178,10 +183,18 @@ def _mypyllant_aioresponses():
                         result = get_test_data(url, "mpc", {"devices": []})
                 return result
 
+            def unmatched_url(url, **kwargs):
+                """
+                Return test data based on the system ID in the URL
+                """
+                raise Exception(
+                    f"Unmatched URL {url} with test data {self.test_data['_directory']}"
+                )
+
             if self.test_data:
                 # Create endpoints with stored JSON test data
                 self.get(
-                    f"{API_URL_BASE}/homes",
+                    re.compile(r".*/homes$"),
                     status=200,
                     payload=self.test_data["homes"],
                     repeat=True,
@@ -193,6 +206,11 @@ def _mypyllant_aioresponses():
                     callback=test_data_by_system,
                     repeat=True,
                 )
+            self.get(
+                re.compile(r".*"),
+                callback=unmatched_url,
+                repeat=True,
+            )
             return self
 
     return _mypyllant_aioresponses
@@ -207,3 +225,23 @@ async def _mocked_api(*args, **kwargs) -> MyPyllantAPI:
     }
     api.set_session_expires()
     return api
+
+
+def list_test_data():
+    test_data = []
+    for d in [d for d in JSON_DIR.iterdir() if d.is_dir()]:
+        # check if a json file eixsts in dir
+        if list(d.rglob("*.json")):
+            test_data.append(load_test_data(d))
+    return test_data
+
+
+def load_test_data(data_dir: Path):
+    user_data: dict[str, Any] = defaultdict(dict)
+    user_data["_directory"] = str(data_dir)
+    for f in data_dir.rglob("*.json"):
+        if f.parent != data_dir:
+            user_data[f.parent.stem][f.stem] = json.loads(f.read_text())
+        else:
+            user_data[f.stem] = json.loads(f.read_text())
+    return user_data

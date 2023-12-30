@@ -10,7 +10,7 @@ from datetime import datetime
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.models import DeviceDataBucketResolution
-from myPyllant.utils import add_default_parser_args
+from myPyllant.utils import add_default_parser_args, DataClassJSONEncoder
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API.")
 add_default_parser_args(parser)
@@ -76,14 +76,7 @@ async def main(
             else:
                 export_list.append(asdict(system))
 
-        sys.stdout.write(
-            json.dumps(
-                export_list,
-                indent=2,
-                default=str,
-            )
-        )
-        sys.stdout.write("\n")
+        return export_list
 
 
 if __name__ == "__main__":
@@ -93,4 +86,13 @@ if __name__ == "__main__":
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    asyncio.run(main(**kwargs))
+    result = asyncio.run(main(**kwargs))
+    sys.stdout.write(
+        json.dumps(
+            result,
+            indent=2,
+            default=str,
+            cls=DataClassJSONEncoder,
+        )
+    )
+    sys.stdout.write("\n")
