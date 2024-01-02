@@ -43,6 +43,7 @@ COUNTRIES = {
         "spain": "Spain",
         "sweden": "Sweden",
         "switzerland": "Switzerland",
+        "turkiye": "Turkiye",
         "ukraine": "Ukraine",
         "unitedkingdom": "United Kingdom",
         "uzbekistan": "Uzbekistan",
