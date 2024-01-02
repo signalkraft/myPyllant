@@ -206,9 +206,41 @@ class ZoneCooling(MyPyllantDataClass):
 
 
 @dataclass
+class ZoneGeneral(MyPyllantDataClass):
+    name: str
+    holiday_start_date_time: datetime.datetime | None = None
+    holiday_end_date_time: datetime.datetime | None = None
+
+    @property
+    def holiday_planned(self) -> bool:
+        return (
+            self.holiday_start_date_time is not None
+            and self.holiday_end_date_time is not None
+            and self.holiday_end_date_time > datetime.datetime.now()
+        )
+
+    @property
+    def holiday_start_in_future(self) -> bool:
+        return (
+            self.holiday_start_date_time is not None
+            and self.holiday_start_date_time > datetime.datetime.now()
+        )
+
+    @property
+    def holiday_ongoing(self) -> bool:
+        return (
+            self.holiday_start_date_time is not None
+            and self.holiday_end_date_time is not None
+            and self.holiday_start_date_time
+            < datetime.datetime.now()
+            < self.holiday_end_date_time
+        )
+
+
+@dataclass
 class Zone(MyPyllantDataClass):
     system_id: str
-    general: dict
+    general: ZoneGeneral
     index: int
     is_active: bool
     is_cooling_allowed: bool
@@ -229,11 +261,12 @@ class Zone(MyPyllantDataClass):
     @classmethod
     def from_api(cls, **kwargs):
         kwargs["heating"] = ZoneHeating.from_api(**kwargs["heating"])
+        kwargs["general"] = ZoneGeneral.from_api(**kwargs["general"])
         return super().from_api(**kwargs)
 
     @property
     def name(self):
-        return self.general["name"]
+        return self.general.name
 
 
 @dataclass
@@ -492,7 +525,14 @@ class Device(MyPyllantDataClass):
         """
         Product name might be None, fall back to title-cased device type
         """
-        return self.product_name or self.device_type.replace("_", "").title()
+        if self.product_name:
+            return (
+                self.product_name.title()
+                if self.product_name.islower()
+                else self.product_name
+            )
+        else:
+            return self.device_type.replace("_", "").title()
 
     @property
     def brand_name(self) -> str:

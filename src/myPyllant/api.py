@@ -48,6 +48,7 @@ from myPyllant.utils import (
     dict_to_snake_case,
     generate_code,
     get_realm,
+    get_default_holiday_dates,
 )
 
 logger = logging.getLogger(__name__)
@@ -581,12 +582,11 @@ class MyPyllantAPI:
             start: Optional, datetime when the system goes into away mode. Defaults to now
             end: Optional, datetime when away mode should end. Defaults to one year from now
         """
-        if not start:
-            start = datetime.datetime.now()
-        if not end:
-            # Set away for a long time if no end date is set
-            end = start + datetime.timedelta(days=365)
-        if not start < end:
+        start, end = get_default_holiday_dates(start, end)
+        logger.debug(
+            "Setting holiday mode for system %s to %s - %s", system.id, start, end
+        )
+        if not start <= end:
             raise ValueError("Start of holiday mode must be before end")
         url = f"{API_URL_BASE}/systems/{system.id}/tli/away-mode"
         data = {
@@ -605,9 +605,16 @@ class MyPyllantAPI:
             system: The target system
         """
         url = f"{API_URL_BASE}/systems/{system.id}/tli/away-mode"
-        return await self.aiohttp_session.delete(
-            url, headers=self.get_authorized_headers()
-        )
+        if system.zones and system.zones[0].general.holiday_start_in_future:
+            # For some reason cancelling holidays in the future doesn't work, but setting a past value does
+            default_holiday = datetime.datetime(2019, 1, 1, 0, 0, 0)
+            return await self.set_holiday(
+                system, start=default_holiday, end=default_holiday
+            )
+        else:
+            return await self.aiohttp_session.delete(
+                url, headers=self.get_authorized_headers()
+            )
 
     async def set_domestic_hot_water_temperature(
         self, domestic_hot_water: DomesticHotWater, temperature: int | float

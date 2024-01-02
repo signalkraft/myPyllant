@@ -4,10 +4,10 @@ import hashlib
 import random
 import re
 import string
-from datetime import datetime, tzinfo
+from datetime import datetime, tzinfo, timedelta
 from enum import Enum
 
-from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND
+from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND, DEFAULT_HOLIDAY_DURATION
 
 
 def dict_to_snake_case(d):
@@ -128,3 +128,16 @@ def prepare_field_value_for_dict(value):
         case list():
             value = [prepare_field_value_for_dict(v) for v in value]
     return value
+
+
+def get_default_holiday_dates(
+    start, end, default_holiday_duration=DEFAULT_HOLIDAY_DURATION
+) -> tuple[datetime, datetime]:
+    """
+    If no start or end date is given, use the current date and add the default holiday duration
+    """
+    if not start:
+        start = datetime.now()
+    if not end:
+        end = start + timedelta(days=default_holiday_duration)
+    return start, end
