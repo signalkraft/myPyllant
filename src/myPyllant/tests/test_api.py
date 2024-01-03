@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, tzinfo
+from datetime import datetime, timedelta, tzinfo, timezone
 
 import pytest
 from freezegun import freeze_time
@@ -25,7 +25,7 @@ async def test_login_vaillant(mypyllant_aioresponses) -> None:
             "test@example.com", "test", "vaillant", "germany"
         ) as mocked_api:
             assert isinstance(mocked_api.oauth_session_expires, datetime)
-            assert mocked_api.oauth_session_expires > datetime.now()
+            assert mocked_api.oauth_session_expires > datetime.now(timezone.utc)
             assert mocked_api.access_token == "access_token"
             assert "Authorization" in mocked_api.get_authorized_headers()
 
@@ -36,7 +36,7 @@ async def test_login_bulex(mypyllant_aioresponses) -> None:
             "test@example.com", "test", "bulex", None
         ) as mocked_api:
             assert isinstance(mocked_api.oauth_session_expires, datetime)
-            assert mocked_api.oauth_session_expires > datetime.now()
+            assert mocked_api.oauth_session_expires > datetime.now(timezone.utc)
             assert mocked_api.access_token == "access_token"
             assert "Authorization" in mocked_api.get_authorized_headers()
 
@@ -53,10 +53,10 @@ async def test_login_country_missing(mypyllant_aioresponses) -> None:
 
 async def test_refresh_token(mypyllant_aioresponses, mocked_api) -> None:
     with mypyllant_aioresponses() as _:
-        with freeze_time(datetime.now() + timedelta(hours=1)):
+        with freeze_time(datetime.now(timezone.utc) + timedelta(hours=1)):
             await mocked_api.refresh_token()
             session_expires = mocked_api.oauth_session_expires
-        assert session_expires - datetime.now() > timedelta(hours=1)
+        assert session_expires - datetime.now(timezone.utc) > timedelta(hours=1)
         await mocked_api.aiohttp_session.close()
 
 
@@ -176,7 +176,7 @@ async def test_holiday_without_dates(
 ) -> None:
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
-        now = datetime.now()
+        now = datetime.now(system.timezone)
         with freeze_time(now):
             await mocked_api.set_holiday(system)
         request = list(aio.requests.values())[-1][0]
@@ -192,7 +192,7 @@ async def test_holiday_with_dates(
 ) -> None:
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
-        now = datetime.now()
+        now = datetime.now(system.timezone)
         with freeze_time(now):
             start = now + timedelta(days=1)
             end = now + timedelta(days=7)
@@ -213,7 +213,7 @@ async def test_holiday_wrong_dates(
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
-        start = datetime.now() + timedelta(days=1)
+        start = datetime.now(system.timezone) + timedelta(days=1)
         end = start - timedelta(days=7)
         with pytest.raises(ValueError):
             await mocked_api.set_holiday(system, start, end)

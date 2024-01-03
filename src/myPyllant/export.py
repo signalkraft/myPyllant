@@ -57,7 +57,6 @@ async def main(
     async with MyPyllantAPI(user, password, brand, country) as api:
         export_list = []
         async for system in api.get_systems(
-            include_timezone=True,
             include_connection_status=True,
             include_diagnostic_trouble_codes=True,
             include_mpc=True,

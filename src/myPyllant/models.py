@@ -98,7 +98,7 @@ class VentilationFanStageType(MyPyllantEnum):
     NIGHT = "NIGHT"
 
 
-T = TypeVar("T")
+T = TypeVar("T", bound="MyPyllantDataClass")
 
 
 @dataclass(kw_only=True)
@@ -110,19 +110,34 @@ class MyPyllantDataClass:
     extra_fields: dict = field(default_factory=dict)
 
     @classmethod
+    def type_hooks(cls: type[T], timezone: datetime.tzinfo | None) -> dict:
+        if timezone:
+            return {datetime.datetime: lambda x: datetime_parse(x, timezone)}
+        else:
+            return {}
+
+    @classmethod
     def from_api(cls: type[T], **kwargs) -> T:
         """
         Creates enums & dates from strings before calling __init__
         """
         dataclass_fields = get_fields(cls)
         extra_fields = set(kwargs.keys()) - {f.name for f in dataclass_fields}
+        datetime_fields = set(f.name for f in dataclass_fields if "datetime" in f.type)
+        timezone: datetime.tzinfo | None = kwargs.get("timezone")
+
+        if timezone is None and datetime_fields:
+            raise ValueError(
+                f"timezone is required in {cls.__name__}.from_api() for datetime field {', '.join(datetime_fields)}"
+            )
+
         if extra_fields:
             kwargs["extra_fields"] = {f: kwargs[f] for f in extra_fields}
 
         return from_dict(
             data_class=cls,
             data=kwargs,
-            config=Config(cast=[Enum], type_hooks={datetime.datetime: datetime_parse}),
+            config=Config(cast=[Enum], type_hooks=cls.type_hooks(timezone)),
         )
 
     def prepare_dict(self) -> dict:
@@ -133,6 +148,7 @@ class MyPyllantDataClass:
 @dataclass
 class Home(MyPyllantDataClass):
     country_code: str
+    timezone: datetime.tzinfo
     nomenclature: str
     serial_number: str
     state: str
@@ -208,6 +224,7 @@ class ZoneCooling(MyPyllantDataClass):
 @dataclass
 class ZoneGeneral(MyPyllantDataClass):
     name: str
+    timezone: datetime.tzinfo
     holiday_start_date_time: datetime.datetime | None = None
     holiday_end_date_time: datetime.datetime | None = None
 
@@ -216,14 +233,14 @@ class ZoneGeneral(MyPyllantDataClass):
         return (
             self.holiday_start_date_time is not None
             and self.holiday_end_date_time is not None
-            and self.holiday_end_date_time > datetime.datetime.now()
+            and self.holiday_end_date_time > datetime.datetime.now(self.timezone)
         )
 
     @property
     def holiday_start_in_future(self) -> bool:
         return (
             self.holiday_start_date_time is not None
-            and self.holiday_start_date_time > datetime.datetime.now()
+            and self.holiday_start_date_time > datetime.datetime.now(self.timezone)
         )
 
     @property
@@ -232,8 +249,16 @@ class ZoneGeneral(MyPyllantDataClass):
             self.holiday_start_date_time is not None
             and self.holiday_end_date_time is not None
             and self.holiday_start_date_time
-            < datetime.datetime.now()
+            < datetime.datetime.now(self.timezone)
             < self.holiday_end_date_time
+        )
+
+    @property
+    def holiday_remaining(self) -> datetime.timedelta | None:
+        return (
+            self.holiday_end_date_time - datetime.datetime.now(self.timezone)
+            if self.holiday_end_date_time and self.holiday_ongoing
+            else None
         )
 
 
@@ -241,6 +266,7 @@ class ZoneGeneral(MyPyllantDataClass):
 class Zone(MyPyllantDataClass):
     system_id: str
     general: ZoneGeneral
+    timezone: datetime.tzinfo
     index: int
     is_active: bool
     is_cooling_allowed: bool
@@ -261,12 +287,32 @@ class Zone(MyPyllantDataClass):
     @classmethod
     def from_api(cls, **kwargs):
         kwargs["heating"] = ZoneHeating.from_api(**kwargs["heating"])
-        kwargs["general"] = ZoneGeneral.from_api(**kwargs["general"])
+        kwargs["general"] = ZoneGeneral.from_api(
+            timezone=kwargs["timezone"], **kwargs["general"]
+        )
         return super().from_api(**kwargs)
 
     @property
     def name(self):
         return self.general.name
+
+    @property
+    def quick_veto_ongoing(self) -> bool:
+        return (
+            self.quick_veto_start_date_time is not None
+            and self.quick_veto_end_date_time is not None
+            and self.quick_veto_start_date_time
+            < datetime.datetime.now(self.timezone)
+            < self.quick_veto_end_date_time
+        )
+
+    @property
+    def quick_veto_remaining(self) -> datetime.timedelta | None:
+        return (
+            self.quick_veto_end_date_time - datetime.datetime.now(self.timezone)
+            if self.quick_veto_end_date_time and self.quick_veto_ongoing
+            else None
+        )
 
 
 @dataclass
@@ -336,7 +382,7 @@ class System(MyPyllantDataClass):
     configuration: dict
     home: Home
     brand: str
-    timezone: datetime.tzinfo | None = None
+    timezone: datetime.tzinfo
     connected: bool | None = None
     diagnostic_trouble_codes: list | None = None
     current_system: dict = field(default_factory=dict)
@@ -355,23 +401,31 @@ class System(MyPyllantDataClass):
         logger.debug(f"Creating related models from state: {kwargs}")
         system.extra_fields = system.merge_extra_fields()
         system.zones = [
-            Zone.from_api(system_id=system.id, **z)
+            Zone.from_api(system_id=system.id, timezone=system.timezone, **z)
             for z in system.merge_object("zones")
         ]
         system.circuits = [
-            Circuit.from_api(system_id=system.id, **c)
+            Circuit.from_api(system_id=system.id, timezone=system.timezone, **c)
             for c in system.merge_object("circuits")
         ]
         system.domestic_hot_water = [
-            DomesticHotWater.from_api(system_id=system.id, **d)
+            DomesticHotWater.from_api(
+                system_id=system.id, timezone=system.timezone, **d
+            )
             for d in system.merge_object("dhw")
         ]
         system.ventilation = [
-            Ventilation.from_api(system_id=system.id, **d)
+            Ventilation.from_api(system_id=system.id, timezone=system.timezone, **d)
             for d in system.merge_object("ventilation")
         ]
         system.devices = [
-            Device.from_api(system_id=system.id, type=k, brand=system.brand, **v)
+            Device.from_api(
+                system_id=system.id,
+                timezone=system.timezone,
+                type=k,
+                brand=system.brand,
+                **v,
+            )
             for k, v in system.raw_devices
         ]
         return system
@@ -494,6 +548,7 @@ class System(MyPyllantDataClass):
 @dataclass
 class Device(MyPyllantDataClass):
     system_id: str
+    timezone: datetime.tzinfo
     device_uuid: str
     ebus_id: str
     article_number: str
@@ -540,11 +595,13 @@ class Device(MyPyllantDataClass):
 
     @classmethod
     def from_api(cls, **kwargs):
-        kwargs["data"] = (
-            [DeviceData.from_api(**dd) for dd in kwargs["data"]]
-            if "data" in kwargs
-            else []
-        )
+        data = []
+        if "data" in kwargs:
+            for dd in kwargs["data"]:
+                if "timezone" not in dd:
+                    dd["timezone"] = kwargs["timezone"]
+                data.append(DeviceData.from_api(**dd))
+        kwargs["data"] = data
         return super().from_api(**kwargs)
 
 
@@ -574,7 +631,8 @@ class DeviceData(MyPyllantDataClass):
         kwargs["data_from"] = kwargs.pop("from", None)
         kwargs["data_to"] = kwargs.pop("to", None)
         kwargs["data"] = [
-            DeviceDataBucket.from_api(**dd) for dd in kwargs.pop("data", [])
+            DeviceDataBucket.from_api(timezone=kwargs["timezone"], **dd)
+            for dd in kwargs.pop("data", [])
         ]
         return super().from_api(**kwargs)
 

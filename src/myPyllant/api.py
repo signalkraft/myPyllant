@@ -231,9 +231,9 @@ class MyPyllantAPI:
             return login_json
 
     def set_session_expires(self):
-        self.oauth_session_expires = datetime.datetime.now() + datetime.timedelta(
-            seconds=self.oauth_session["expires_in"]
-        )
+        self.oauth_session_expires = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(seconds=self.oauth_session["expires_in"])
         logger.debug("Session expires in %s", self.oauth_session_expires)
 
     async def refresh_token(self):
@@ -277,12 +277,12 @@ class MyPyllantAPI:
         async with self.aiohttp_session.get(
             f"{API_URL_BASE}/homes", headers=self.get_authorized_headers()
         ) as homes_resp:
-            for home_json in await homes_resp.json():
-                yield Home.from_api(**dict_to_snake_case(home_json))
+            for home_json in dict_to_snake_case(await homes_resp.json()):
+                timezone = await self.get_time_zone(home_json["system_id"])
+                yield Home.from_api(timezone=timezone, **home_json)
 
     async def get_systems(
         self,
-        include_timezone: bool = False,
         include_connection_status: bool = False,
         include_diagnostic_trouble_codes: bool = False,
         include_mpc: bool = False,
@@ -291,7 +291,6 @@ class MyPyllantAPI:
         Returns an async generator of systems under control of the user
 
         Parameters:
-            include_timezone: Fetches timezone information for each system
             include_connection_status: Fetches connection status for each system
             include_diagnostic_trouble_codes: Fetches diagnostic trouble codes for each system
             include_mpc: Fetches MPC data for each system
@@ -322,9 +321,7 @@ class MyPyllantAPI:
             system = System.from_api(
                 brand=self.brand,
                 home=home,
-                timezone=await self.get_time_zone(home.system_id)
-                if include_timezone
-                else None,
+                timezone=home.timezone,
                 connected=await self.get_connection_status(home.system_id)
                 if include_connection_status
                 else None,
@@ -383,6 +380,7 @@ class MyPyllantAPI:
             ) as device_buckets_resp:
                 device_buckets_json = await device_buckets_resp.json()
                 yield DeviceData.from_api(
+                    timezone=device.timezone,
                     device=device,
                     **dict_to_snake_case(device_buckets_json),
                 )
@@ -469,6 +467,29 @@ class MyPyllantAPI:
                 },
                 headers=self.get_authorized_headers(),
             )
+
+    async def quick_veto_zone_duration(
+        self,
+        zone: Zone,
+        duration_hours: float,
+    ):
+        """
+        Updates the quick veto duration
+
+        Parameters:
+            zone: The target zone
+            duration_hours: Updates quick veto duration (in hours)
+        """
+        url = (
+            f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/quick-veto"
+        )
+        return await self.aiohttp_session.patch(
+            url,
+            json={
+                "duration": duration_hours,
+            },
+            headers=self.get_authorized_headers(),
+        )
 
     async def set_time_program_temperature(
         self,
@@ -582,7 +603,7 @@ class MyPyllantAPI:
             start: Optional, datetime when the system goes into away mode. Defaults to now
             end: Optional, datetime when away mode should end. Defaults to one year from now
         """
-        start, end = get_default_holiday_dates(start, end)
+        start, end = get_default_holiday_dates(start, end, system.timezone)
         logger.debug(
             "Setting holiday mode for system %s to %s - %s", system.id, start, end
         )
