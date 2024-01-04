@@ -9,7 +9,7 @@ from html import unescape
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
-from aiohttp import ClientResponseError
+from aiohttp import ClientResponseError, ClientResponse
 from dateutil.tz import gettz
 
 from myPyllant.const import (
@@ -82,6 +82,20 @@ async def on_request_end(session, context, params: aiohttp.TraceRequestEndParams
         logger.debug("Got response %s", await params.response.text())
 
 
+async def on_raise_for_status(response: ClientResponse):
+    """
+    Add the response text to the exception message of a 400 response
+    """
+    if response.status == 400:
+        text = await response.text()
+        try:
+            response.raise_for_status()
+        except ClientResponseError as e:
+            e.message = f"{e.message}, response was: {text}"
+            raise e
+    response.raise_for_status()
+
+
 class MyPyllantAPI:
     username: str
     password: str
@@ -112,9 +126,10 @@ class MyPyllantAPI:
         trace_config = aiohttp.TraceConfig()
         trace_config.on_request_start.append(on_request_start)
         trace_config.on_request_end.append(on_request_end)
+
         self.aiohttp_session = aiohttp.ClientSession(
             cookie_jar=aiohttp.CookieJar(),
-            raise_for_status=True,
+            raise_for_status=on_raise_for_status,
             trace_configs=[trace_config],
         )
 
