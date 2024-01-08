@@ -168,22 +168,96 @@ class Home(MyPyllantDataClass):
 
 
 @dataclass
-class ZoneTimeProgramDay(MyPyllantDataClass):
+class BaseTimeProgramDay(MyPyllantDataClass):
+    index: int
+    weekday_name: str
     start_time: int
     end_time: int
+
+    def start_datetime(self, date) -> datetime.datetime:
+        return date.replace(
+            hour=self.start_time // 60,
+            minute=self.start_time % 60,
+            second=0,
+            microsecond=0,
+        )
+
+    def end_datetime(self, date) -> datetime.datetime:
+        if self.end_time == 1440:
+            return date.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            ) + datetime.timedelta(days=1)
+        else:
+            return date.replace(
+                hour=self.end_time // 60,
+                minute=self.end_time % 60,
+                second=0,
+                microsecond=0,
+            )
+
+
+@dataclass
+class BaseTimeProgram(MyPyllantDataClass):
+    monday: list[BaseTimeProgramDay]
+    tuesday: list[BaseTimeProgramDay]
+    wednesday: list[BaseTimeProgramDay]
+    thursday: list[BaseTimeProgramDay]
+    friday: list[BaseTimeProgramDay]
+    saturday: list[BaseTimeProgramDay]
+    sunday: list[BaseTimeProgramDay]
+    meta_info: dict | None = None
+
+    @property
+    def has_time_program(self):
+        return any(
+            [len(getattr(self, weekday)) > 0 for weekday in self.weekday_names()]
+        )
+
+    @classmethod
+    def weekday_names(cls):
+        return [w.lower() for w in calendar.day_name]
+
+    def as_datetime(
+        self, start, end
+    ) -> Iterator[tuple[ZoneTimeProgramDay, datetime.datetime, datetime.datetime]]:
+        current = start
+        while current < end:
+            weekday = current.strftime("%A").lower()
+            for time_program in getattr(self, weekday):
+                if time_program.start_datetime(current) < end:
+                    yield (
+                        time_program,
+                        time_program.start_datetime(current),
+                        time_program.end_datetime(current),
+                    )
+                else:
+                    break
+            current += datetime.timedelta(days=1)
+
+    @classmethod
+    def create_day_from_api(cls, **kwargs):
+        raise NotImplementedError
+
+    @classmethod
+    def from_api(cls, **kwargs):
+        for weekday_name in [w for w in cls.weekday_names()]:
+            kwargs[weekday_name] = [
+                cls.create_day_from_api(index=i, weekday_name=weekday_name, **d)
+                for i, d in enumerate(kwargs.get(weekday_name, []))
+            ]
+        return super().from_api(**kwargs)
+
+
+@dataclass
+class ZoneTimeProgramDay(BaseTimeProgramDay):
     setpoint: float | None = None
 
 
 @dataclass
-class ZoneTimeProgram(MyPyllantDataClass):
-    monday: list[ZoneTimeProgramDay]
-    tuesday: list[ZoneTimeProgramDay]
-    wednesday: list[ZoneTimeProgramDay]
-    thursday: list[ZoneTimeProgramDay]
-    friday: list[ZoneTimeProgramDay]
-    saturday: list[ZoneTimeProgramDay]
-    sunday: list[ZoneTimeProgramDay]
-    meta_info: dict | None = None
+class ZoneTimeProgram(BaseTimeProgram):
+    @classmethod
+    def create_day_from_api(cls, **kwargs):
+        return ZoneTimeProgramDay(**kwargs)
 
     def set_setpoint(
         self, temperature: float, update_similar_to_dow: str | None = None
@@ -212,6 +286,13 @@ class ZoneHeating(MyPyllantDataClass):
     time_program_heating: ZoneTimeProgram
     set_back_temperature: float
 
+    @classmethod
+    def from_api(cls, **kwargs):
+        kwargs["time_program_heating"] = ZoneTimeProgram.from_api(
+            **kwargs["time_program_heating"]
+        )
+        return super().from_api(**kwargs)
+
 
 @dataclass
 class ZoneCooling(MyPyllantDataClass):
@@ -219,6 +300,13 @@ class ZoneCooling(MyPyllantDataClass):
     manual_mode_setpoint_cooling: float
     operation_mode_cooling: str  # TODO: Need all values
     time_program_cooling: ZoneTimeProgram
+
+    @classmethod
+    def from_api(cls, **kwargs):
+        kwargs["time_program_cooling"] = ZoneTimeProgram.from_api(
+            **kwargs["time_program_cooling"]
+        )
+        return super().from_api(**kwargs)
 
 
 @dataclass
@@ -287,6 +375,9 @@ class Zone(MyPyllantDataClass):
     @classmethod
     def from_api(cls, **kwargs):
         kwargs["heating"] = ZoneHeating.from_api(**kwargs["heating"])
+        kwargs["cooling"] = (
+            ZoneCooling.from_api(**kwargs["cooling"]) if "cooling" in kwargs else None
+        )
         kwargs["general"] = ZoneGeneral.from_api(
             timezone=kwargs["timezone"], **kwargs["general"]
         )
@@ -333,21 +424,15 @@ class Circuit(MyPyllantDataClass):
 
 
 @dataclass
-class DHWTimeProgramDay(MyPyllantDataClass):
-    start_time: int
-    end_time: int
+class DHWTimeProgramDay(BaseTimeProgramDay):
+    pass
 
 
 @dataclass
-class DHWTimeProgram(MyPyllantDataClass):
-    monday: list[DHWTimeProgramDay]
-    tuesday: list[DHWTimeProgramDay]
-    wednesday: list[DHWTimeProgramDay]
-    thursday: list[DHWTimeProgramDay]
-    friday: list[DHWTimeProgramDay]
-    saturday: list[DHWTimeProgramDay]
-    sunday: list[DHWTimeProgramDay]
-    meta_info: dict | None = None
+class DHWTimeProgram(BaseTimeProgram):
+    @classmethod
+    def create_day_from_api(cls, **kwargs):
+        return DHWTimeProgramDay(**kwargs)
 
 
 @dataclass
@@ -362,6 +447,16 @@ class DomesticHotWater(MyPyllantDataClass):
     time_program_circulation_pump: DHWTimeProgram
     current_dhw_temperature: float | None = None
     tapping_setpoint: float | None = None
+
+    @classmethod
+    def from_api(cls, **kwargs):
+        kwargs["time_program_dhw"] = DHWTimeProgram.from_api(
+            **kwargs["time_program_dhw"]
+        )
+        kwargs["time_program_circulation_pump"] = DHWTimeProgram.from_api(
+            **kwargs["time_program_circulation_pump"]
+        )
+        return super().from_api(**kwargs)
 
 
 @dataclass
