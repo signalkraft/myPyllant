@@ -356,12 +356,12 @@ class Zone(MyPyllantDataClass):
     general: ZoneGeneral
     timezone: datetime.tzinfo
     index: int
-    is_active: bool
     is_cooling_allowed: bool
     zone_binding: str
     heating_state: ZoneHeatingState
     heating: ZoneHeating
     current_special_function: ZoneCurrentSpecialFunction
+    is_active: bool | None
     cooling: ZoneCooling | None = None
     current_room_temperature: float | None = None
     desired_room_temperature_setpoint_heating: float | None = None
