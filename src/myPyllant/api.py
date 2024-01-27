@@ -319,8 +319,9 @@ class MyPyllantAPI:
         """
         homes = self.get_homes()
         async for home in homes:
-            control_identifier = await self.get_control_identifier(home.system_id)
-            system_url = f"{API_URL_BASE}/systems/{home.system_id}/{control_identifier}"
+            system_url = (
+                f"{API_URL_BASE}/systems/{home.system_id}/{DEFAULT_CONTROL_IDENTIFIER}"
+            )
             current_system_url = f"{API_URL_BASE}/emf/v2/{home.system_id}/currentSystem"
 
             async with self.aiohttp_session.get(
@@ -426,7 +427,7 @@ class MyPyllantAPI:
         """
         Sets the heating operating mode for a zone
         """
-        url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/heating-operation-mode"
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/zones/{zone.index}/heating-operation-mode"
         return await self.aiohttp_session.patch(
             url,
             json={
@@ -456,9 +457,7 @@ class MyPyllantAPI:
         )
         if not default_duration:
             default_duration = DEFAULT_QUICK_VETO_DURATION
-        url = (
-            f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/quick-veto"
-        )
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/zones/{zone.index}/quick-veto"
         if zone.current_special_function == ZoneCurrentSpecialFunction.QUICK_VETO:
             logger.debug(
                 f"Patching quick veto for {zone.name} because it is already in quick veto mode"
@@ -495,9 +494,7 @@ class MyPyllantAPI:
             zone: The target zone
             duration_hours: Updates quick veto duration (in hours)
         """
-        url = (
-            f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/quick-veto"
-        )
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/zones/{zone.index}/quick-veto"
         return await self.aiohttp_session.patch(
             url,
             json={
@@ -539,7 +536,7 @@ class MyPyllantAPI:
             setpoint_type: Either HEATING or COOLING
         """
         logger.debug("Setting manual mode setpoint for %s", zone.name)
-        url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/manual-mode-setpoint"
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/zones/{zone.index}/manual-mode-setpoint"
         payload = {
             "setpoint": temperature,
             "type": setpoint_type,
@@ -557,9 +554,7 @@ class MyPyllantAPI:
         Parameters:
             zone: The target zone
         """
-        url = (
-            f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/quick-veto"
-        )
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/zones/{zone.index}/quick-veto"
         return await self.aiohttp_session.delete(
             url, headers=self.get_authorized_headers()
         )
@@ -572,7 +567,7 @@ class MyPyllantAPI:
             zone: The target zone
             temperature: The setback temperature
         """
-        url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/set-back-temperature"
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/zones/{zone.index}/set-back-temperature"
         return await self.aiohttp_session.patch(
             url,
             json={"setBackTemperature": temperature},
@@ -594,7 +589,7 @@ class MyPyllantAPI:
             raise ValueError(
                 "Type must be either heating or cooling, not %s", program_type
             )
-        url = f"{API_URL_BASE}/systems/{zone.system_id}/tli/zones/{zone.index}/time-windows"
+        url = f"{API_URL_BASE}/systems/{zone.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/zones/{zone.index}/time-windows"
         data = asdict(time_program)
         data["type"] = program_type
         del data["meta_info"]
@@ -624,7 +619,9 @@ class MyPyllantAPI:
         )
         if not start <= end:
             raise ValueError("Start of holiday mode must be before end")
-        url = f"{API_URL_BASE}/systems/{system.id}/tli/away-mode"
+        url = (
+            f"{API_URL_BASE}/systems/{system.id}/{DEFAULT_CONTROL_IDENTIFIER}/away-mode"
+        )
         data = {
             "startDateTime": datetime_format(start, with_microseconds=True),
             "endDateTime": datetime_format(end, with_microseconds=True),
@@ -640,7 +637,9 @@ class MyPyllantAPI:
         Parameters:
             system: The target system
         """
-        url = f"{API_URL_BASE}/systems/{system.id}/tli/away-mode"
+        url = (
+            f"{API_URL_BASE}/systems/{system.id}/{DEFAULT_CONTROL_IDENTIFIER}/away-mode"
+        )
         if system.zones and system.zones[0].general.holiday_start_in_future:
             # For some reason cancelling holidays in the future doesn't work, but setting a past value does
             default_holiday = datetime.datetime(2019, 1, 1, 0, 0, 0)
@@ -667,7 +666,7 @@ class MyPyllantAPI:
             temperature = int(round(temperature, 0))
         url = (
             f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/"
-            f"tli/domestic-hot-water/{domestic_hot_water.index}/temperature"
+            f"{DEFAULT_CONTROL_IDENTIFIER}/domestic-hot-water/{domestic_hot_water.index}/temperature"
         )
         return await self.aiohttp_session.patch(
             url, json={"setpoint": temperature}, headers=self.get_authorized_headers()
@@ -680,7 +679,7 @@ class MyPyllantAPI:
         Parameters:
             domestic_hot_water: The water heater
         """
-        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/boost"
+        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/domestic-hot-water/{domestic_hot_water.index}/boost"
         return await self.aiohttp_session.post(
             url, json={}, headers=self.get_authorized_headers()
         )
@@ -692,7 +691,7 @@ class MyPyllantAPI:
         Parameters:
             domestic_hot_water: The water heater
         """
-        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/boost"
+        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/domestic-hot-water/{domestic_hot_water.index}/boost"
         return await self.aiohttp_session.delete(
             url, headers=self.get_authorized_headers()
         )
@@ -709,7 +708,7 @@ class MyPyllantAPI:
         """
         url = (
             f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/"
-            f"tli/domestic-hot-water/{domestic_hot_water.index}/operation-mode"
+            f"{DEFAULT_CONTROL_IDENTIFIER}/domestic-hot-water/{domestic_hot_water.index}/operation-mode"
         )
         return await self.aiohttp_session.patch(
             url,
@@ -729,7 +728,7 @@ class MyPyllantAPI:
             domestic_hot_water: The water heater
             time_program: The schedule
         """
-        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/time-windows"
+        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/domestic-hot-water/{domestic_hot_water.index}/time-windows"
         data = asdict(time_program)
         del data["meta_info"]
         return await self.aiohttp_session.patch(
@@ -748,7 +747,7 @@ class MyPyllantAPI:
             domestic_hot_water: The water heater
             time_program: The schedule
         """
-        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/tli/domestic-hot-water/{domestic_hot_water.index}/circulation-pump-time-windows"
+        url = f"{API_URL_BASE}/systems/{domestic_hot_water.system_id}/{DEFAULT_CONTROL_IDENTIFIER}/domestic-hot-water/{domestic_hot_water.index}/circulation-pump-time-windows"
         data = asdict(time_program)
         del data["meta_info"]
         return await self.aiohttp_session.patch(
@@ -769,7 +768,7 @@ class MyPyllantAPI:
         """
         url = (
             f"{API_URL_BASE}/systems/{ventilation.system_id}/"
-            f"tli/ventilation/{ventilation.index}/operation-mode"
+            f"{DEFAULT_CONTROL_IDENTIFIER}/ventilation/{ventilation.index}/operation-mode"
         )
         return await self.aiohttp_session.patch(
             url,
@@ -795,7 +794,7 @@ class MyPyllantAPI:
         """
         url = (
             f"{API_URL_BASE}/systems/{ventilation.system_id}/"
-            f"tli/ventilation/{ventilation.index}/fan-stage"
+            f"{DEFAULT_CONTROL_IDENTIFIER}/ventilation/{ventilation.index}/fan-stage"
         )
         return await self.aiohttp_session.patch(
             url,
