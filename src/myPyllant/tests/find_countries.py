@@ -11,6 +11,8 @@ def countries_with_realm(brand):
     for code, country in country_list.countries_for_language("en"):
         if code == "CZ":
             country_name = "czechrepublic"
+        elif code == "TR":
+            country_name = "turkiye"
         else:
             country_name = re.sub(r"\W+", "", country.lower())
         r = requests.head(
