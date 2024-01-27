@@ -174,6 +174,22 @@ class BaseTimeProgramDay(MyPyllantDataClass):
     start_time: int
     end_time: int
 
+    def __eq__(self, other):
+        """
+        When comparing two BaseTimeProgramDay, we only care about start_time and end_time
+        """
+        if not isinstance(other, BaseTimeProgramDay):
+            return False
+        return self.start_time == other.start_time and self.end_time == other.end_time
+
+    @property
+    def start_datetime_time(self) -> datetime.time:
+        return datetime.time(self.start_time // 60, self.start_time % 60)
+
+    @property
+    def end_datetime_time(self) -> datetime.time:
+        return datetime.time(self.end_time // 60, self.end_time % 60)
+
     def start_datetime(self, date) -> datetime.datetime:
         return date.replace(
             hour=self.start_time // 60,
@@ -217,6 +233,35 @@ class BaseTimeProgram(MyPyllantDataClass):
     def weekday_names(cls):
         return [w.lower() for w in calendar.day_name]
 
+    def matching_weekdays(self, time_program_day: BaseTimeProgramDay):
+        """
+        Returns a list of weekday names that have a matching BaseTimeProgramDay
+        """
+        return [
+            w
+            for w in self.weekday_names()
+            if any([d == time_program_day for d in getattr(self, w)])
+        ]
+
+    def check_overlap(self):
+        for weekday in self.weekday_names():
+            day_list: list[BaseTimeProgramDay] = getattr(self, weekday)
+            if len(day_list) == 0:
+                continue
+            day_list.sort(key=lambda x: x.start_time)
+            # Create non-overlapping BaseTimeProgramDays
+            for i, day in enumerate(day_list):
+                other_slots = day_list[i + 1 :]
+                for other_slot in other_slots:
+                    if (
+                        day.end_time > other_slot.start_time
+                        and day.start_time < other_slot.end_time
+                    ):
+                        raise ValueError(
+                            f"Time program {day.start_datetime_time} - {day.end_datetime_time} "
+                            f"overlaps with {other_slot.start_datetime_time} - {other_slot.end_datetime_time}"
+                        )
+
     def as_datetime(
         self, start, end
     ) -> Iterator[tuple[ZoneTimeProgramDay, datetime.datetime, datetime.datetime]]:
@@ -251,6 +296,18 @@ class BaseTimeProgram(MyPyllantDataClass):
 @dataclass
 class ZoneTimeProgramDay(BaseTimeProgramDay):
     setpoint: float | None = None
+
+    def __eq__(self, other):
+        """
+        When comparing two ZoneTimeProgramDay, we only care about start_time, end_time, and setpoint
+        """
+        if not isinstance(other, ZoneTimeProgramDay):
+            return False
+        return (
+            self.start_time == other.start_time
+            and self.end_time == other.end_time
+            and self.setpoint == other.setpoint
+        )
 
 
 @dataclass
