@@ -175,12 +175,7 @@ class BaseTimeProgramDay(MyPyllantDataClass):
     end_time: int
 
     def __eq__(self, other):
-        """
-        When comparing two BaseTimeProgramDay, we only care about start_time and end_time
-        """
-        if not isinstance(other, BaseTimeProgramDay):
-            return False
-        return self.start_time == other.start_time and self.end_time == other.end_time
+        raise NotImplementedError
 
     @property
     def start_datetime_time(self) -> datetime.time:
@@ -482,7 +477,13 @@ class Circuit(MyPyllantDataClass):
 
 @dataclass
 class DHWTimeProgramDay(BaseTimeProgramDay):
-    pass
+    def __eq__(self, other):
+        """
+        When comparing two DHWTimeProgramDay, we only care about start_time and end_time
+        """
+        if not isinstance(other, DHWTimeProgramDay):
+            return False
+        return self.start_time == other.start_time and self.end_time == other.end_time
 
 
 @dataclass
