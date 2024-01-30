@@ -110,7 +110,7 @@ async def main(user, password, brand, country=None, write_results=True):
             anonymized_home = _recursive_data_anonymize(copy.deepcopy(home), SALT)
             anonymized_system_id = anonymized_home["systemId"]
             real_system_id = home["systemId"]
-            print(f"Generating test data for {anonymized_system_id}")
+            print(f"Generating test data for {anonymized_system_id}...")
 
             if write_results:
                 (json_dir / anonymized_system_id).mkdir(parents=True, exist_ok=True)
@@ -261,6 +261,11 @@ async def main(user, password, brand, country=None, write_results=True):
 
     if write_results:
         print(f"Wrote test data to {json_dir}")
+        print()
+        print(
+            "Results are already anonymized, but the myVAILLANT API may change and contain new, sensitive data."
+        )
+        print("You should check the contents of the JSON files before sharing them.")
     else:
         return results
 
