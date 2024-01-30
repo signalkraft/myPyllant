@@ -1,7 +1,7 @@
 [project]
 name = "myPyllant"
 authors = [
-  { name="Philipp", email="pd@signalkraft.com" },
+    { name = "Philipp", email = "pd@signalkraft.com" },
 ]
 description = "A Python library to interact with the API behind the myVAILLANT app"
 readme = "README.md"
@@ -12,9 +12,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-  "aiohttp>=3.8.0",
-  "dacite>=1.7.0",
-  "python-dateutil>=2.8.0",
+    "aiohttp>=3.8.0",
+    "dacite>=1.7.0",
+    "python-dateutil>=2.8.0",
 ]
 dynamic = ["version"]
 
@@ -31,9 +31,9 @@ source = "vcs"
 
 [tool.pytest.ini_options]
 pythonpath = [
-  "src"
+    "src"
 ]
-addopts = "--cov=src"
+addopts = "-n4 --cov=src"
 asyncio_mode = "auto"
 testpaths = [
     "src/myPyllant/tests",

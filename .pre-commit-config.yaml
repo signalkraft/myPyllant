@@ -13,30 +13,12 @@ repos:
           - --ignore-words-list=hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing
           - --skip="./.*,*.csv,*.json"
           - --quiet-level=2
-        exclude_types: [csv, json]
+        exclude_types: [ csv, json ]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
       - id: check-executables-have-shebangs
       - id: check-json
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.0.1
-    hooks:
-      - id: mypy
-        args:
-          - --pretty
-          - --show-error-codes
-          - --show-error-context
-        additional_dependencies:
-          - aiohttp
-          - aioresponses
-          - dacite
-          - exceptiongroup
-          - freezegun
-          - pytest
-          - tomli
-          - types-requests
-          - types-python-dateutil
   - repo: local
     hooks:
       - id: update-sample
@@ -46,9 +28,24 @@ repos:
         pass_filenames: false
   - repo: local
     hooks:
-    - id: pytest
-      name: pytest
-      entry: run_pytest.sh --no-cov
-      language: script
-      pass_filenames: false
-      files: ^src/.+\.(py|json|yaml)$
+      - id: mypy
+        name: mypy
+        entry: run_venv.sh
+        args:
+          - mypy
+          - --pretty
+          - --show-error-codes
+          - --show-error-context
+          - --check-untyped-defs
+        language: script
+        pass_filenames: true
+        files: ^src/.+\.py$
+      - id: pytest
+        name: pytest
+        entry: run_venv.sh
+        args:
+          - pytest
+          - --no-cov
+        language: script
+        pass_filenames: false
+        files: ^src/.+\.(py|json|yaml)$

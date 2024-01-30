@@ -6,6 +6,7 @@ import logging
 from datetime import datetime, timedelta
 
 from myPyllant.api import MyPyllantAPI
+from myPyllant.models import TimeProgramSetpointSlot
 from myPyllant.utils import add_default_parser_args
 
 parser = argparse.ArgumentParser(
@@ -55,13 +56,16 @@ async def main(user, password, brand, country):
                         zone, "heating", zone.heating.time_program_heating
                     )
                 )
-                print(
-                    await api.set_time_program_temperature(
-                        zone,
-                        "heating",
-                        zone.heating.time_program_heating.monday[0].setpoint,
+                if isinstance(
+                    zone.heating.time_program_heating.monday[0], TimeProgramSetpointSlot
+                ):
+                    print(
+                        await api.set_time_program_temperature(
+                            zone,
+                            "heating",
+                            zone.heating.time_program_heating.monday[0].setpoint,
+                        )
                     )
-                )
 
             if system.domestic_hot_water:
                 dhw = system.domestic_hot_water[0]
@@ -72,11 +76,12 @@ async def main(user, password, brand, country):
                 )
                 print(await api.boost_domestic_hot_water(dhw))
                 print(await api.cancel_hot_water_boost(dhw))
-                print(
-                    await api.set_domestic_hot_water_temperature(
-                        dhw, int(dhw.tapping_setpoint)
+                if dhw.tapping_setpoint:
+                    print(
+                        await api.set_domestic_hot_water_temperature(
+                            dhw, int(dhw.tapping_setpoint)
+                        )
                     )
-                )
                 print(
                     await api.set_domestic_hot_water_time_program(
                         dhw, dhw.time_program_dhw

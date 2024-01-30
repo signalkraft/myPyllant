@@ -28,7 +28,6 @@ from myPyllant.models import (
     DeviceData,
     DeviceDataBucketResolution,
     DHWOperationMode,
-    DHWTimeProgram,
     DomesticHotWater,
     Home,
     System,
@@ -39,8 +38,8 @@ from myPyllant.models import (
     Zone,
     ZoneCurrentSpecialFunction,
     ZoneHeatingOperatingMode,
-    ZoneTimeProgram,
     ZoneTimeProgramType,
+    TimeProgram,
 )
 from myPyllant.utils import (
     datetime_format,
@@ -198,7 +197,7 @@ class MyPyllantAPI:
                 + r"\?([^\"]*)",
                 login_html,
             )
-            login_url = unescape(result.group())
+            login_url = unescape(result.group()) if result else None
             if not login_url:
                 raise AuthenticationFailed("Could not get login URL")
 
@@ -580,7 +579,7 @@ class MyPyllantAPI:
         )
 
     async def set_zone_time_program(
-        self, zone: Zone, program_type: str, time_program: ZoneTimeProgram
+        self, zone: Zone, program_type: str, time_program: TimeProgram
     ):
         """
         Sets the temperature that a zone gets lowered to in away mode
@@ -720,7 +719,7 @@ class MyPyllantAPI:
         )
 
     async def set_domestic_hot_water_time_program(
-        self, domestic_hot_water: DomesticHotWater, time_program: DHWTimeProgram
+        self, domestic_hot_water: DomesticHotWater, time_program: TimeProgram
     ):
         """
         Sets the schedule for heating water
@@ -739,7 +738,7 @@ class MyPyllantAPI:
         )
 
     async def set_domestic_hot_water_circulation_time_program(
-        self, domestic_hot_water: DomesticHotWater, time_program: DHWTimeProgram
+        self, domestic_hot_water: DomesticHotWater, time_program: TimeProgram
     ):
         """
         Sets the schedule for the water circulation pump
