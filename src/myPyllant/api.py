@@ -96,6 +96,24 @@ async def on_raise_for_status(response: ClientResponse):
     response.raise_for_status()
 
 
+def get_system_id(system: System | str) -> str:
+    if isinstance(system, System):
+        return system.id
+    else:
+        return system
+
+
+def get_api_base(control_identifier: str | None = None) -> str:
+    return API_URL_BASE[control_identifier or DEFAULT_CONTROL_IDENTIFIER]
+
+
+def get_system_api_base(system: str | System, control_identifier: str) -> str:
+    suffix = ""
+    if control_identifier == "tli":
+        suffix = "/tli"
+    return f"{get_api_base(control_identifier)}/systems/{get_system_id(system)}{suffix}"
+
+
 class MyPyllantAPI:
     username: str
     password: str
@@ -145,13 +163,6 @@ class MyPyllantAPI:
     async def __aexit__(self, exc_type, exc, tb) -> None:
         if not self.aiohttp_session.closed:
             await self.aiohttp_session.close()
-
-    @classmethod
-    def get_system_id(cls, system: System | str) -> str:
-        if isinstance(system, System):
-            return system.id
-        else:
-            return system
 
     async def login(self):
         code, code_verifier = await self.get_code()
@@ -286,13 +297,9 @@ class MyPyllantAPI:
     async def get_api_base(
         self, system: str | System | None = None, control_identifier: str | None = None
     ) -> str:
-        if control_identifier:
-            return API_URL_BASE[control_identifier]
-        elif system:
+        if system and not control_identifier:
             control_identifier = await self.get_control_identifier(system)
-            return API_URL_BASE[control_identifier]
-        else:
-            return API_URL_BASE[DEFAULT_CONTROL_IDENTIFIER]
+        return get_api_base(control_identifier)
 
     async def get_system_api_base(
         self, system: str | System, control_identifier: str | None = None
@@ -302,7 +309,7 @@ class MyPyllantAPI:
         suffix = ""
         if control_identifier == "tli":
             suffix = "/tli"
-        return f"{await self.get_api_base(system, control_identifier)}/systems/{self.get_system_id(system)}{suffix}"
+        return f"{await self.get_api_base(system, control_identifier)}/systems/{get_system_id(system)}{suffix}"
 
     async def get_homes(self) -> AsyncIterator[Home]:
         """
@@ -685,7 +692,10 @@ class MyPyllantAPI:
         if isinstance(temperature, float):
             logger.warning("Domestic hot water can only be set to whole numbers")
             temperature = int(round(temperature, 0))
-        url = f"{await self.get_system_api_base(domestic_hot_water.system_id)}/domestic-hot-water/{domestic_hot_water.index}/temperature"
+        url = (
+            f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
+            f"/domestic-hot-water/{domestic_hot_water.index}/temperature"
+        )
         return await self.aiohttp_session.patch(
             url, json={"setpoint": temperature}, headers=self.get_authorized_headers()
         )
@@ -697,7 +707,10 @@ class MyPyllantAPI:
         Parameters:
             domestic_hot_water: The water heater
         """
-        url = f"{await self.get_system_api_base(domestic_hot_water.system_id)}/domestic-hot-water/{domestic_hot_water.index}/boost"
+        url = (
+            f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
+            f"/domestic-hot-water/{domestic_hot_water.index}/boost"
+        )
         return await self.aiohttp_session.post(
             url, json={}, headers=self.get_authorized_headers()
         )
@@ -709,7 +722,10 @@ class MyPyllantAPI:
         Parameters:
             domestic_hot_water: The water heater
         """
-        url = f"{await self.get_system_api_base(domestic_hot_water.system_id)}/domestic-hot-water/{domestic_hot_water.index}/boost"
+        url = (
+            f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
+            f"/domestic-hot-water/{domestic_hot_water.index}/boost"
+        )
         return await self.aiohttp_session.delete(
             url, headers=self.get_authorized_headers()
         )
@@ -746,7 +762,10 @@ class MyPyllantAPI:
             domestic_hot_water: The water heater
             time_program: The schedule
         """
-        url = f"{await self.get_system_api_base(domestic_hot_water.system_id)}/domestic-hot-water/{domestic_hot_water.index}/time-windows"
+        url = (
+            f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
+            f"/domestic-hot-water/{domestic_hot_water.index}/time-windows"
+        )
         data = asdict(time_program)
         del data["meta_info"]
         return await self.aiohttp_session.patch(
@@ -765,7 +784,10 @@ class MyPyllantAPI:
             domestic_hot_water: The water heater
             time_program: The schedule
         """
-        url = f"{await self.get_system_api_base(domestic_hot_water.system_id)}/domestic-hot-water/{domestic_hot_water.index}/circulation-pump-time-windows"
+        url = (
+            f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
+            f"/domestic-hot-water/{domestic_hot_water.index}/circulation-pump-time-windows"
+        )
         data = asdict(time_program)
         del data["meta_info"]
         return await self.aiohttp_session.patch(
@@ -784,7 +806,10 @@ class MyPyllantAPI:
             ventilation: The ventilation device
             mode: The operation mode
         """
-        url = f"{await self.get_system_api_base(ventilation.system_id)}/ventilation/{ventilation.index}/operation-mode"
+        url = (
+            f"{await self.get_system_api_base(ventilation.system_id)}"
+            f"/ventilation/{ventilation.index}/operation-mode"
+        )
         return await self.aiohttp_session.patch(
             url,
             json={
@@ -807,7 +832,10 @@ class MyPyllantAPI:
             maximum_fan_stage: The maximum fan speed, from 1-6
             fan_stage_type: The fan stage type (day or night)
         """
-        url = f"{await self.get_system_api_base(ventilation.system_id)}/ventilation/{ventilation.index}/fan-stage"
+        url = (
+            f"{await self.get_system_api_base(ventilation.system_id)}"
+            f"/ventilation/{ventilation.index}/fan-stage"
+        )
         return await self.aiohttp_session.patch(
             url,
             json={
@@ -826,7 +854,7 @@ class MyPyllantAPI:
         """
         url = (
             f"{await self.get_api_base(control_identifier='tli')}/systems/"
-            f"{self.get_system_id(system)}/meta-info/connection-status"
+            f"{get_system_id(system)}/meta-info/connection-status"
         )
         response = await self.aiohttp_session.get(
             url,
@@ -845,13 +873,16 @@ class MyPyllantAPI:
         Parameters:
             system: The System object or system ID string
         """
-        system_id = self.get_system_id(system)
+        system_id = get_system_id(system)
 
         if system_id in self.control_identifiers:
             # We already have the control identifier cached
             return self.control_identifiers[system_id]
 
-        url = f"{await self.get_api_base(control_identifier='tli')}/systems/{system_id}/meta-info/control-identifier"
+        url = (
+            f"{await self.get_api_base(control_identifier='tli')}/systems/"
+            f"{system_id}/meta-info/control-identifier"
+        )
         response = await self.aiohttp_session.get(
             url,
             headers=self.get_authorized_headers(),
@@ -873,7 +904,7 @@ class MyPyllantAPI:
         """
         url = (
             f"{await self.get_api_base(control_identifier='tli')}/systems/"
-            f"{self.get_system_id(system)}/meta-info/time-zone"
+            f"{get_system_id(system)}/meta-info/time-zone"
         )
         response = await self.aiohttp_session.get(
             url,
@@ -897,7 +928,7 @@ class MyPyllantAPI:
         """
         url = (
             f"{await self.get_api_base(control_identifier='tli')}/systems/"
-            f"{self.get_system_id(system)}/diagnostic-trouble-codes"
+            f"{get_system_id(system)}/diagnostic-trouble-codes"
         )
         try:
             response = await self.aiohttp_session.get(
@@ -919,7 +950,7 @@ class MyPyllantAPI:
         Parameters:
             system: The System object or system ID string
         """
-        url = f"{await self.get_api_base(system)}/hem/{self.get_system_id(system)}/mpc"
+        url = f"{await self.get_api_base(system)}/hem/{get_system_id(system)}/mpc"
         try:
             response = await self.aiohttp_session.get(
                 url,
