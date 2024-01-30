@@ -148,7 +148,13 @@ def _mypyllant_aioresponses():
                 """
                 Return test data CallbackResult based on the URL and key
                 """
-                url_parts = url.replace(API_URL_BASE, "").split("/")
+                url_parts = None
+                for api_base in API_URL_BASE.values():
+                    if url.startswith(api_base):
+                        url_parts = url.replace(api_base, "").split("/")
+                        break
+                if not url_parts:
+                    raise ValueError(f"Could not find API base in URL {url}")
                 if url_parts[1] == "emf":
                     system_id = url_parts[3]
                 else:
@@ -170,6 +176,8 @@ def _mypyllant_aioresponses():
                     case url if re.match(r".*buckets\?.*", url):
                         result = get_test_data(url, "device_buckets")
                     case url if re.match(r".*systems/.*/tli", url):
+                        result = get_test_data(url, "system")
+                    case url if re.match(r".*vrc700.*systems.*", url):
                         result = get_test_data(url, "system")
                     case url if re.match(r".*meta-info/control-identifier$", url):
                         result = get_test_data(url, "control_identifier")

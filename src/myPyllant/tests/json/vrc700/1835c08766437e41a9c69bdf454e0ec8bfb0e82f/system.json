@@ -1,0 +1,151 @@
+{
+  "configuration": {
+    "circuits": [
+      {
+        "heatDemandLimitedByOutsideTemperature": 21.0,
+        "heatingCircuitFlowSetpointExcessOffset": 0.0,
+        "heatingCurve": 0.5000001,
+        "heatingFlowTemperatureMaximumSetpoint": 33.0,
+        "heatingFlowTemperatureMinimumSetpoint": 15.0,
+        "index": 0,
+        "roomTemperatureControlMode": "THERMOSTAT_FUNCTION",
+        "setBackModeEnabled": true
+      }
+    ],
+    "system": {
+      "adaptiveHeatingCurve": false,
+      "alternativePoint": -21.0,
+      "continuousHeatingStartSetpoint": -26.0,
+      "domesticHotWaterBivalencePoint": -7.0,
+      "domesticHotWaterFlowSetpointOffset": 25.0,
+      "domesticHotWaterHysteresis": 5.0,
+      "domesticHotWaterMaximumLoadingTime": 60,
+      "domesticHotWaterMaximumTemperature": 80.0,
+      "heatingCircuitBivalencePoint": 0.0,
+      "hybridControlStrategy": "BIVALENCE_POINT",
+      "maxFlowSetpointHpError": 25.0,
+      "paralellTankLoadingAllowed": false
+    },
+    "zones": [
+      {
+        "general": {
+          "holidayEndDateTime": "2001-01-01T00:00:00Z",
+          "holidayStartDateTime": "2001-01-01T00:00:00Z",
+          "name": "VLOERVERW "
+        },
+        "heating": {
+          "dayTemperatureHeating": 20.0,
+          "operationModeHeating": "AUTO",
+          "setBackTemperature": 18.5,
+          "timeProgramHeating": {
+            "friday": [
+              {
+                "endTime": 1230,
+                "startTime": 330
+              }
+            ],
+            "metaInfo": {
+              "maxSlotsPerDay": 3,
+              "minSlotsPerDay": 0,
+              "setpointRequiredPerSlot": false
+            },
+            "monday": [
+              {
+                "endTime": 1230,
+                "startTime": 330
+              }
+            ],
+            "saturday": [
+              {
+                "endTime": 1230,
+                "startTime": 330
+              }
+            ],
+            "sunday": [
+              {
+                "endTime": 1230,
+                "startTime": 330
+              }
+            ],
+            "thursday": [
+              {
+                "endTime": 1230,
+                "startTime": 330
+              }
+            ],
+            "tuesday": [
+              {
+                "endTime": 1230,
+                "startTime": 330
+              }
+            ],
+            "wednesday": [
+              {
+                "endTime": 1230,
+                "startTime": 330
+              }
+            ]
+          }
+        },
+        "index": 0
+      }
+    ]
+  },
+  "properties": {
+    "circuits": [
+      {
+        "heatingCircuitType": "DIRECT_HEATING_CIRCUIT",
+        "index": 0,
+        "isCoolingAllowed": false,
+        "mixerCircuitTypeExternal": "HEATING"
+      }
+    ],
+    "system": {
+      "backupHeaterAllowedFor": "DOMESTIC_HOT_WATER_AND_HEATING",
+      "backupHeaterType": "CONDENSING",
+      "controllerRevision": "R6",
+      "controllerType": "VRC700",
+      "energyProvidePowerCutBehavior": "DISABLE_HEATPUMP",
+      "externalEnergyManagementActivation": false,
+      "moduleConfigurationVR71": 3,
+      "smartPhotovoltaicBufferOffset": 10.0,
+      "systemScheme": 1
+    },
+    "zones": [
+      {
+        "associatedCircuitIndex": 0,
+        "index": 0,
+        "isActive": true,
+        "zoneBinding": "CENTRAL_CONTROL"
+      }
+    ]
+  },
+  "state": {
+    "circuits": [
+      {
+        "calculatedEnergyManagerState": "HEATING_STANDBY",
+        "circuitState": "STANDBY",
+        "currentCircuitFlowTemperature": 26.5,
+        "heatingCircuitFlowSetpoint": 0.0,
+        "index": 0
+      }
+    ],
+    "system": {
+      "energyManagerState": "STANDBY",
+      "legionellaProtectionStartWeekday": "OFF",
+      "outdoorTemperature": 9.0625,
+      "outdoorTemperatureAverage24h": 9.5,
+      "systemOff": false,
+      "systemWaterPressure": 1.9
+    },
+    "zones": [
+      {
+        "currentRoomTemperature": 20.125,
+        "currentSpecialFunction": "NONE",
+        "desiredRoomTemperatureSetpoint": 20.0,
+        "desiredRoomTemperatureSetpointHeating": 20.0,
+        "index": 0
+      }
+    ]
+  }
+}

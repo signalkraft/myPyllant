@@ -283,12 +283,26 @@ class MyPyllantAPI:
             "Connection": "keep-alive",
         }
 
-    async def get_system_api_base(self, system_id: str) -> str:
-        control_identifier = await self.get_control_identifier(system_id)
-        if control_identifier == "vrc700":
-            return f"{API_URL_BASE}/systems/{system_id}"
+    async def get_api_base(
+        self, system: str | System | None = None, control_identifier: str | None = None
+    ) -> str:
+        if control_identifier:
+            return API_URL_BASE[control_identifier]
+        elif system:
+            control_identifier = await self.get_control_identifier(system)
+            return API_URL_BASE[control_identifier]
         else:
-            return f"{API_URL_BASE}/systems/{system_id}/{control_identifier}"
+            return API_URL_BASE[DEFAULT_CONTROL_IDENTIFIER]
+
+    async def get_system_api_base(
+        self, system: str | System, control_identifier: str | None = None
+    ) -> str:
+        if not control_identifier:
+            control_identifier = await self.get_control_identifier(system)
+        suffix = ""
+        if control_identifier == "tli":
+            suffix = "/tli"
+        return f"{await self.get_api_base(system, control_identifier)}/systems/{self.get_system_id(system)}{suffix}"
 
     async def get_homes(self) -> AsyncIterator[Home]:
         """
@@ -298,7 +312,7 @@ class MyPyllantAPI:
             An Async Iterator with all the configured `Home` objects for the logged-in user
         """
         async with self.aiohttp_session.get(
-            f"{API_URL_BASE}/homes", headers=self.get_authorized_headers()
+            f"{await self.get_api_base()}/homes", headers=self.get_authorized_headers()
         ) as homes_resp:
             for home_json in dict_to_snake_case(await homes_resp.json()):
                 timezone = await self.get_time_zone(home_json["system_id"])
@@ -331,7 +345,9 @@ class MyPyllantAPI:
                 home.system_id
             ] = await self.get_control_identifier(home.system_id)
             system_url = await self.get_system_api_base(home.system_id)
-            current_system_url = f"{API_URL_BASE}/emf/v2/{home.system_id}/currentSystem"
+            current_system_url = (
+                f"{await self.get_api_base()}/emf/v2/{home.system_id}/currentSystem"
+            )
 
             async with self.aiohttp_session.get(
                 system_url, headers=self.get_authorized_headers()
@@ -397,7 +413,7 @@ class MyPyllantAPI:
                 "endDate": end_date,
             }
             device_buckets_url = (
-                f"{API_URL_BASE}/emf/v2/{device.system_id}/"
+                f"{await self.get_api_base(device.system_id)}/emf/v2/{device.system_id}/"
                 f"devices/{device.device_uuid}/buckets?{urlencode(querystring)}"
             )
             async with self.aiohttp_session.get(
@@ -422,7 +438,7 @@ class MyPyllantAPI:
             system: The System object or system ID string
             year: The year of the report
         """
-        url = f"{API_URL_BASE}/emf/v2/{system.id}/report/{year}"
+        url = f"{await self.get_api_base()}/emf/v2/{system.id}/report/{year}"
         async with self.aiohttp_session.get(
             url, headers=self.get_authorized_headers()
         ) as report_resp:
@@ -808,7 +824,10 @@ class MyPyllantAPI:
         Parameters:
             system: The System object or system ID string
         """
-        url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/meta-info/connection-status"
+        url = (
+            f"{await self.get_api_base(control_identifier='tli')}/systems/"
+            f"{self.get_system_id(system)}/meta-info/connection-status"
+        )
         response = await self.aiohttp_session.get(
             url,
             headers=self.get_authorized_headers(),
@@ -832,7 +851,7 @@ class MyPyllantAPI:
             # We already have the control identifier cached
             return self.control_identifiers[system_id]
 
-        url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/meta-info/control-identifier"
+        url = f"{await self.get_api_base(control_identifier='tli')}/systems/{system_id}/meta-info/control-identifier"
         response = await self.aiohttp_session.get(
             url,
             headers=self.get_authorized_headers(),
@@ -852,7 +871,10 @@ class MyPyllantAPI:
         Parameters:
             system: The System object or system ID string
         """
-        url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/meta-info/time-zone"
+        url = (
+            f"{await self.get_api_base(control_identifier='tli')}/systems/"
+            f"{self.get_system_id(system)}/meta-info/time-zone"
+        )
         response = await self.aiohttp_session.get(
             url,
             headers=self.get_authorized_headers(),
@@ -873,7 +895,10 @@ class MyPyllantAPI:
         Parameters:
             system: The System object or system ID string
         """
-        url = f"{API_URL_BASE}/systems/{self.get_system_id(system)}/diagnostic-trouble-codes"
+        url = (
+            f"{await self.get_api_base(control_identifier='tli')}/systems/"
+            f"{self.get_system_id(system)}/diagnostic-trouble-codes"
+        )
         try:
             response = await self.aiohttp_session.get(
                 url,
@@ -894,7 +919,7 @@ class MyPyllantAPI:
         Parameters:
             system: The System object or system ID string
         """
-        url = f"{API_URL_BASE}/hem/{self.get_system_id(system)}/mpc"
+        url = f"{await self.get_api_base(system)}/hem/{self.get_system_id(system)}/mpc"
         try:
             response = await self.aiohttp_session.get(
                 url,

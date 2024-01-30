@@ -54,6 +54,7 @@ class DeviceDataBucketResolution(MyPyllantEnum):
 class ZoneHeatingOperatingMode(MyPyllantEnum):
     MANUAL = "MANUAL"
     TIME_CONTROLLED = "TIME_CONTROLLED"
+    AUTO = "AUTO"  # Only VRC700
     OFF = "OFF"
 
 
@@ -281,10 +282,11 @@ class ZoneTimeProgram(BaseTimeProgram):
 
 @dataclass
 class ZoneHeating(MyPyllantDataClass):
-    manual_mode_setpoint_heating: float
     operation_mode_heating: ZoneHeatingOperatingMode
     time_program_heating: ZoneTimeProgram
     set_back_temperature: float
+    manual_mode_setpoint_heating: float | None = None
+    day_temperature_heating: float | None = None  # VRC700 only
 
     @classmethod
     def from_api(cls, **kwargs):
@@ -357,11 +359,11 @@ class Zone(MyPyllantDataClass):
     timezone: datetime.tzinfo
     index: int
     is_active: bool
-    is_cooling_allowed: bool
     zone_binding: str
-    heating_state: ZoneHeatingState
     heating: ZoneHeating
     current_special_function: ZoneCurrentSpecialFunction
+    heating_state: ZoneHeatingState | None = None
+    is_cooling_allowed: bool | None = None
     cooling: ZoneCooling | None = None
     current_room_temperature: float | None = None
     desired_room_temperature_setpoint_heating: float | None = None
@@ -411,10 +413,10 @@ class Circuit(MyPyllantDataClass):
     system_id: str
     index: int
     circuit_state: CircuitState
-    is_cooling_allowed: bool
     mixer_circuit_type_external: str
     set_back_mode_enabled: bool
     zones: list = field(default_factory=list)
+    is_cooling_allowed: bool | None = None
     current_circuit_flow_temperature: float | None = None
     heating_curve: float | None = None
     heating_flow_temperature_minimum_setpoint: float | None = None

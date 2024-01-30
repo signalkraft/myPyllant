@@ -2,9 +2,10 @@ AUTH_BASE_URL = "https://identity.vaillant-group.com/auth/realms"
 LOGIN_URL = AUTH_BASE_URL + "/{realm}/login-actions/authenticate"
 AUTHENTICATE_URL = AUTH_BASE_URL + "/{realm}/protocol/openid-connect/auth"
 TOKEN_URL = AUTH_BASE_URL + "/{realm}/protocol/openid-connect/token"
-API_URL_BASE = (
-    "https://api.vaillant-group.com/service-connected-control/end-user-app-api/v1"
-)
+API_URL_BASE = {
+    "tli": "https://api.vaillant-group.com/service-connected-control/end-user-app-api/v1",
+    "vrc700": "https://api.vaillant-group.com/service-connected-control/vrc700/v1",
+}
 CLIENT_ID = "myvaillant"
 BRANDS = {
     "vaillant": "Vaillant",
@@ -72,4 +73,4 @@ MANUAL_SETPOINT_TYPES = {
 DEFAULT_HOLIDAY_DURATION = 365  # in days
 DEFAULT_MANUAL_SETPOINT_TYPE = "HEATING"
 DEFAULT_QUICK_VETO_DURATION = 3.0  # in hours
-DEFAULT_CONTROL_IDENTIFIER = "/tli"
+DEFAULT_CONTROL_IDENTIFIER = "tli"
