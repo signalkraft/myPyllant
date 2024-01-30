@@ -6,7 +6,7 @@ import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field, asdict
 from enum import Enum, EnumMeta
-from typing import TypeVar
+from typing import TypeVar, Any
 
 from dacite import Config, from_dict
 from dacite.dataclasses import get_fields
@@ -107,7 +107,7 @@ class MyPyllantDataClass:
     Base class that runs type validation in __init__ and can create an instance from API values
     """
 
-    extra_fields: dict = field(default_factory=dict)
+    extra_fields: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def type_hooks(cls: type[T], timezone: datetime.tzinfo | None) -> dict:
@@ -168,14 +168,19 @@ class Home(MyPyllantDataClass):
 
 
 @dataclass
-class BaseTimeProgramDay(MyPyllantDataClass):
+class TimeProgramSlot(MyPyllantDataClass):
     index: int
     weekday_name: str
     start_time: int
     end_time: int
 
     def __eq__(self, other):
-        raise NotImplementedError
+        """
+        When comparing two ZoneTimeProgramDay, we only care about start_time, end_time, and setpoint
+        """
+        if not isinstance(other, TimeProgramSlot):
+            return False
+        return self.start_time == other.start_time and self.end_time == other.end_time
 
     @property
     def start_datetime_time(self) -> datetime.time:
@@ -208,15 +213,39 @@ class BaseTimeProgramDay(MyPyllantDataClass):
 
 
 @dataclass
-class BaseTimeProgram(MyPyllantDataClass):
-    monday: list[BaseTimeProgramDay]
-    tuesday: list[BaseTimeProgramDay]
-    wednesday: list[BaseTimeProgramDay]
-    thursday: list[BaseTimeProgramDay]
-    friday: list[BaseTimeProgramDay]
-    saturday: list[BaseTimeProgramDay]
-    sunday: list[BaseTimeProgramDay]
-    meta_info: dict | None = None
+class TimeProgramSetpointSlot(TimeProgramSlot):
+    setpoint: float
+
+    def __eq__(self, other):
+        """
+        When comparing two ZoneTimeProgramDay, we only care about start_time, end_time, and setpoint
+        """
+        if not isinstance(other, TimeProgramSetpointSlot):
+            return False
+        return (
+            self.start_time == other.start_time
+            and self.end_time == other.end_time
+            and self.setpoint == other.setpoint
+        )
+
+
+@dataclass
+class TimeProgramMetaInfo(MyPyllantDataClass):
+    min_slots_per_day: int
+    max_slots_per_day: int
+    setpoint_required_per_slot: bool
+
+
+@dataclass
+class TimeProgram(MyPyllantDataClass):
+    monday: list[TimeProgramSlot | TimeProgramSetpointSlot]
+    tuesday: list[TimeProgramSlot | TimeProgramSetpointSlot]
+    wednesday: list[TimeProgramSlot | TimeProgramSetpointSlot]
+    thursday: list[TimeProgramSlot | TimeProgramSetpointSlot]
+    friday: list[TimeProgramSlot | TimeProgramSetpointSlot]
+    saturday: list[TimeProgramSlot | TimeProgramSetpointSlot]
+    sunday: list[TimeProgramSlot | TimeProgramSetpointSlot]
+    meta_info: TimeProgramMetaInfo
 
     @property
     def has_time_program(self):
@@ -224,11 +253,22 @@ class BaseTimeProgram(MyPyllantDataClass):
             [len(getattr(self, weekday)) > 0 for weekday in self.weekday_names()]
         )
 
+    @property
+    def has_setpoint(self):
+        return self.meta_info.setpoint_required_per_slot
+
     @classmethod
     def weekday_names(cls):
         return [w.lower() for w in calendar.day_name]
 
-    def matching_weekdays(self, time_program_day: BaseTimeProgramDay):
+    @classmethod
+    def create_day_from_api(cls, has_setpoint, **kwargs):
+        if has_setpoint:
+            return TimeProgramSetpointSlot.from_api(**kwargs)
+        else:
+            return TimeProgramSlot.from_api(**kwargs)
+
+    def matching_weekdays(self, time_program_day: TimeProgramSlot):
         """
         Returns a list of weekday names that have a matching BaseTimeProgramDay
         """
@@ -240,7 +280,7 @@ class BaseTimeProgram(MyPyllantDataClass):
 
     def check_overlap(self):
         for weekday in self.weekday_names():
-            day_list: list[BaseTimeProgramDay] = getattr(self, weekday)
+            day_list: list[TimeProgramSlot] = getattr(self, weekday)
             if len(day_list) == 0:
                 continue
             day_list.sort(key=lambda x: x.start_time)
@@ -259,7 +299,7 @@ class BaseTimeProgram(MyPyllantDataClass):
 
     def as_datetime(
         self, start, end
-    ) -> Iterator[tuple[ZoneTimeProgramDay, datetime.datetime, datetime.datetime]]:
+    ) -> Iterator[tuple[TimeProgramSlot, datetime.datetime, datetime.datetime]]:
         current = start
         while current < end:
             weekday = current.strftime("%A").lower()
@@ -275,41 +315,16 @@ class BaseTimeProgram(MyPyllantDataClass):
             current += datetime.timedelta(days=1)
 
     @classmethod
-    def create_day_from_api(cls, **kwargs):
-        raise NotImplementedError
-
-    @classmethod
     def from_api(cls, **kwargs):
+        has_setpoint = kwargs["meta_info"]["setpoint_required_per_slot"]
         for weekday_name in [w for w in cls.weekday_names()]:
             kwargs[weekday_name] = [
-                cls.create_day_from_api(index=i, weekday_name=weekday_name, **d)
+                cls.create_day_from_api(
+                    has_setpoint=has_setpoint, index=i, weekday_name=weekday_name, **d
+                )
                 for i, d in enumerate(kwargs.get(weekday_name, []))
             ]
         return super().from_api(**kwargs)
-
-
-@dataclass
-class ZoneTimeProgramDay(BaseTimeProgramDay):
-    setpoint: float | None = None
-
-    def __eq__(self, other):
-        """
-        When comparing two ZoneTimeProgramDay, we only care about start_time, end_time, and setpoint
-        """
-        if not isinstance(other, ZoneTimeProgramDay):
-            return False
-        return (
-            self.start_time == other.start_time
-            and self.end_time == other.end_time
-            and self.setpoint == other.setpoint
-        )
-
-
-@dataclass
-class ZoneTimeProgram(BaseTimeProgram):
-    @classmethod
-    def create_day_from_api(cls, **kwargs):
-        return ZoneTimeProgramDay(**kwargs)
 
     def set_setpoint(
         self, temperature: float, update_similar_to_dow: str | None = None
@@ -317,16 +332,18 @@ class ZoneTimeProgram(BaseTimeProgram):
         """
         Sets the setpoint on all weekdays of a time program to the new value
         """
+        if not self.has_setpoint:
+            raise ValueError("This time program does not have a setpoint")
         weekday_names = [w.lower() for w in calendar.day_name]
         if update_similar_to_dow and update_similar_to_dow not in weekday_names:
             raise ValueError(
-                "%s is not a valid weekday, sue one of %s or None",
+                "%s is not a valid weekday, use one of %s or None",
                 update_similar_to_dow,
                 ", ".join(weekday_names),
             )
         # TODO: Implement update_similar_to_dow check
         for w in weekday_names:
-            day_list: list[ZoneTimeProgramDay] = getattr(self, w)
+            day_list: list[TimeProgramSetpointSlot] = getattr(self, w)
             for d in day_list:
                 d.setpoint = temperature
 
@@ -335,12 +352,12 @@ class ZoneTimeProgram(BaseTimeProgram):
 class ZoneHeating(MyPyllantDataClass):
     manual_mode_setpoint_heating: float
     operation_mode_heating: ZoneHeatingOperatingMode
-    time_program_heating: ZoneTimeProgram
+    time_program_heating: TimeProgram
     set_back_temperature: float
 
     @classmethod
     def from_api(cls, **kwargs):
-        kwargs["time_program_heating"] = ZoneTimeProgram.from_api(
+        kwargs["time_program_heating"] = TimeProgram.from_api(
             **kwargs["time_program_heating"]
         )
         return super().from_api(**kwargs)
@@ -351,11 +368,11 @@ class ZoneCooling(MyPyllantDataClass):
     setpoint_cooling: float
     manual_mode_setpoint_cooling: float
     operation_mode_cooling: str  # TODO: Need all values
-    time_program_cooling: ZoneTimeProgram
+    time_program_cooling: TimeProgram
 
     @classmethod
     def from_api(cls, **kwargs):
-        kwargs["time_program_cooling"] = ZoneTimeProgram.from_api(
+        kwargs["time_program_cooling"] = TimeProgram.from_api(
             **kwargs["time_program_cooling"]
         )
         return super().from_api(**kwargs)
@@ -457,6 +474,10 @@ class Zone(MyPyllantDataClass):
             else None
         )
 
+    @property
+    def is_eco_mode(self) -> bool:
+        return self.desired_room_temperature_setpoint == 0.0
+
 
 @dataclass
 class Circuit(MyPyllantDataClass):
@@ -476,24 +497,6 @@ class Circuit(MyPyllantDataClass):
 
 
 @dataclass
-class DHWTimeProgramDay(BaseTimeProgramDay):
-    def __eq__(self, other):
-        """
-        When comparing two DHWTimeProgramDay, we only care about start_time and end_time
-        """
-        if not isinstance(other, DHWTimeProgramDay):
-            return False
-        return self.start_time == other.start_time and self.end_time == other.end_time
-
-
-@dataclass
-class DHWTimeProgram(BaseTimeProgram):
-    @classmethod
-    def create_day_from_api(cls, **kwargs):
-        return DHWTimeProgramDay(**kwargs)
-
-
-@dataclass
 class DomesticHotWater(MyPyllantDataClass):
     system_id: str
     index: int
@@ -501,17 +504,15 @@ class DomesticHotWater(MyPyllantDataClass):
     max_setpoint: float
     min_setpoint: float
     operation_mode_dhw: DHWOperationMode
-    time_program_dhw: DHWTimeProgram
-    time_program_circulation_pump: DHWTimeProgram
+    time_program_dhw: TimeProgram
+    time_program_circulation_pump: TimeProgram
     current_dhw_temperature: float | None = None
     tapping_setpoint: float | None = None
 
     @classmethod
     def from_api(cls, **kwargs):
-        kwargs["time_program_dhw"] = DHWTimeProgram.from_api(
-            **kwargs["time_program_dhw"]
-        )
-        kwargs["time_program_circulation_pump"] = DHWTimeProgram.from_api(
+        kwargs["time_program_dhw"] = TimeProgram.from_api(**kwargs["time_program_dhw"])
+        kwargs["time_program_circulation_pump"] = TimeProgram.from_api(
             **kwargs["time_program_circulation_pump"]
         )
         return super().from_api(**kwargs)
