@@ -50,12 +50,12 @@ async def main(user, password, brand, country=None, write_results=True):
     """
     Generate json data for running testcases.
 
-    :param user:
-    :param password:
-    :param brand:
-    :param country:
-    :param write_results:
-    :return:
+    Parameters:
+        user (str): myVAILLANT app username
+        password (str): myVAILLANT app password
+        brand (str): Brand, such as vaillant or bulex
+        country (str): myVAILLANT app country
+        write_results (bool): Whether to write results to disk, or return them
     """
     from myPyllant.api import MyPyllantAPI
     from myPyllant.models import DeviceDataBucketResolution
