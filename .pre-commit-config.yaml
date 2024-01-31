@@ -48,7 +48,7 @@ repos:
     hooks:
     - id: pytest
       name: pytest
-      entry: run_pytest.sh --no-cov
+      entry: run_pytest.sh -n4 --no-cov
       language: script
       pass_filenames: false
       files: ^src/.+\.(py|json|yaml)$

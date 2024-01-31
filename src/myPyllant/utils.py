@@ -14,6 +14,8 @@ def dict_to_snake_case(d):
     """
     Convert {'camelCase': value} to {'camel_case': value} recursively
     """
+    if d is None:
+        return None
 
     snake_pattern = re.compile(r"(?<!^)(?=[A-Z])")
 
@@ -32,6 +34,8 @@ def dict_to_camel_case(d):
     """
     Convert {'camel_case': value} to {'camelCase': value} recursively
     """
+    if d is None:
+        return None
 
     def to_camel(s):
         p = s.split("_")
