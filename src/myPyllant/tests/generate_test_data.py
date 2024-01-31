@@ -8,6 +8,8 @@ import json
 import logging
 import secrets
 import signal
+from typing import Any, TypeVar
+
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -61,7 +63,7 @@ async def main(user, password, brand, country=None, write_results=True):
     from myPyllant.models import DeviceDataBucketResolution
     from myPyllant.utils import datetime_format
 
-    results = {}
+    results: dict[str, Any] = {}
     json_dir = user_json_dir(user)
     if write_results:
         json_dir.mkdir(parents=True, exist_ok=True)
@@ -88,10 +90,9 @@ async def main(user, password, brand, country=None, write_results=True):
         ) as homes_resp:
             homes = await homes_resp.json()
             anonymized_homes = _recursive_data_anonymize(copy.deepcopy(homes), SALT)
-            for system in anonymized_homes:
-                if "address" in system:
-                    system.pop("address")
-
+            for home in anonymized_homes:
+                if "address" in home:
+                    home.pop("address")
             create_result(
                 anonymized_homes,
                 name="homes",
@@ -270,9 +271,10 @@ async def main(user, password, brand, country=None, write_results=True):
         return results
 
 
-def _recursive_data_anonymize(
-    data: str | dict | list, salt: bytes = b""
-) -> str | dict | list:
+T = TypeVar("T")
+
+
+def _recursive_data_anonymize(data: T, salt: bytes = b"") -> T:
     if isinstance(data, list):
         for elem in data:
             _recursive_data_anonymize(elem, salt)

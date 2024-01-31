@@ -38,11 +38,12 @@ async def main(user, password, brand, country):
                         zone, zone.heating.set_back_temperature
                     )
                 )
-                print(
-                    await api.set_manual_mode_setpoint(
-                        zone, zone.heating.manual_mode_setpoint_heating
+                if zone.heating.manual_mode_setpoint_heating:
+                    print(
+                        await api.set_manual_mode_setpoint(
+                            zone, zone.heating.manual_mode_setpoint_heating
+                        )
                     )
-                )
                 print(
                     await api.set_zone_heating_operating_mode(
                         zone, zone.heating.operation_mode_heating
@@ -55,13 +56,14 @@ async def main(user, password, brand, country):
                         zone, "heating", zone.heating.time_program_heating
                     )
                 )
-                print(
-                    await api.set_time_program_temperature(
-                        zone,
-                        "heating",
-                        zone.heating.time_program_heating.monday[0].setpoint,
+                if zone.heating.time_program_heating.monday[0].setpoint:
+                    print(
+                        await api.set_time_program_temperature(
+                            zone,
+                            "heating",
+                            zone.heating.time_program_heating.monday[0].setpoint,
+                        )
                     )
-                )
 
             if system.domestic_hot_water:
                 dhw = system.domestic_hot_water[0]
@@ -72,11 +74,12 @@ async def main(user, password, brand, country):
                 )
                 print(await api.boost_domestic_hot_water(dhw))
                 print(await api.cancel_hot_water_boost(dhw))
-                print(
-                    await api.set_domestic_hot_water_temperature(
-                        dhw, int(dhw.tapping_setpoint)
+                if dhw.tapping_setpoint:
+                    print(
+                        await api.set_domestic_hot_water_temperature(
+                            dhw, int(dhw.tapping_setpoint)
+                        )
                     )
-                )
                 print(
                     await api.set_domestic_hot_water_time_program(
                         dhw, dhw.time_program_dhw

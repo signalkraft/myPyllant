@@ -6,7 +6,7 @@ import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field, asdict
 from enum import Enum, EnumMeta
-from typing import TypeVar
+from typing import TypeVar, Any
 
 from dacite import Config, from_dict
 from dacite.dataclasses import get_fields
@@ -108,7 +108,7 @@ class MyPyllantDataClass:
     Base class that runs type validation in __init__ and can create an instance from API values
     """
 
-    extra_fields: dict = field(default_factory=dict)
+    extra_fields: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def type_hooks(cls: type[T], timezone: datetime.tzinfo | None) -> dict:
@@ -210,13 +210,13 @@ class BaseTimeProgramDay(MyPyllantDataClass):
 
 @dataclass
 class BaseTimeProgram(MyPyllantDataClass):
-    monday: list[BaseTimeProgramDay]
-    tuesday: list[BaseTimeProgramDay]
-    wednesday: list[BaseTimeProgramDay]
-    thursday: list[BaseTimeProgramDay]
-    friday: list[BaseTimeProgramDay]
-    saturday: list[BaseTimeProgramDay]
-    sunday: list[BaseTimeProgramDay]
+    monday: list
+    tuesday: list
+    wednesday: list
+    thursday: list
+    friday: list
+    saturday: list
+    sunday: list
     meta_info: dict | None = None
 
     @property
@@ -308,6 +308,14 @@ class ZoneTimeProgramDay(BaseTimeProgramDay):
 
 @dataclass
 class ZoneTimeProgram(BaseTimeProgram):
+    monday: list[ZoneTimeProgramDay]
+    tuesday: list[ZoneTimeProgramDay]
+    wednesday: list[ZoneTimeProgramDay]
+    thursday: list[ZoneTimeProgramDay]
+    friday: list[ZoneTimeProgramDay]
+    saturday: list[ZoneTimeProgramDay]
+    sunday: list[ZoneTimeProgramDay]
+
     @classmethod
     def create_day_from_api(cls, **kwargs):
         return ZoneTimeProgramDay(**kwargs)
@@ -321,7 +329,7 @@ class ZoneTimeProgram(BaseTimeProgram):
         weekday_names = [w.lower() for w in calendar.day_name]
         if update_similar_to_dow and update_similar_to_dow not in weekday_names:
             raise ValueError(
-                "%s is not a valid weekday, sue one of %s or None",
+                "%s is not a valid weekday, use one of %s or None",
                 update_similar_to_dow,
                 ", ".join(weekday_names),
             )
@@ -459,6 +467,10 @@ class Zone(MyPyllantDataClass):
             else None
         )
 
+    @property
+    def is_eco_mode(self) -> bool:
+        return self.desired_room_temperature_setpoint == 0.0
+
 
 @dataclass
 class Circuit(MyPyllantDataClass):
@@ -490,6 +502,14 @@ class DHWTimeProgramDay(BaseTimeProgramDay):
 
 @dataclass
 class DHWTimeProgram(BaseTimeProgram):
+    monday: list[DHWTimeProgramDay]
+    tuesday: list[DHWTimeProgramDay]
+    wednesday: list[DHWTimeProgramDay]
+    thursday: list[DHWTimeProgramDay]
+    friday: list[DHWTimeProgramDay]
+    saturday: list[DHWTimeProgramDay]
+    sunday: list[DHWTimeProgramDay]
+
     @classmethod
     def create_day_from_api(cls, **kwargs):
         return DHWTimeProgramDay(**kwargs)

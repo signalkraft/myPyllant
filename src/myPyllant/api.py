@@ -210,7 +210,7 @@ class MyPyllantAPI:
                 + r"\?([^\"]*)",
                 login_html,
             )
-            login_url = unescape(result.group())
+            login_url = unescape(result.group()) if result else None
             if not login_url:
                 raise AuthenticationFailed("Could not get login URL")
 
