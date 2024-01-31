@@ -417,6 +417,7 @@ class Zone(MyPyllantDataClass):
     system_id: str
     general: ZoneGeneral
     timezone: datetime.tzinfo
+    control_identifier: str
     index: int
     zone_binding: str
     heating: ZoneHeating
@@ -558,6 +559,7 @@ class System(MyPyllantDataClass):
     home: Home
     brand: str
     timezone: datetime.tzinfo
+    control_identifier: str
     connected: bool | None = None
     diagnostic_trouble_codes: list | None = None
     current_system: dict = field(default_factory=dict)
@@ -576,7 +578,12 @@ class System(MyPyllantDataClass):
         logger.debug(f"Creating related models from state: {kwargs}")
         system.extra_fields = system.merge_extra_fields()
         system.zones = [
-            Zone.from_api(system_id=system.id, timezone=system.timezone, **z)
+            Zone.from_api(
+                system_id=system.id,
+                timezone=system.timezone,
+                control_identifier=system.control_identifier,
+                **z,
+            )
             for z in system.merge_object("zones")
         ]
         system.circuits = [

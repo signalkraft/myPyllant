@@ -370,6 +370,7 @@ class MyPyllantAPI:
                 brand=self.brand,
                 home=home,
                 timezone=home.timezone,
+                control_identifier=await self.get_control_identifier(home.system_id),
                 connected=await self.get_connection_status(home.system_id)
                 if include_connection_status
                 else None,
