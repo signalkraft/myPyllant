@@ -1,0 +1,52 @@
+{
+  "system_type": "BOILER_OR_ELECTRIC_HEATER",
+  "has_emf_capable_devices": true,
+  "primary_heat_generator": {
+    "device_uuid": "fb782d08d7f81691fcc25bc1e422552e5f500833",
+    "ebus_id": "BAI00",
+    "spn": 376,
+    "bus_coupler_address": 0,
+    "article_number": "0010024565",
+    "emfValid": true,
+    "device_serial_number": "52c347661c5e445df879ff37ee7202e818cd84a7",
+    "device_type": "BOILER",
+    "first_data": "2022-12-26T09:21:05Z",
+    "last_data": "2024-01-31T04:46:04Z",
+    "data": [
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2022-12-26T09:21:05Z",
+        "to": "2024-01-31T04:46:04Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2022-12-26T09:21:05Z",
+        "to": "2024-01-31T04:46:04Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_PRIMARY_ENERGY",
+        "calculated": false,
+        "from": "2022-12-26T09:21:05Z",
+        "to": "2024-01-31T04:46:04Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_PRIMARY_ENERGY",
+        "calculated": false,
+        "from": "2022-12-26T09:21:05Z",
+        "to": "2024-01-31T04:46:03Z"
+      }
+    ],
+    "product_name": "VCW 36CF/1-7 I (N-BE) ecoTEC exclusive"
+  },
+  "secondary_heat_generators": [],
+  "electric_backup_heater": null,
+  "solar_station": null,
+  "ventilation": null,
+  "gateway": null
+}
