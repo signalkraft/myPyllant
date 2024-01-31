@@ -9,6 +9,7 @@ from ..models import (
     ZoneHeating,
     ZoneHeatingOperatingMode,
     ZoneTimeProgram,
+    Device,
 )
 from .utils import list_test_data
 
@@ -102,3 +103,20 @@ async def test_time_program_overlap() -> None:
     )
     with pytest.raises(ValueError):
         time_program.check_overlap()
+
+
+@pytest.mark.parametrize("test_data", list_test_data())
+async def test_rts_statistics(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
+) -> None:
+    with mypyllant_aioresponses(test_data) as _:
+        if "on_off_cycles" not in str(test_data):
+            await mocked_api.aiohttp_session.close()
+            pytest.skip("No RTS statistics in test data, skipping")
+        system = await anext(mocked_api.get_systems(include_rts=True))
+        assert len(system.rts.get("statistics", [])) > 0
+        rts_device_id = system.rts["statistics"][0]["device_id"]
+        d: Device = [d for d in system.devices if d.device_uuid == rts_device_id][0]
+        assert isinstance(d.on_off_cycles, int)
+        assert isinstance(d.operation_time, int)
+        await mocked_api.aiohttp_session.close()

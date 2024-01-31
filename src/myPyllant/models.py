@@ -569,6 +569,7 @@ class System(MyPyllantDataClass):
     ventilation: list[Ventilation] = field(default_factory=list)
     devices: list[Device] = field(default_factory=list)
     mpc: dict = field(default_factory=dict)
+    rts: dict = field(default_factory=dict)
 
     @classmethod
     def from_api(cls, **kwargs):
@@ -618,6 +619,11 @@ class System(MyPyllantDataClass):
         )
         device["diagnostic_trouble_codes"] = dtc
 
+    def apply_rts(self, device):
+        rts_statistics = self.rts_statistics_by_device_uuid(device["device_uuid"])
+        if rts_statistics:
+            device["rts_statistics"] = rts_statistics
+
     @property
     def raw_devices(self) -> Iterator[tuple[str, dict]]:
         for key, device in self.current_system.items():
@@ -625,9 +631,11 @@ class System(MyPyllantDataClass):
                 for secdevice in device:
                     if isinstance(secdevice, dict) and "device_uuid" in secdevice:
                         self.apply_diagnostic(secdevice)
+                        self.apply_rts(secdevice)
                         yield key, secdevice
             if isinstance(device, dict) and "device_uuid" in device:
                 self.apply_diagnostic(device)
+                self.apply_rts(device)
                 yield key, device
 
     @property
@@ -726,6 +734,12 @@ class System(MyPyllantDataClass):
         else:
             return None
 
+    def rts_statistics_by_device_uuid(self, device_uuid: str) -> dict | None:
+        statistics = [
+            s for s in self.rts.get("statistics", []) if s["device_id"] == device_uuid
+        ]
+        return statistics[0] if statistics else None
+
 
 @dataclass
 class Device(MyPyllantDataClass):
@@ -748,6 +762,7 @@ class Device(MyPyllantDataClass):
     operational_data: dict = field(default_factory=dict)
     data: list[DeviceData] = field(default_factory=list)
     properties: list = field(default_factory=list)
+    rts_statistics: dict = field(default_factory=dict)
     diagnostic_trouble_codes: list | None = None
 
     @property
@@ -774,6 +789,14 @@ class Device(MyPyllantDataClass):
     @property
     def brand_name(self) -> str:
         return BRANDS[self.brand]
+
+    @property
+    def on_off_cycles(self) -> int | None:
+        return self.rts_statistics.get("on_off_cycles")
+
+    @property
+    def operation_time(self) -> int | None:
+        return self.rts_statistics.get("operation_time")
 
     @classmethod
     def from_api(cls, **kwargs):

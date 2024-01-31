@@ -228,6 +228,21 @@ async def main(user, password, brand, country=None, write_results=True):
             except Exception as e:
                 logger.error(f"Error fetching {mpc_url}: {e}", exc_info=e)
 
+            rts_url = f"{get_api_base()}/rts/{real_system_id}/devices"
+            try:
+                async with api.aiohttp_session.get(
+                    rts_url, headers=api.get_authorized_headers()
+                ) as rts_resp:
+                    rts = await rts_resp.json()
+                    anonymized_rts = _recursive_data_anonymize(copy.deepcopy(rts), SALT)
+                    create_result(
+                        anonymized_rts,
+                        "rts",
+                        anonymized_system_id,
+                    )
+            except Exception as e:
+                logger.error(f"Error fetching {rts_url}: {e}", exc_info=e)
+
             device = current_system["primary_heat_generator"]
             start = datetime.now().replace(
                 microsecond=0, second=0, minute=0, hour=0

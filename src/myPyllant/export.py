@@ -59,6 +59,7 @@ async def main(
         async for system in api.get_systems(
             include_connection_status=True,
             include_diagnostic_trouble_codes=True,
+            include_rts=True,
             include_mpc=True,
         ):
             if data:

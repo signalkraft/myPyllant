@@ -189,6 +189,8 @@ def _mypyllant_aioresponses():
                         result = get_test_data(url, "diagnostic_trouble_codes", [])
                     case url if re.match(r".*/mpc$", url):
                         result = get_test_data(url, "mpc", {"devices": []})
+                    case url if re.match(r".*/rts/.*", url):
+                        result = get_test_data(url, "rts", {"statistics": []})
                 return result
 
             def unmatched_url(url, **kwargs):

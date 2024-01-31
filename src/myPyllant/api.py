@@ -329,6 +329,7 @@ class MyPyllantAPI:
         self,
         include_connection_status: bool = False,
         include_diagnostic_trouble_codes: bool = False,
+        include_rts: bool = False,
         include_mpc: bool = False,
     ) -> AsyncIterator[System]:
         """
@@ -337,6 +338,7 @@ class MyPyllantAPI:
         Parameters:
             include_connection_status: Fetches connection status for each system
             include_diagnostic_trouble_codes: Fetches diagnostic trouble codes for each system
+            include_rts: Fetches RTS data for each system
             include_mpc: Fetches MPC data for each system
 
         Returns:
@@ -379,6 +381,7 @@ class MyPyllantAPI:
                 )
                 if include_diagnostic_trouble_codes
                 else None,
+                rts=await self.get_rts(home.system_id) if include_rts else {},
                 mpc=await self.get_mpc(home.system_id) if include_mpc else {},
                 current_system=dict_to_snake_case(current_system_json),
                 **dict_to_snake_case(system_json),
@@ -939,6 +942,25 @@ class MyPyllantAPI:
         except ClientResponseError as e:
             logger.warning("Could not get diagnostic trouble codes", exc_info=e)
             return None
+        result = await response.json()
+        return dict_to_snake_case(result)
+
+    async def get_rts(self, system: System | str) -> dict:
+        """
+        Gets RTS data, which contains on/off cycles and operation time
+
+        Parameters:
+            system: The System object or system ID string
+        """
+        url = f"{await self.get_api_base(system)}/rts/{get_system_id(system)}/devices"
+        try:
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+        except ClientResponseError as e:
+            logger.warning("Could not get RTS data", exc_info=e)
+            return {}
         result = await response.json()
         return dict_to_snake_case(result)
 
