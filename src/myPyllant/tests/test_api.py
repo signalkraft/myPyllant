@@ -12,10 +12,12 @@ from myPyllant.models import (
     System,
     Zone,
     ZoneCurrentSpecialFunction,
+    ZoneHeatingOperatingMode,
 )
 from .generate_test_data import JSON_DIR
 from .utils import list_test_data, load_test_data
 from ..const import DEFAULT_QUICK_VETO_DURATION
+from ..models import ZoneHeatingOperatingModeVRC700
 from ..utils import datetime_format
 
 
@@ -240,4 +242,46 @@ async def test_no_system(mypyllant_aioresponses, mocked_api) -> None:
         system = await anext(mocked_api.get_systems())
         assert system.outdoor_temperature == 15.5625
         assert system.water_pressure == 1.0
+        await mocked_api.aiohttp_session.close()
+
+
+async def test_vrc700_operating_mode(mypyllant_aioresponses, mocked_api) -> None:
+    test_data = load_test_data(JSON_DIR / "vrc700")
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems())
+        assert isinstance(
+            system.zones[0].heating.operation_mode_heating,
+            ZoneHeatingOperatingModeVRC700,
+        )
+
+        await mocked_api.set_zone_heating_operating_mode(
+            system.zones[0], ZoneHeatingOperatingModeVRC700.AUTO
+        )
+        request = list(aio.requests.values())[-1][0]
+        request_url = list(aio.requests.keys())[-1][1]
+        assert str(request_url).endswith("heating/operation-mode")
+        assert request.kwargs["json"]["operationMode"] == "AUTO"
+
+        with pytest.raises(ValueError):
+            await mocked_api.set_zone_heating_operating_mode(
+                system.zones[0], ZoneHeatingOperatingMode.MANUAL
+            )
+        await mocked_api.aiohttp_session.close()
+
+
+async def test_vrc700_holiday(mypyllant_aioresponses, mocked_api) -> None:
+    test_data = load_test_data(JSON_DIR / "vrc700")
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems())
+        await mocked_api.set_holiday(
+            system,
+            datetime.now(system.timezone),
+            datetime.now(system.timezone) + timedelta(days=1),
+            10.0,
+        )
+        request = list(aio.requests.values())[-1][0]
+        request_url = list(aio.requests.keys())[-1][1]
+        assert str(request_url).endswith("/holiday")
+        assert request.kwargs["json"]["setpoint"] == 10.0
+
         await mocked_api.aiohttp_session.close()

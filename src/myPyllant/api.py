@@ -39,6 +39,7 @@ from myPyllant.models import (
     Zone,
     ZoneCurrentSpecialFunction,
     ZoneHeatingOperatingMode,
+    ZoneHeatingOperatingModeVRC700,
     ZoneTimeProgram,
     ZoneTimeProgramType,
 )
@@ -148,7 +149,7 @@ class MyPyllantAPI:
 
         self.aiohttp_session = aiohttp.ClientSession(
             cookie_jar=aiohttp.CookieJar(),
-            raise_for_status=on_raise_for_status,
+            raise_for_status=on_raise_for_status,  # type: ignore
             trace_configs=[trace_config],
         )
 
@@ -458,16 +459,32 @@ class MyPyllantAPI:
                 yield SystemReport.from_api(**report)
 
     async def set_zone_heating_operating_mode(
-        self, zone: Zone, mode: ZoneHeatingOperatingMode
+        self,
+        zone: Zone,
+        mode: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700,
     ):
         """
         Sets the heating operating mode for a zone
         """
-        url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating-operation-mode"
+        if zone.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/operation-mode"
+            key = "operationMode"
+            mode_enum = ZoneHeatingOperatingModeVRC700  # type: ignore
+
+        else:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating-operation-mode"
+            key = "heatingOperationMode"
+            mode_enum = ZoneHeatingOperatingMode  # type: ignore
+
+        if mode not in mode_enum:
+            raise ValueError(
+                f"Invalid mode, must be one of {', '.join(mode_enum.__members__)}"
+            )
+
         return await self.aiohttp_session.patch(
             url,
             json={
-                "heatingOperationMode": str(mode),
+                key: str(mode),
             },
             headers=self.get_authorized_headers(),
         )
@@ -488,12 +505,13 @@ class MyPyllantAPI:
             duration_hours: Optional, sets overwrite for this many hours
             default_duration: Optional, falls back to this default duration if duration_hours is not given
         """
-        logger.debug(
-            f"Setting quick veto for {zone.name} in {zone.current_special_function} mode"
-        )
         if not default_duration:
             default_duration = DEFAULT_QUICK_VETO_DURATION
-        url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
+        if zone.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/quick-veto"
+        else:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
+
         if zone.current_special_function == ZoneCurrentSpecialFunction.QUICK_VETO:
             logger.debug(
                 f"Patching quick veto for {zone.name} because it is already in quick veto mode"
@@ -640,6 +658,7 @@ class MyPyllantAPI:
         system: System,
         start: datetime.datetime | None = None,
         end: datetime.datetime | None = None,
+        setpoint: float | None = None,
     ):
         """
         Sets away mode / holiday mode on a system
@@ -648,6 +667,7 @@ class MyPyllantAPI:
             system: The target system
             start: Optional, datetime when the system goes into away mode. Defaults to now
             end: Optional, datetime when away mode should end. Defaults to one year from now
+            setpoint: Optional, setpoint temperature during holiday, only supported on VRC700 controllers
         """
         start, end = get_default_holiday_dates(start, end, system.timezone)
         logger.debug(
@@ -655,11 +675,20 @@ class MyPyllantAPI:
         )
         if not start <= end:
             raise ValueError("Start of holiday mode must be before end")
-        url = f"{await self.get_system_api_base(system.id)}/away-mode"
+
         data = {
             "startDateTime": datetime_format(start, with_microseconds=True),
             "endDateTime": datetime_format(end, with_microseconds=True),
         }
+
+        if system.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(system.id)}/holiday"
+            data["setpoint"] = setpoint  # type: ignore
+        else:
+            url = f"{await self.get_system_api_base(system.id)}/away-mode"
+            if setpoint is not None:
+                raise ValueError("setpoint is not supported on this controller")
+
         return await self.aiohttp_session.post(
             url, json=data, headers=self.get_authorized_headers()
         )

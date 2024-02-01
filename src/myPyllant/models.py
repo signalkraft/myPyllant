@@ -39,6 +39,15 @@ class MyPyllantEnum(Enum, metaclass=MyPyllantEnumMeta):
         return self.value.replace("_", " ").title()
 
 
+class ControlIdentifier(MyPyllantEnum):
+    TLI = "tli"
+    VRC700 = "vrc700"
+
+    @property
+    def is_vrc700(self) -> bool:
+        return self == ControlIdentifier.VRC700
+
+
 class CircuitState(MyPyllantEnum):
     HEATING = "HEATING"
     COOLING = "COOLING"
@@ -54,7 +63,13 @@ class DeviceDataBucketResolution(MyPyllantEnum):
 class ZoneHeatingOperatingMode(MyPyllantEnum):
     MANUAL = "MANUAL"
     TIME_CONTROLLED = "TIME_CONTROLLED"
-    AUTO = "AUTO"  # Only VRC700
+    OFF = "OFF"
+
+
+class ZoneHeatingOperatingModeVRC700(MyPyllantEnum):
+    DAY = "DAY"
+    AUTO = "AUTO"
+    SETBACK = "SETBACK"
     OFF = "OFF"
 
 
@@ -342,7 +357,8 @@ class ZoneTimeProgram(BaseTimeProgram):
 
 @dataclass
 class ZoneHeating(MyPyllantDataClass):
-    operation_mode_heating: ZoneHeatingOperatingMode
+    control_identifier: ControlIdentifier
+    operation_mode_heating: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700
     time_program_heating: ZoneTimeProgram
     set_back_temperature: float
     manual_mode_setpoint_heating: float | None = None
@@ -353,6 +369,16 @@ class ZoneHeating(MyPyllantDataClass):
         kwargs["time_program_heating"] = ZoneTimeProgram.from_api(
             **kwargs["time_program_heating"]
         )
+        control_identifier = ControlIdentifier(kwargs["control_identifier"])
+        if control_identifier.is_vrc700:
+            kwargs["operation_mode_heating"] = ZoneHeatingOperatingModeVRC700(
+                kwargs["operation_mode_heating"]
+            )
+        else:
+            kwargs["operation_mode_heating"] = ZoneHeatingOperatingMode(
+                kwargs["operation_mode_heating"]
+            )
+
         return super().from_api(**kwargs)
 
 
@@ -417,7 +443,7 @@ class Zone(MyPyllantDataClass):
     system_id: str
     general: ZoneGeneral
     timezone: datetime.tzinfo
-    control_identifier: str
+    control_identifier: ControlIdentifier
     index: int
     zone_binding: str
     heating: ZoneHeating
@@ -437,7 +463,9 @@ class Zone(MyPyllantDataClass):
 
     @classmethod
     def from_api(cls, **kwargs):
-        kwargs["heating"] = ZoneHeating.from_api(**kwargs["heating"])
+        kwargs["heating"] = ZoneHeating.from_api(
+            control_identifier=kwargs["control_identifier"], **kwargs["heating"]
+        )
         kwargs["cooling"] = (
             ZoneCooling.from_api(**kwargs["cooling"]) if "cooling" in kwargs else None
         )
@@ -559,7 +587,7 @@ class System(MyPyllantDataClass):
     home: Home
     brand: str
     timezone: datetime.tzinfo
-    control_identifier: str
+    control_identifier: ControlIdentifier
     connected: bool | None = None
     diagnostic_trouble_codes: list | None = None
     current_system: dict = field(default_factory=dict)

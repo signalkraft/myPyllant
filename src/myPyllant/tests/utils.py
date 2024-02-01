@@ -72,7 +72,9 @@ def _mypyllant_aioresponses():
                 repeat=True,
             )
             # API endpoints
-            actions = re.compile(r".*(away-mode|setBackTemperature|temperature)$")
+            actions = re.compile(
+                r".*(away-mode|setBackTemperature|temperature|holiday)$"
+            )
             self.post(
                 actions,
                 status=200,
@@ -117,7 +119,7 @@ def _mypyllant_aioresponses():
             )
             self.post(
                 re.compile(
-                    r".*zones/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode)$"
+                    r".*zones/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode|heating/operation-mode)$"
                 ),
                 status=200,
                 payload={},
@@ -125,7 +127,7 @@ def _mypyllant_aioresponses():
             )
             self.patch(
                 re.compile(
-                    r".*zones/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode)$"
+                    r".*zones/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode|heating/operation-mode)$"
                 ),
                 status=200,
                 payload={},

@@ -30,6 +30,7 @@ async def test_systems(
 async def test_type_validation() -> None:
     with pytest.raises(WrongTypeError):
         ZoneHeating.from_api(
+            control_identifier="tli",
             manual_mode_setpoint_heating="15.0",
             operation_mode_heating=ZoneHeatingOperatingMode.MANUAL,
             time_program_heating={},
@@ -37,6 +38,7 @@ async def test_type_validation() -> None:
         )
     with pytest.raises(ValueError):
         ZoneHeating.from_api(
+            control_identifier="tli",
             manual_mode_setpoint_heating=15.0,
             operation_mode_heating="INVALID",
             time_program_heating={},
