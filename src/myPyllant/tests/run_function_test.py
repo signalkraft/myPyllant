@@ -23,13 +23,23 @@ async def main(user, password, brand, country):
             include_connection_status=True,
             include_diagnostic_trouble_codes=True,
         ):
-            print(
-                await api.set_holiday(
-                    system,
-                    datetime.now(system.timezone),
-                    datetime.now(system.timezone) + timedelta(days=7),
+            if system.control_identifier.is_vrc700:
+                print(
+                    await api.set_holiday(
+                        system,
+                        datetime.now(system.timezone),
+                        datetime.now(system.timezone) + timedelta(days=7),
+                        10.0,
+                    )
                 )
-            )
+            else:
+                print(
+                    await api.set_holiday(
+                        system,
+                        datetime.now(system.timezone),
+                        datetime.now(system.timezone) + timedelta(days=7),
+                    )
+                )
             print(await api.cancel_holiday(system))
             if system.zones:
                 zone = system.zones[0]

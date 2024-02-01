@@ -470,7 +470,6 @@ class MyPyllantAPI:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/operation-mode"
             key = "operationMode"
             mode_enum = ZoneHeatingOperatingModeVRC700  # type: ignore
-
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating-operation-mode"
             key = "heatingOperationMode"
