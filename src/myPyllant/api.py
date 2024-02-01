@@ -548,7 +548,11 @@ class MyPyllantAPI:
             zone: The target zone
             duration_hours: Updates quick veto duration (in hours)
         """
-        url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
+        if zone.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/quick-veto"
+        else:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
+
         return await self.aiohttp_session.patch(
             url,
             json={
@@ -608,7 +612,11 @@ class MyPyllantAPI:
         Parameters:
             zone: The target zone
         """
-        url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
+        if zone.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/quick-veto"
+        else:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
+
         return await self.aiohttp_session.delete(
             url, headers=self.get_authorized_headers()
         )
@@ -700,7 +708,11 @@ class MyPyllantAPI:
         Parameters:
             system: The target system
         """
-        url = f"{await self.get_system_api_base(system.id)}/away-mode"
+        if system.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(system.id)}/holiday"
+        else:
+            url = f"{await self.get_system_api_base(system.id)}/away-mode"
+
         if system.zones and system.zones[0].general.holiday_start_in_future:
             # For some reason cancelling holidays in the future doesn't work, but setting a past value does
             default_holiday = datetime.datetime(2019, 1, 1, 0, 0, 0)
