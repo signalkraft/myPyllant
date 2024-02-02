@@ -907,7 +907,7 @@ class MyPyllantAPI:
             system: The System object or system ID string
         """
         url = (
-            f"{await self.get_api_base(control_identifier='tli')}/systems/"
+            f"{await self.get_api_base()}/systems/"
             f"{get_system_id(system)}/meta-info/connection-status"
         )
         response = await self.aiohttp_session.get(
@@ -934,7 +934,7 @@ class MyPyllantAPI:
             return self.control_identifiers[system_id]
 
         url = (
-            f"{await self.get_api_base(control_identifier='tli')}/systems/"
+            f"{await self.get_api_base()}/systems/"
             f"{system_id}/meta-info/control-identifier"
         )
         response = await self.aiohttp_session.get(
@@ -957,7 +957,7 @@ class MyPyllantAPI:
             system: The System object or system ID string
         """
         url = (
-            f"{await self.get_api_base(control_identifier='tli')}/systems/"
+            f"{await self.get_api_base()}/systems/"
             f"{get_system_id(system)}/meta-info/time-zone"
         )
         response = await self.aiohttp_session.get(
@@ -981,7 +981,7 @@ class MyPyllantAPI:
             system: The System object or system ID string
         """
         url = (
-            f"{await self.get_api_base(control_identifier='tli')}/systems/"
+            f"{await self.get_api_base()}/systems/"
             f"{get_system_id(system)}/diagnostic-trouble-codes"
         )
         try:
