@@ -42,6 +42,7 @@ from myPyllant.models import (
     ZoneHeatingOperatingModeVRC700,
     ZoneTimeProgram,
     ZoneTimeProgramType,
+    ControlIdentifier,
 )
 from myPyllant.utils import (
     datetime_format,
@@ -104,13 +105,16 @@ def get_system_id(system: System | str) -> str:
         return system
 
 
-def get_api_base(control_identifier: str | None = None) -> str:
-    return API_URL_BASE[control_identifier or DEFAULT_CONTROL_IDENTIFIER]
+def get_api_base(control_identifier: ControlIdentifier | str | None = None) -> str:
+    key = str(control_identifier) if control_identifier else DEFAULT_CONTROL_IDENTIFIER
+    return API_URL_BASE[key]
 
 
-def get_system_api_base(system: str | System, control_identifier: str) -> str:
+def get_system_api_base(
+    system: str | System, control_identifier: ControlIdentifier | str
+) -> str:
     suffix = ""
-    if control_identifier == "tli":
+    if ControlIdentifier(control_identifier) == ControlIdentifier.TLI:
         suffix = "/tli"
     return f"{get_api_base(control_identifier)}/systems/{get_system_id(system)}{suffix}"
 
