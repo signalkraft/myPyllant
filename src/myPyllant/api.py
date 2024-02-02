@@ -507,7 +507,7 @@ class MyPyllantAPI:
         if not default_duration:
             default_duration = DEFAULT_QUICK_VETO_DURATION
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/quick-veto"
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/quick-veto"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
@@ -548,7 +548,7 @@ class MyPyllantAPI:
             duration_hours: Updates quick veto duration (in hours)
         """
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/quick-veto"
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/quick-veto"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
@@ -612,7 +612,7 @@ class MyPyllantAPI:
             zone: The target zone
         """
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/quick-veto"
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/quick-veto"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
@@ -628,7 +628,10 @@ class MyPyllantAPI:
             zone: The target zone
             temperature: The setback temperature
         """
-        url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/set-back-temperature"
+        if zone.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/set-back-temperature"
+        else:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/set-back-temperature"
         return await self.aiohttp_session.patch(
             url,
             json={"setBackTemperature": temperature},
@@ -650,7 +653,10 @@ class MyPyllantAPI:
             raise ValueError(
                 "Type must be either heating or cooling, not %s", program_type
             )
-        url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/time-windows"
+        if zone.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/time-windows"
+        else:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/time-windows"
         data = asdict(time_program)
         data["type"] = program_type
         del data["meta_info"]
