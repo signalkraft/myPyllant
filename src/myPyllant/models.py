@@ -5,114 +5,30 @@ import datetime
 import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field, asdict
-from enum import Enum, EnumMeta
+from enum import Enum
 from typing import TypeVar, Any
 
 from dacite import Config, from_dict
 from dacite.dataclasses import get_fields
 
 from myPyllant.const import BRANDS
+from myPyllant.enums import (
+    CircuitState,
+    DeviceDataBucketResolution,
+    ZoneHeatingOperatingMode,
+    ZoneCurrentSpecialFunction,
+    ZoneHeatingState,
+    DHWCurrentSpecialFunction,
+    DHWOperationMode,
+    VentilationOperationMode,
+    ControlIdentifier,
+    ZoneHeatingOperatingModeVRC700,
+    DHWCurrentSpecialFunctionVRC700,
+    DHWOperationModeVRC700,
+)
 from myPyllant.utils import datetime_parse, prepare_field_value_for_dict
 
 logger = logging.getLogger(__name__)
-
-
-class MyPyllantEnumMeta(EnumMeta):
-    def __contains__(cls, item):
-        try:
-            cls(item)
-        except ValueError:
-            return False
-        else:
-            return True
-
-
-class MyPyllantEnum(Enum, metaclass=MyPyllantEnumMeta):
-    def __str__(self):
-        """
-        Return 'HOUR' instead of 'DeviceDataBucketResolution.HOUR'
-        """
-        return self.value
-
-    @property
-    def display_value(self) -> str:
-        return self.value.replace("_", " ").title()
-
-
-class ControlIdentifier(MyPyllantEnum):
-    TLI = "tli"
-    VRC700 = "vrc700"
-
-    @property
-    def is_vrc700(self) -> bool:
-        return self == ControlIdentifier.VRC700
-
-
-class CircuitState(MyPyllantEnum):
-    HEATING = "HEATING"
-    COOLING = "COOLING"
-    STANDBY = "STANDBY"
-
-
-class DeviceDataBucketResolution(MyPyllantEnum):
-    HOUR = "HOUR"
-    DAY = "DAY"
-    MONTH = "MONTH"
-
-
-class ZoneHeatingOperatingMode(MyPyllantEnum):
-    MANUAL = "MANUAL"
-    TIME_CONTROLLED = "TIME_CONTROLLED"
-    OFF = "OFF"
-
-
-class ZoneHeatingOperatingModeVRC700(MyPyllantEnum):
-    DAY = "DAY"
-    AUTO = "AUTO"
-    SETBACK = "SETBACK"
-    OFF = "OFF"
-
-
-class ZoneCurrentSpecialFunction(MyPyllantEnum):
-    NONE = "NONE"
-    QUICK_VETO = "QUICK_VETO"
-    HOLIDAY = "HOLIDAY"
-    SYSTEM_OFF = "SYSTEM_OFF"
-
-
-class ZoneHeatingState(MyPyllantEnum):
-    IDLE = "IDLE"
-    HEATING_UP = "HEATING_UP"
-    COOLING_DOWN = "COOLING_DOWN"
-
-
-class ZoneTimeProgramType(MyPyllantEnum):
-    HEATING = "heating"
-    COOLING = "cooling"
-
-
-class DHWCurrentSpecialFunction(MyPyllantEnum):
-    CYLINDER_BOOST = "CYLINDER_BOOST"
-    REGULAR = "REGULAR"
-
-
-class DHWOperationMode(MyPyllantEnum):
-    MANUAL = "MANUAL"
-    TIME_CONTROLLED = "TIME_CONTROLLED"
-    OFF = "OFF"
-
-
-class VentilationOperationMode(MyPyllantEnum):
-    NORMAL = "NORMAL"
-    REDUCED = "REDUCED"
-    TIME_CONTROLLED = "TIME_CONTROLLED"
-    OFF = "OFF"
-
-
-class VentilationFanStageType(MyPyllantEnum):
-    DAY = "DAY"
-    NIGHT = "NIGHT"
-
 
 T = TypeVar("T", bound="MyPyllantDataClass")
 
@@ -369,7 +285,7 @@ class ZoneHeating(MyPyllantDataClass):
         kwargs["time_program_heating"] = ZoneTimeProgram.from_api(
             **kwargs["time_program_heating"]
         )
-        control_identifier = ControlIdentifier(kwargs["control_identifier"])
+        control_identifier: ControlIdentifier = kwargs["control_identifier"]
         if control_identifier.is_vrc700:
             kwargs["operation_mode_heating"] = ZoneHeatingOperatingModeVRC700(
                 kwargs["operation_mode_heating"]
@@ -548,10 +464,11 @@ class DHWTimeProgram(BaseTimeProgram):
 class DomesticHotWater(MyPyllantDataClass):
     system_id: str
     index: int
-    current_special_function: DHWCurrentSpecialFunction
+    control_identifier: ControlIdentifier
+    current_special_function: DHWCurrentSpecialFunction | DHWCurrentSpecialFunctionVRC700
     max_setpoint: float
     min_setpoint: float
-    operation_mode_dhw: DHWOperationMode
+    operation_mode_dhw: DHWOperationMode | DHWOperationModeVRC700
     time_program_dhw: DHWTimeProgram
     time_program_circulation_pump: DHWTimeProgram
     current_dhw_temperature: float | None = None
@@ -565,6 +482,21 @@ class DomesticHotWater(MyPyllantDataClass):
         kwargs["time_program_circulation_pump"] = DHWTimeProgram.from_api(
             **kwargs["time_program_circulation_pump"]
         )
+        control_identifier: ControlIdentifier = kwargs["control_identifier"]
+        if control_identifier.is_vrc700:
+            kwargs["current_special_function"] = DHWCurrentSpecialFunctionVRC700(
+                kwargs["current_special_function"]
+            )
+            kwargs["operation_mode_dhw"] = DHWOperationModeVRC700(
+                kwargs["operation_mode_dhw"]
+            )
+        else:
+            kwargs["current_special_function"] = DHWCurrentSpecialFunction(
+                kwargs["current_special_function"]
+            )
+            kwargs["operation_mode_dhw"] = DHWOperationMode(
+                kwargs["operation_mode_dhw"]
+            )
         return super().from_api(**kwargs)
 
 
@@ -621,7 +553,10 @@ class System(MyPyllantDataClass):
         ]
         system.domestic_hot_water = [
             DomesticHotWater.from_api(
-                system_id=system.id, timezone=system.timezone, **d
+                system_id=system.id,
+                timezone=system.timezone,
+                control_identifier=system.control_identifier,
+                **d,
             )
             for d in system.merge_object("dhw")
         ]

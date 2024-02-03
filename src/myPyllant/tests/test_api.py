@@ -3,21 +3,24 @@ from datetime import datetime, timedelta, tzinfo, timezone
 import pytest
 from freezegun import freeze_time
 
-from myPyllant.api import MyPyllantAPI, RealmInvalid
-from myPyllant.models import (
+from ..api import MyPyllantAPI, RealmInvalid
+from ..models import (
     Device,
     DeviceData,
     DeviceDataBucket,
     Home,
     System,
     Zone,
+)
+from ..enums import (
     ZoneCurrentSpecialFunction,
     ZoneHeatingOperatingMode,
+    ZoneHeatingOperatingModeVRC700,
+    ControlIdentifier,
 )
-from .generate_test_data import JSON_DIR
+from .generate_test_data import DATA_DIR
 from .utils import list_test_data, load_test_data
 from ..const import DEFAULT_QUICK_VETO_DURATION
-from ..models import ZoneHeatingOperatingModeVRC700
 from ..utils import datetime_format
 
 
@@ -63,7 +66,9 @@ async def test_refresh_token(mypyllant_aioresponses, mocked_api) -> None:
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
-async def test_systems(mypyllant_aioresponses, mocked_api, test_data) -> None:
+async def test_systems(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
+) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
 
@@ -76,7 +81,9 @@ async def test_systems(mypyllant_aioresponses, mocked_api, test_data) -> None:
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
-async def test_homes(mypyllant_aioresponses, mocked_api, test_data) -> None:
+async def test_homes(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
+) -> None:
     with mypyllant_aioresponses(test_data) as _:
         home = await anext(mocked_api.get_homes())
 
@@ -85,7 +92,9 @@ async def test_homes(mypyllant_aioresponses, mocked_api, test_data) -> None:
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
-async def test_meta_info(mypyllant_aioresponses, mocked_api, test_data) -> None:
+async def test_meta_info(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
+) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
         status = await mocked_api.get_connection_status(system)
@@ -97,12 +106,12 @@ async def test_meta_info(mypyllant_aioresponses, mocked_api, test_data) -> None:
 
 @pytest.mark.parametrize("test_data", list_test_data())
 async def test_meta_info_system_id(
-    mypyllant_aioresponses, mocked_api, test_data
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
         control_identifier = await mocked_api.get_control_identifier(system.id)
-        assert isinstance(control_identifier, str)
+        assert isinstance(control_identifier, ControlIdentifier)
         status = await mocked_api.get_connection_status(system.id)
         assert isinstance(status, bool)
         time_zone = await mocked_api.get_time_zone(system.id)
@@ -111,7 +120,9 @@ async def test_meta_info_system_id(
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
-async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
+async def test_devices(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
+) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
 
@@ -140,7 +151,9 @@ async def test_devices(mypyllant_aioresponses, mocked_api, test_data) -> None:
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
-async def test_device_data(mypyllant_aioresponses, mocked_api, test_data) -> None:
+async def test_device_data(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
+) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
         if len(system.devices) > 0:
@@ -152,7 +165,9 @@ async def test_device_data(mypyllant_aioresponses, mocked_api, test_data) -> Non
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
-async def test_quick_veto(mypyllant_aioresponses, mocked_api, test_data) -> None:
+async def test_quick_veto(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
+) -> None:
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
         zone: Zone = system.zones[0]
@@ -174,7 +189,7 @@ async def test_quick_veto(mypyllant_aioresponses, mocked_api, test_data) -> None
 
 @pytest.mark.parametrize("test_data", list_test_data())
 async def test_holiday_without_dates(
-    mypyllant_aioresponses, mocked_api, test_data
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
@@ -190,7 +205,7 @@ async def test_holiday_without_dates(
 
 @pytest.mark.parametrize("test_data", list_test_data())
 async def test_holiday_with_dates(
-    mypyllant_aioresponses, mocked_api, test_data
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
@@ -211,7 +226,7 @@ async def test_holiday_with_dates(
 
 @pytest.mark.parametrize("test_data", list_test_data())
 async def test_holiday_wrong_dates(
-    mypyllant_aioresponses, mocked_api, test_data
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
@@ -223,7 +238,9 @@ async def test_holiday_wrong_dates(
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
-async def test_dhw_setpoint(mypyllant_aioresponses, mocked_api, test_data) -> None:
+async def test_dhw_setpoint(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
+) -> None:
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
         if not system.domestic_hot_water:
@@ -236,8 +253,8 @@ async def test_dhw_setpoint(mypyllant_aioresponses, mocked_api, test_data) -> No
         await mocked_api.aiohttp_session.close()
 
 
-async def test_no_system(mypyllant_aioresponses, mocked_api) -> None:
-    test_data = load_test_data(JSON_DIR / "no_system")
+async def test_no_system(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
+    test_data = load_test_data(DATA_DIR / "no_system")
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems())
         assert system.outdoor_temperature == 15.5625
@@ -245,8 +262,10 @@ async def test_no_system(mypyllant_aioresponses, mocked_api) -> None:
         await mocked_api.aiohttp_session.close()
 
 
-async def test_vrc700_operating_mode(mypyllant_aioresponses, mocked_api) -> None:
-    test_data = load_test_data(JSON_DIR / "vrc700")
+async def test_vrc700_operating_mode(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "vrc700")
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
         assert isinstance(
@@ -269,8 +288,8 @@ async def test_vrc700_operating_mode(mypyllant_aioresponses, mocked_api) -> None
         await mocked_api.aiohttp_session.close()
 
 
-async def test_vrc700_holiday(mypyllant_aioresponses, mocked_api) -> None:
-    test_data = load_test_data(JSON_DIR / "vrc700")
+async def test_vrc700_holiday(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
+    test_data = load_test_data(DATA_DIR / "vrc700")
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
         await mocked_api.set_holiday(

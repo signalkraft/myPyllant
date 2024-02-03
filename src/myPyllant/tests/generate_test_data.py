@@ -30,7 +30,7 @@ parser.add_argument(
 )
 
 SALT = secrets.token_bytes(16)
-JSON_DIR = Path(__file__).resolve().parent / "json"
+DATA_DIR = Path(__file__).resolve().parent / "data"
 ANONYMIZE_ATTRIBUTES = (
     "device_uuid",
     "device_serial_number",
@@ -43,7 +43,7 @@ ANONYMIZE_ATTRIBUTES = (
 
 def user_json_dir(user: str) -> Path:
     return (
-        JSON_DIR
+        DATA_DIR
         / hashlib.sha1(user.encode("UTF-8") + SALT, usedforsecurity=False).hexdigest()
     )
 
@@ -60,7 +60,7 @@ async def main(user, password, brand, country=None, write_results=True):
         write_results (bool): Whether to write results to disk, or return them
     """
     from myPyllant.api import MyPyllantAPI
-    from myPyllant.models import DeviceDataBucketResolution
+    from myPyllant.enums import DeviceDataBucketResolution
     from myPyllant.utils import datetime_format
 
     results: dict[str, Any] = {}

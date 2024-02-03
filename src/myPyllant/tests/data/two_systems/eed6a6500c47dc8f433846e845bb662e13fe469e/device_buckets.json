@@ -1,0 +1,130 @@
+{
+  "startDate": "2023-12-28T00:00:00Z",
+  "endDate": "2023-12-29T00:00:00Z",
+  "resolution": "HOUR",
+  "operationMode": "DOMESTIC_HOT_WATER",
+  "energyType": "CONSUMED_ELECTRICAL_ENERGY",
+  "totalConsumption": 4562.46875,
+  "data": [
+    {
+      "startDate": "2023-12-28T00:00:00Z",
+      "endDate": "2023-12-28T01:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T01:00:00Z",
+      "endDate": "2023-12-28T02:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T02:00:00Z",
+      "endDate": "2023-12-28T03:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T03:00:00Z",
+      "endDate": "2023-12-28T04:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T04:00:00Z",
+      "endDate": "2023-12-28T05:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T05:00:00Z",
+      "endDate": "2023-12-28T06:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T06:00:00Z",
+      "endDate": "2023-12-28T07:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T07:00:00Z",
+      "endDate": "2023-12-28T08:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T08:00:00Z",
+      "endDate": "2023-12-28T09:00:00Z",
+      "value": 464.21375
+    },
+    {
+      "startDate": "2023-12-28T09:00:00Z",
+      "endDate": "2023-12-28T10:00:00Z",
+      "value": 1569.8975
+    },
+    {
+      "startDate": "2023-12-28T10:00:00Z",
+      "endDate": "2023-12-28T11:00:00Z",
+      "value": 571.6700000000001
+    },
+    {
+      "startDate": "2023-12-28T11:00:00Z",
+      "endDate": "2023-12-28T12:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T12:00:00Z",
+      "endDate": "2023-12-28T13:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T13:00:00Z",
+      "endDate": "2023-12-28T14:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T14:00:00Z",
+      "endDate": "2023-12-28T15:00:00Z",
+      "value": 1382.7258333333332
+    },
+    {
+      "startDate": "2023-12-28T15:00:00Z",
+      "endDate": "2023-12-28T16:00:00Z",
+      "value": 573.9616666666666
+    },
+    {
+      "startDate": "2023-12-28T16:00:00Z",
+      "endDate": "2023-12-28T17:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T17:00:00Z",
+      "endDate": "2023-12-28T18:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T18:00:00Z",
+      "endDate": "2023-12-28T19:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T19:00:00Z",
+      "endDate": "2023-12-28T20:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T20:00:00Z",
+      "endDate": "2023-12-28T21:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T21:00:00Z",
+      "endDate": "2023-12-28T22:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T22:00:00Z",
+      "endDate": "2023-12-28T23:00:00Z",
+      "value": 0.0
+    },
+    {
+      "startDate": "2023-12-28T23:00:00Z",
+      "endDate": "2023-12-29T00:00:00Z",
+      "value": 0.0
+    }
+  ]
+}

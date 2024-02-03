@@ -4,11 +4,12 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+import yaml
 from aioresponses import CallbackResult, aioresponses
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.const import API_URL_BASE, LOGIN_URL
-from myPyllant.tests.generate_test_data import JSON_DIR
+from myPyllant.tests.generate_test_data import DATA_DIR
 from myPyllant.utils import get_realm
 
 
@@ -241,10 +242,12 @@ async def _mocked_api(*args, **kwargs) -> MyPyllantAPI:
 
 def list_test_data():
     test_data = []
-    for d in [d for d in JSON_DIR.iterdir() if d.is_dir()]:
-        # check if a json file eixsts in dir
+    for d in [d for d in DATA_DIR.iterdir() if d.is_dir()]:
+        # check if a json file exists in dir
         if list(d.rglob("*.json")):
             test_data.append(load_test_data(d))
+    for f in DATA_DIR.glob("*.yaml"):
+        test_data.append({"_directory": str(f), **yaml.safe_load(f.read_text())})
     return test_data
 
 

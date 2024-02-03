@@ -1,0 +1,108 @@
+{
+  "system_type": "HEATPUMP",
+  "has_emf_capable_devices": true,
+  "primary_heat_generator": {
+    "device_uuid": "5185c8f465b8c7dd1d4dc0c551baba96f59995c4",
+    "ebus_id": "HMU03",
+    "spn": 351,
+    "bus_coupler_address": 0,
+    "article_number": "0010021122",
+    "emfValid": true,
+    "device_serial_number": "1ec8e6fe364e0b0988ba91df30638a7299954bfa",
+    "device_type": "HEATPUMP",
+    "first_data": "2022-06-23T19:47:10Z",
+    "last_data": "2023-12-29T22:17:38Z",
+    "data": [
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2023-07-13T12:41:43Z",
+        "to": "2023-12-29T22:17:36Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2023-07-13T12:41:43Z",
+        "to": "2023-12-29T22:17:36Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2023-07-13T12:41:43Z",
+        "to": "2023-12-29T22:17:37Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2022-06-23T19:47:10Z",
+        "to": "2023-12-29T22:17:36Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2023-07-13T12:41:43Z",
+        "to": "2023-12-29T22:17:38Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2023-07-13T12:41:43Z",
+        "to": "2023-12-29T22:17:37Z"
+      }
+    ],
+    "product_name": "aroTHERM plus"
+  },
+  "secondary_heat_generators": [],
+  "electric_backup_heater": {
+    "device_uuid": "1d6879a1531f80a8afb0c325fb3bdc005bed2c2a",
+    "ebus_id": "VWZ02",
+    "spn": 351,
+    "bus_coupler_address": 0,
+    "article_number": "0010023609",
+    "emfValid": true,
+    "device_serial_number": "334153474f66cbd8408f2c54b7f6302b38f6f6cc",
+    "device_type": "ELECTRIC_AUXILIARY_HEATER",
+    "first_data": "2022-06-23T19:47:10Z",
+    "last_data": "2023-12-29T22:17:40Z",
+    "data": [
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2022-06-23T19:47:10Z",
+        "to": "2023-12-29T22:17:40Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2023-07-13T12:41:43Z",
+        "to": "2023-12-29T22:17:39Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2023-07-21T10:01:19Z",
+        "to": "2023-12-29T22:17:40Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2023-07-21T10:01:19Z",
+        "to": "2023-12-29T22:17:40Z"
+      }
+    ],
+    "product_name": "hydraulic station"
+  },
+  "solar_station": null,
+  "ventilation": null,
+  "gateway": null
+}

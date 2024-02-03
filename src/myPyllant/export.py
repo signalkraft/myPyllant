@@ -8,7 +8,7 @@ import sys
 from datetime import datetime
 
 from myPyllant.api import MyPyllantAPI
-from myPyllant.models import DeviceDataBucketResolution
+from myPyllant.enums import DeviceDataBucketResolution
 from myPyllant.utils import add_default_parser_args
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API.")

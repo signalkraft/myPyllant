@@ -1,0 +1,9 @@
+{
+  "system_type": "UNKNOWN",
+  "has_emf_capable_devices": false,
+  "primary_heat_generator": null,
+  "secondary_heat_generators": [],
+  "electric_backup_heater": null,
+  "solar_station": null,
+  "ventilation": null
+}

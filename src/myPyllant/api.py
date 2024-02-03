@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import logging
 import re
 from collections.abc import AsyncIterator
@@ -23,26 +24,28 @@ from myPyllant.const import (
     LOGIN_URL,
     TOKEN_URL,
 )
+from myPyllant.enums import (
+    ControlIdentifier,
+    DeviceDataBucketResolution,
+    ZoneHeatingOperatingModeVRC700,
+    ZoneHeatingOperatingMode,
+    ZoneCurrentSpecialFunction,
+    ZoneTimeProgramType,
+    DHWOperationMode,
+    VentilationOperationMode,
+    VentilationFanStageType,
+)
 from myPyllant.models import (
     Device,
     DeviceData,
-    DeviceDataBucketResolution,
-    DHWOperationMode,
     DHWTimeProgram,
     DomesticHotWater,
     Home,
     System,
     SystemReport,
     Ventilation,
-    VentilationFanStageType,
-    VentilationOperationMode,
     Zone,
-    ZoneCurrentSpecialFunction,
-    ZoneHeatingOperatingMode,
-    ZoneHeatingOperatingModeVRC700,
     ZoneTimeProgram,
-    ZoneTimeProgramType,
-    ControlIdentifier,
 )
 from myPyllant.utils import (
     datetime_format,
@@ -300,19 +303,23 @@ class MyPyllantAPI:
         }
 
     async def get_api_base(
-        self, system: str | System | None = None, control_identifier: str | None = None
+        self,
+        system: str | System | None = None,
+        control_identifier: ControlIdentifier | str | None = None,
     ) -> str:
         if system and not control_identifier:
             control_identifier = await self.get_control_identifier(system)
         return get_api_base(control_identifier)
 
     async def get_system_api_base(
-        self, system: str | System, control_identifier: str | None = None
+        self,
+        system: str | System,
+        control_identifier: ControlIdentifier | str | None = None,
     ) -> str:
         if not control_identifier:
             control_identifier = await self.get_control_identifier(system)
         suffix = ""
-        if control_identifier == "tli":
+        if control_identifier == ControlIdentifier.TLI:
             suffix = "/tli"
         return f"{await self.get_api_base(system, control_identifier)}/systems/{get_system_id(system)}{suffix}"
 
@@ -355,9 +362,7 @@ class MyPyllantAPI:
         """
         homes = self.get_homes()
         async for home in homes:
-            self.control_identifiers[
-                home.system_id
-            ] = await self.get_control_identifier(home.system_id)
+            control_identifier = await self.get_control_identifier(home.system_id)
             system_url = await self.get_system_api_base(home.system_id)
             current_system_url = (
                 f"{await self.get_api_base()}/emf/v2/{home.system_id}/currentSystem"
@@ -366,7 +371,11 @@ class MyPyllantAPI:
             async with self.aiohttp_session.get(
                 system_url, headers=self.get_authorized_headers()
             ) as system_resp:
-                system_json = await system_resp.json()
+                system_raw = await system_resp.text()
+                if control_identifier.is_vrc700:
+                    system_raw = system_raw.replace("domesticHotWater", "dhw")
+                    system_raw = system_raw.replace("DomesticHotWater", "Dhw")
+                system_json = dict_to_snake_case(json.loads(system_raw))
 
             async with self.aiohttp_session.get(
                 current_system_url, headers=self.get_authorized_headers()
@@ -377,7 +386,7 @@ class MyPyllantAPI:
                 brand=self.brand,
                 home=home,
                 timezone=home.timezone,
-                control_identifier=await self.get_control_identifier(home.system_id),
+                control_identifier=control_identifier,
                 connected=await self.get_connection_status(home.system_id)
                 if include_connection_status
                 else None,
@@ -920,7 +929,7 @@ class MyPyllantAPI:
             logger.warning("Couldn't get connection status")
             return False
 
-    async def get_control_identifier(self, system: System | str) -> str:
+    async def get_control_identifier(self, system: System | str) -> ControlIdentifier:
         """
         The control identifier is used in the URL to request system information (usually `tli`)
 
@@ -931,23 +940,24 @@ class MyPyllantAPI:
 
         if system_id in self.control_identifiers:
             # We already have the control identifier cached
-            return self.control_identifiers[system_id]
+            control_identifier = self.control_identifiers[system_id]
+        else:
+            url = (
+                f"{await self.get_api_base()}/systems/"
+                f"{system_id}/meta-info/control-identifier"
+            )
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+            try:
+                control_identifier = (await response.json())["controlIdentifier"]
+                self.control_identifiers[system_id] = control_identifier
+            except KeyError:
+                logger.warning("Couldn't get control identifier")
+                control_identifier = DEFAULT_CONTROL_IDENTIFIER
 
-        url = (
-            f"{await self.get_api_base()}/systems/"
-            f"{system_id}/meta-info/control-identifier"
-        )
-        response = await self.aiohttp_session.get(
-            url,
-            headers=self.get_authorized_headers(),
-        )
-        try:
-            control_identifier = (await response.json())["controlIdentifier"]
-            self.control_identifiers[system_id] = control_identifier
-            return control_identifier
-        except KeyError:
-            logger.warning("Couldn't get control identifier")
-            return DEFAULT_CONTROL_IDENTIFIER
+        return ControlIdentifier(control_identifier)
 
     async def get_time_zone(self, system: System | str) -> datetime.tzinfo | None:
         """

@@ -1,0 +1,231 @@
+{
+  "state": {
+    "system": {
+      "outdoorTemperature": 15.5625,
+      "systemFlowTemperature": 23.25,
+      "systemWaterPressure": 1.0,
+      "outdoorTemperatureAverage24h": 17.195312
+    },
+    "zones": [
+      {
+        "index": 0,
+        "desiredRoomTemperatureSetpointHeating": 15.0,
+        "desiredRoomTemperatureSetpoint": 15.0,
+        "currentSpecialFunction": "HOLIDAY",
+        "heatingState": "IDLE"
+      },
+      {
+        "index": 1,
+        "desiredRoomTemperatureSetpointHeating": 15.0,
+        "desiredRoomTemperatureSetpoint": 15.0,
+        "currentRoomTemperature": 22.35,
+        "currentRoomHumidity": 59.0,
+        "currentSpecialFunction": "HOLIDAY",
+        "heatingState": "IDLE"
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "circuitState": "STANDBY",
+        "currentCircuitFlowTemperature": 22.75,
+        "calculatedEnergyManagerState": "HEATING_STANDBY"
+      },
+      {
+        "index": 1,
+        "circuitState": "STANDBY",
+        "currentCircuitFlowTemperature": 22.6875,
+        "calculatedEnergyManagerState": "HEATING_STANDBY"
+      }
+    ]
+  },
+  "configuration": {
+    "zones": [
+      {
+        "index": 0,
+        "general": {
+          "name": "Boven",
+          "startDateTime": "2023-08-05T00:00:00Z",
+          "endDateTime": "2024-08-05T23:59:59Z"
+        },
+        "heating": {
+          "operationModeHeating": "MANUAL",
+          "setBackTemperature": 15.0,
+          "manualModeSetpointHeating": 20.0,
+          "timeProgramHeating": {
+            "metaInfo": {
+              "minSlotsPerDay": 0,
+              "maxSlotsPerDay": 12,
+              "setpointRequiredPerSlot": true
+            },
+            "monday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "tuesday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "wednesday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "thursday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "friday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "saturday": [
+              {
+                "startTime": 450,
+                "endTime": 1410,
+                "setpoint": 20.0
+              }
+            ],
+            "sunday": [
+              {
+                "startTime": 450,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ]
+          }
+        }
+      },
+      {
+        "index": 1,
+        "general": {
+          "name": "Beneden",
+          "startDateTime": "2023-08-05T00:00:00Z",
+          "endDateTime": "2024-08-05T23:59:59Z"
+        },
+        "heating": {
+          "operationModeHeating": "MANUAL",
+          "setBackTemperature": 15.0,
+          "manualModeSetpointHeating": 22.0,
+          "timeProgramHeating": {
+            "metaInfo": {
+              "minSlotsPerDay": 0,
+              "maxSlotsPerDay": 12,
+              "setpointRequiredPerSlot": true
+            },
+            "monday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "tuesday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "wednesday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "thursday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "friday": [
+              {
+                "startTime": 360,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ],
+            "saturday": [
+              {
+                "startTime": 450,
+                "endTime": 1410,
+                "setpoint": 20.0
+              }
+            ],
+            "sunday": [
+              {
+                "startTime": 450,
+                "endTime": 1320,
+                "setpoint": 20.0
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "heatingCurve": 1.6,
+        "heatingFlowTemperatureMinimumSetpoint": 15.0,
+        "setBackModeEnabled": false
+      },
+      {
+        "index": 1,
+        "heatingCurve": 0.4,
+        "heatingFlowTemperatureMinimumSetpoint": 15.0,
+        "setBackModeEnabled": false
+      }
+    ]
+  },
+  "properties": {
+    "system": {
+      "controllerType": "VRC720"
+    },
+    "zones": [
+      {
+        "index": 0,
+        "isActive": true,
+        "zoneBinding": "NONE",
+        "isCoolingAllowed": false,
+        "associatedCircuitIndex": 0
+      },
+      {
+        "index": 1,
+        "isActive": true,
+        "zoneBinding": "CENTRAL_CONTROL",
+        "isCoolingAllowed": false,
+        "associatedCircuitIndex": 1
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "mixerCircuitTypeExternal": "HEATING",
+        "isCoolingAllowed": false
+      },
+      {
+        "index": 1,
+        "mixerCircuitTypeExternal": "HEATING",
+        "isCoolingAllowed": false
+      }
+    ]
+  }
+}

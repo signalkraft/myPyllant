@@ -1,0 +1,384 @@
+homes:
+  - homeName: ed0391f53af7c705b1b952413790f14c6d19aa73
+    serialNumber: 86a814b86f0f24c5a2b59fbc50f47b0b74995acd
+    systemId: b1d0b8f1b675ce6cadc49a9c5409e7c8f77f058d
+    productMetadata:
+      productType: VR920
+      productionYear: "18"
+      productionWeek: "30"
+      articleNumber: "0020252922"
+    state: CLAIMED
+    migrationState: FINISHED
+    firmware:
+      version: 0357.40.33
+      updateEnabled: true
+      updateRequired: false
+    productInformation: VR920
+    firmwareVersion: 0357.40.33
+    nomenclature: VR 920
+    cag: false
+    countryCode: DE
+b1d0b8f1b675ce6cadc49a9c5409e7c8f77f058d:
+  control_identifier:
+    controlIdentifier: vrc700
+  time_zone:
+    timeZone: Europe/Berlin
+  diagnostic_trouble_codes:
+    - serialNumber: 44a48a486813aeb72b0df270c1ec5fff83c2ad52
+      articleNumber: "0020266797"
+      codes: [ ]
+    - serialNumber: b99b2d1f9c2f6c54daf32b0dc3fe27156925fc46
+      articleNumber: "0010015602"
+      codes: [ ]
+    - serialNumber: 86a814b86f0f24c5a2b59fbc50f47b0b74995acd
+      articleNumber: "0020252922"
+      codes: [ ]
+  connection_status:
+    connected: true
+  system:
+    state:
+      system:
+        outdoorTemperature: 12.25
+        outdoorTemperatureAverage24h: 10.1484375
+        systemWaterPressure: 1.8
+        legionellaProtectionStartWeekday: "OFF"
+        energyManagerState: HEATING
+        systemOff: false
+      zones:
+        - index: 0
+          desiredRoomTemperatureSetpointHeating: 22
+          desiredRoomTemperatureSetpoint: 22
+          currentSpecialFunction: NONE
+      circuits:
+        - index: 0
+          circuitState: HEATING
+          currentCircuitFlowTemperature: 35
+          heatingCircuitFlowSetpoint: 36.486794
+          calculatedEnergyManagerState: HEATING_ACTIVE
+      domesticHotWater:
+        - index: 255
+          currentSpecialFunction: NONE
+          currentDomesticHotWaterTemperature: 49
+    properties:
+      system:
+        controllerType: VRC700
+        controllerRevision: R6
+        systemScheme: 1
+        backupHeaterType: CONDENSING
+        backupHeaterAllowedFor: DOMESTIC_HOT_WATER_AND_HEATING
+        moduleConfigurationVR71: 3
+        energyProvidePowerCutBehavior: DISABLE_HEATPUMP
+        smartPhotovoltaicBufferOffset: 10
+        externalEnergyManagementActivation: false
+      zones:
+        - index: 0
+          isActive: true
+          zoneBinding: CENTRAL_CONTROL
+          associatedCircuitIndex: 0
+      circuits:
+        - index: 0
+          mixerCircuitTypeExternal: HEATING
+          heatingCircuitType: DIRECT_HEATING_CIRCUIT
+          isCoolingAllowed: false
+      domesticHotWater:
+        - index: 255
+          minSetpoint: 35
+          maxSetpoint: 65
+    configuration:
+      system:
+        continuousHeatingStartSetpoint: -26
+        alternativePoint: -21
+        heatingCircuitBivalencePoint: 0
+        domesticHotWaterBivalencePoint: -7
+        adaptiveHeatingCurve: false
+        domesticHotWaterMaximumLoadingTime: 60
+        domesticHotWaterHysteresis: 5
+        domesticHotWaterFlowSetpointOffset: 25
+        maxFlowSetpointHpError: 25
+        domesticHotWaterMaximumTemperature: 80
+        hybridControlStrategy: BIVALENCE_POINT
+        paralellTankLoadingAllowed: false
+      zones:
+        - index: 0
+          general:
+            name: HEIZKREIS1
+            holidayStartDateTime: "2015-01-01T00:00:00Z"
+            holidayEndDateTime: "2015-01-01T00:00:00Z"
+          heating:
+            operationModeHeating: DAY
+            setBackTemperature: 22
+            dayTemperatureHeating: 22
+            timeProgramHeating:
+              metaInfo:
+                minSlotsPerDay: 0
+                maxSlotsPerDay: 3
+                setpointRequiredPerSlot: false
+              monday:
+                - startTime: 0
+                  endTime: 1440
+              tuesday:
+                - startTime: 0
+                  endTime: 1440
+              wednesday:
+                - startTime: 0
+                  endTime: 1440
+              thursday:
+                - startTime: 0
+                  endTime: 1440
+              friday:
+                - startTime: 0
+                  endTime: 1440
+              saturday:
+                - startTime: 0
+                  endTime: 1440
+              sunday:
+                - startTime: 0
+                  endTime: 1440
+      circuits:
+        - index: 0
+          heatingCurve: 0.9500002
+          heatingFlowTemperatureMinimumSetpoint: 15
+          heatingFlowTemperatureMaximumSetpoint: 60
+          heatDemandLimitedByOutsideTemperature: 17
+          heatingCircuitFlowSetpointExcessOffset: 0
+          setBackModeEnabled: false
+          roomTemperatureControlMode: NON
+      domesticHotWater:
+        - index: 255
+          operationModeDomesticHotWater: AUTO
+          tappingSetpoint: 50
+          holidayStartDateTime: 1420070400
+          holidayEndDateTime: 1420070400
+          timeProgramDomesticHotWater:
+            metaInfo:
+              minSlotsPerDay: 0
+              maxSlotsPerDay: 3
+              setpointRequiredPerSlot: false
+            monday:
+              - startTime: 300
+                endTime: 420
+              - startTime: 690
+                endTime: 750
+              - startTime: 1080
+                endTime: 1260
+            tuesday:
+              - startTime: 300
+                endTime: 420
+              - startTime: 690
+                endTime: 750
+              - startTime: 1080
+                endTime: 1260
+            wednesday:
+              - startTime: 300
+                endTime: 420
+              - startTime: 690
+                endTime: 750
+              - startTime: 1080
+                endTime: 1260
+            thursday:
+              - startTime: 300
+                endTime: 420
+              - startTime: 690
+                endTime: 750
+              - startTime: 1080
+                endTime: 1260
+            friday:
+              - startTime: 300
+                endTime: 420
+              - startTime: 690
+                endTime: 750
+              - startTime: 1080
+                endTime: 1260
+            saturday:
+              - startTime: 450
+                endTime: 570
+              - startTime: 780
+                endTime: 840
+              - startTime: 1020
+                endTime: 1290
+            sunday:
+              - startTime: 450
+                endTime: 570
+              - startTime: 780
+                endTime: 840
+              - startTime: 1020
+                endTime: 1290
+          timeProgramCirculationPump:
+            metaInfo:
+              minSlotsPerDay: 0
+              maxSlotsPerDay: 3
+              setpointRequiredPerSlot: false
+            monday:
+              - startTime: 300
+                endTime: 410
+              - startTime: 690
+                endTime: 740
+              - startTime: 1080
+                endTime: 1250
+            tuesday:
+              - startTime: 300
+                endTime: 410
+              - startTime: 690
+                endTime: 740
+              - startTime: 1080
+                endTime: 1250
+            wednesday:
+              - startTime: 300
+                endTime: 410
+              - startTime: 690
+                endTime: 740
+              - startTime: 1080
+                endTime: 1250
+            thursday:
+              - startTime: 300
+                endTime: 410
+              - startTime: 690
+                endTime: 740
+              - startTime: 1080
+                endTime: 1250
+            friday:
+              - startTime: 300
+                endTime: 410
+              - startTime: 690
+                endTime: 740
+              - startTime: 1080
+                endTime: 1250
+            saturday:
+              - startTime: 450
+                endTime: 570
+              - startTime: 780
+                endTime: 830
+              - startTime: 1020
+                endTime: 1280
+            sunday:
+              - startTime: 450
+                endTime: 570
+              - startTime: 780
+                endTime: 830
+              - startTime: 1020
+                endTime: 1280
+  current_system:
+    system_type: BOILER_OR_ELECTRIC_HEATER
+    has_emf_capable_devices: true
+    primary_heat_generator:
+      device_uuid: c94695962b92ea5525ffd6028c466772055c66c9
+      ebus_id: BAI00
+      spn: 296
+      bus_coupler_address: 0
+      article_number: "0010015602"
+      emfValid: true
+      device_serial_number: b99b2d1f9c2f6c54daf32b0dc3fe27156925fc46
+      device_type: BOILER
+      first_data: "2023-04-03T10:25:44Z"
+      last_data: "2024-02-03T12:46:48Z"
+      data:
+        - operation_mode: DOMESTIC_HOT_WATER
+          value_type: CONSUMED_ELECTRICAL_ENERGY
+          calculated: false
+          from: "2023-04-03T10:25:44Z"
+          to: "2024-02-03T12:46:48Z"
+        - operation_mode: HEATING
+          value_type: CONSUMED_ELECTRICAL_ENERGY
+          calculated: false
+          from: "2023-04-03T10:25:44Z"
+          to: "2024-02-03T12:46:47Z"
+        - operation_mode: DOMESTIC_HOT_WATER
+          value_type: CONSUMED_PRIMARY_ENERGY
+          calculated: false
+          from: "2023-04-03T10:25:44Z"
+          to: "2024-02-03T12:46:47Z"
+        - operation_mode: HEATING
+          value_type: CONSUMED_PRIMARY_ENERGY
+          calculated: false
+          from: "2023-04-03T10:25:44Z"
+          to: "2024-02-03T12:46:46Z"
+      product_name: ecoCOMPACT VSC 206/4-5 150
+    secondary_heat_generators: [ ]
+    electric_backup_heater: null
+    solar_station: null
+    ventilation: null
+    gateway: null
+  mpc:
+    devices: [ ]
+  rts:
+    statistics: [ ]
+  device_buckets:
+    startDate: "2024-02-02T00:00:00Z"
+    endDate: "2024-02-03T00:00:00Z"
+    resolution: HOUR
+    operationMode: DOMESTIC_HOT_WATER
+    energyType: CONSUMED_ELECTRICAL_ENERGY
+    totalConsumption: 99.220703125
+    data:
+      - startDate: "2024-02-02T00:00:00Z"
+        endDate: "2024-02-02T01:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T01:00:00Z"
+        endDate: "2024-02-02T02:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T02:00:00Z"
+        endDate: "2024-02-02T03:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T03:00:00Z"
+        endDate: "2024-02-02T04:00:00Z"
+        value: 5.555673828125
+      - startDate: "2024-02-02T04:00:00Z"
+        endDate: "2024-02-02T05:00:00Z"
+        value: 24.534678819444444
+      - startDate: "2024-02-02T05:00:00Z"
+        endDate: "2024-02-02T06:00:00Z"
+        value: 17.319803602430557
+      - startDate: "2024-02-02T06:00:00Z"
+        endDate: "2024-02-02T07:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T07:00:00Z"
+        endDate: "2024-02-02T08:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T08:00:00Z"
+        endDate: "2024-02-02T09:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T09:00:00Z"
+        endDate: "2024-02-02T10:00:00Z"
+        value: 6.203986545138889
+      - startDate: "2024-02-02T10:00:00Z"
+        endDate: "2024-02-02T11:00:00Z"
+        value: 22.79421875
+      - startDate: "2024-02-02T11:00:00Z"
+        endDate: "2024-02-02T12:00:00Z"
+        value: 3.072107204861111
+      - startDate: "2024-02-02T12:00:00Z"
+        endDate: "2024-02-02T13:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T13:00:00Z"
+        endDate: "2024-02-02T14:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T14:00:00Z"
+        endDate: "2024-02-02T15:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T15:00:00Z"
+        endDate: "2024-02-02T16:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T16:00:00Z"
+        endDate: "2024-02-02T17:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T17:00:00Z"
+        endDate: "2024-02-02T18:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T18:00:00Z"
+        endDate: "2024-02-02T19:00:00Z"
+        value: 4.353818359375
+      - startDate: "2024-02-02T19:00:00Z"
+        endDate: "2024-02-02T20:00:00Z"
+        value: 15.386416015625
+      - startDate: "2024-02-02T20:00:00Z"
+        endDate: "2024-02-02T21:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T21:00:00Z"
+        endDate: "2024-02-02T22:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T22:00:00Z"
+        endDate: "2024-02-02T23:00:00Z"
+        value: 0
+      - startDate: "2024-02-02T23:00:00Z"
+        endDate: "2024-02-03T00:00:00Z"
+        value: 0
