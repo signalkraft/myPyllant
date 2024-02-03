@@ -34,6 +34,7 @@ from myPyllant.enums import (
     DHWOperationMode,
     VentilationOperationMode,
     VentilationFanStageType,
+    DHWOperationModeVRC700,
 )
 from myPyllant.models import (
     Device,
@@ -794,7 +795,9 @@ class MyPyllantAPI:
         )
 
     async def set_domestic_hot_water_operation_mode(
-        self, domestic_hot_water: DomesticHotWater, mode: DHWOperationMode
+        self,
+        domestic_hot_water: DomesticHotWater,
+        mode: DHWOperationMode | DHWOperationModeVRC700,
     ):
         """
         Sets the operation mode for water heating
