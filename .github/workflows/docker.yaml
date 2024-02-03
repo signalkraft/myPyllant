@@ -3,7 +3,7 @@ name: Create and publish Docker image
 
 on:
   push:
-    branches: ['main', 'docker']
+    branches: [ 'main', 'docker' ]
 
 env:
   REGISTRY: ghcr.io
@@ -18,7 +18,7 @@ jobs:
       #
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
