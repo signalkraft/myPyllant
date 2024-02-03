@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  TEST_TAG: ${{ github.repository }}:test
+  TEST_TAG: signalkraft/mypyllant:test
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
