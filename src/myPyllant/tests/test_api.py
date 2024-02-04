@@ -195,7 +195,10 @@ async def test_holiday_without_dates(
         system = await anext(mocked_api.get_systems())
         now = datetime.now(system.timezone)
         with freeze_time(now):
-            await mocked_api.set_holiday(system)
+            setpoint = None
+            if system.control_identifier.is_vrc700:
+                setpoint = 10.0
+            await mocked_api.set_holiday(system, setpoint=setpoint)
         request = list(aio.requests.values())[-1][0]
         assert request.kwargs["json"]["startDateTime"] == datetime_format(
             now, with_microseconds=True
@@ -213,7 +216,10 @@ async def test_holiday_with_dates(
         with freeze_time(now):
             start = now + timedelta(days=1)
             end = now + timedelta(days=7)
-            await mocked_api.set_holiday(system, start, end)
+            setpoint = None
+            if system.control_identifier.is_vrc700:
+                setpoint = 10.0
+            await mocked_api.set_holiday(system, start, end, setpoint)
         request = list(aio.requests.values())[-1][0]
         assert request.kwargs["json"]["startDateTime"] == datetime_format(
             start, with_microseconds=True

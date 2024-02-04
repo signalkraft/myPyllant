@@ -710,6 +710,8 @@ class MyPyllantAPI:
 
         if system.control_identifier.is_vrc700:
             url = f"{await self.get_system_api_base(system.id)}/holiday"
+            if setpoint is None:
+                raise ValueError("setpoint is required on this controller")
             data["setpoint"] = setpoint  # type: ignore
         else:
             url = f"{await self.get_system_api_base(system.id)}/away-mode"
