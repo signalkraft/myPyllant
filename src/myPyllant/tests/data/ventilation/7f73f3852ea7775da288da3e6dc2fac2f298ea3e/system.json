@@ -1,18 +1,18 @@
 {
   "state": {
     "system": {
-      "outdoorTemperature": 15.3125,
-      "systemWaterPressure": 1.8,
-      "outdoorTemperatureAverage24h": 12.128906
+      "outdoorTemperature": 10.3125,
+      "systemWaterPressure": 1.7,
+      "outdoorTemperatureAverage24h": 8.011719
     },
     "zones": [
       {
         "index": 0,
-        "desiredRoomTemperatureSetpointHeating": 20.0,
+        "desiredRoomTemperatureSetpointHeating": 20.5,
         "desiredRoomTemperatureSetpointCooling": 0.0,
-        "desiredRoomTemperatureSetpoint": 20.0,
-        "currentRoomTemperature": 21.1625,
-        "currentRoomHumidity": 54.0,
+        "desiredRoomTemperatureSetpoint": 20.5,
+        "currentRoomTemperature": 20.975,
+        "currentRoomHumidity": 45.0,
         "currentSpecialFunction": "NONE",
         "heatingState": "IDLE",
         "isManualCoolingActive": false
@@ -22,7 +22,8 @@
       {
         "index": 0,
         "circuitState": "STANDBY",
-        "currentCircuitFlowTemperature": 21.0,
+        "currentCircuitFlowTemperature": 27.0,
+        "heatingCircuitFlowSetpoint": 0.0,
         "calculatedEnergyManagerState": "HEATING_STANDBY"
       }
     ],
@@ -30,19 +31,20 @@
       {
         "index": 255,
         "currentSpecialFunction": "REGULAR",
-        "currentDhwTemperature": 38.0
+        "currentDhwTemperature": 40.5
       }
     ],
     "ventilation": [
       {
-        "index": 0
+        "index": 0,
+        "currentSpecialFunction": "REGULAR"
       }
     ]
   },
   "properties": {
     "system": {
       "controllerType": "VRC720",
-      "systemScheme": 1,
+      "systemScheme": 8,
       "backupHeaterType": "CONDENSING",
       "backupHeaterAllowedFor": "DHW_AND_HEATING",
       "moduleConfigurationVR71": 3,
@@ -61,6 +63,7 @@
       {
         "index": 0,
         "mixerCircuitTypeExternal": "HEATING",
+        "heatingCircuitType": "DIRECT_HEATING_CIRCUIT",
         "isCoolingAllowed": true
       }
     ],
@@ -80,15 +83,17 @@
   "configuration": {
     "system": {
       "coolingStartTemperature": 20.0,
+      "continuousHeatingStartSetpoint": -26.0,
       "alternativePoint": -21.0,
-      "heatingCircuitBivalencePoint": -7.0,
-      "dhwBivalencePoint": -7.0,
+      "heatingCircuitBivalencePoint": -15.0,
+      "dhwBivalencePoint": -15.0,
       "automaticCoolingOnOff": false,
       "adaptiveHeatingCurve": false,
       "dhwMaximumLoadingTime": 60,
       "dhwHysteresis": 5.0,
-      "dhwFlowSetpointOffset": 25.0,
+      "dhwFlowSetpointOffset": 12.0,
       "continuousHeatingRoomSetpoint": 20.0,
+      "hybridControlStrategy": "BIVALENCE_POINT",
       "maxFlowSetpointHpError": 25.0,
       "dhwMaximumTemperature": 80.0,
       "maximumPreheatingTime": 0,
@@ -98,67 +103,27 @@
       {
         "index": 0,
         "general": {
-          "name": "Dom"
+          "name": "Dom",
+          "holidayStartDateTime": "2019-01-01T00:00:00Z",
+          "holidayEndDateTime": "2019-01-01T00:00:00Z"
         },
         "heating": {
           "operationModeHeating": "MANUAL",
-          "setBackTemperature": 18.5,
-          "manualModeSetpointHeating": 20.0,
+          "setBackTemperature": 19.5,
+          "manualModeSetpointHeating": 20.5,
           "timeProgramHeating": {
             "metaInfo": {
               "minSlotsPerDay": 0,
               "maxSlotsPerDay": 12,
               "setpointRequiredPerSlot": true
             },
-            "monday": [
-              {
-                "startTime": 360,
-                "endTime": 1320,
-                "setpoint": 21.0
-              }
-            ],
-            "tuesday": [
-              {
-                "startTime": 360,
-                "endTime": 1320,
-                "setpoint": 20.0
-              }
-            ],
-            "wednesday": [
-              {
-                "startTime": 360,
-                "endTime": 1320,
-                "setpoint": 20.0
-              }
-            ],
-            "thursday": [
-              {
-                "startTime": 360,
-                "endTime": 1320,
-                "setpoint": 20.0
-              }
-            ],
-            "friday": [
-              {
-                "startTime": 360,
-                "endTime": 1320,
-                "setpoint": 20.0
-              }
-            ],
-            "saturday": [
-              {
-                "startTime": 450,
-                "endTime": 1410,
-                "setpoint": 20.0
-              }
-            ],
-            "sunday": [
-              {
-                "startTime": 450,
-                "endTime": 1320,
-                "setpoint": 20.0
-              }
-            ]
+            "monday": [],
+            "tuesday": [],
+            "wednesday": [],
+            "thursday": [],
+            "friday": [],
+            "saturday": [],
+            "sunday": []
           }
         },
         "cooling": {
@@ -222,12 +187,13 @@
         "index": 0,
         "heatingCurve": 0.25,
         "heatingFlowTemperatureMinimumSetpoint": 22.0,
-        "heatingFlowTemperatureMaximumSetpoint": 90.0,
-        "heatDemandLimitedByOutsideTemperature": 21.0,
+        "heatingFlowTemperatureMaximumSetpoint": 45.0,
+        "heatDemandLimitedByOutsideTemperature": 19.0,
         "minimumOutsideTemperatureCooling": 4.0,
+        "heatingCircuitFlowSetpointExcessOffset": 0.0,
         "coolingFlowTemperatureMinimumSetpoint": 20.0,
         "setBackModeEnabled": true,
-        "roomTemperatureControlMode": "NON"
+        "roomTemperatureControlMode": "THERMOSTAT_FUNCTION"
       }
     ],
     "dhw": [
@@ -235,6 +201,8 @@
         "index": 255,
         "operationModeDhw": "TIME_CONTROLLED",
         "tappingSetpoint": 46.0,
+        "holidayStartDateTime": "2023-08-05T20:26:26Z",
+        "holidayEndDateTime": "2023-08-06T20:26:26Z",
         "timeProgramDhw": {
           "metaInfo": {
             "minSlotsPerDay": 0,
@@ -243,11 +211,21 @@
           },
           "monday": [],
           "tuesday": [],
-          "wednesday": [],
+          "wednesday": [
+            {
+              "startTime": 360,
+              "endTime": 400
+            }
+          ],
           "thursday": [],
           "friday": [],
           "saturday": [],
-          "sunday": []
+          "sunday": [
+            {
+              "startTime": 580,
+              "endTime": 600
+            }
+          ]
         },
         "timeProgramCirculationPump": {
           "metaInfo": {
@@ -270,6 +248,8 @@
         "index": 0,
         "maximumDayFanStage": 2,
         "maximumNightFanStage": 1,
+        "holidayStartDateTime": "2023-08-05T20:26:39Z",
+        "holidayEndDateTime": "2023-08-06T20:26:39Z",
         "operationModeVentilation": "REDUCED",
         "timeProgramVentilation": {
           "metaInfo": {

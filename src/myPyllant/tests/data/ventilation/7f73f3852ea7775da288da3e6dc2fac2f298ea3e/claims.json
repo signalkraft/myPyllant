@@ -1,8 +1,8 @@
 [
   {
-    "homeName": "3fa17dbaa88737b0e51b9116fea4943138c18f6d",
-    "serialNumber": "a20b7be0d072e81b3410a6d0dca3864707eede4f",
-    "systemId": "8fa4fe154d541e83ee01c807c0c85e29fc8c02ae",
+    "homeName": "822fbff3d4b35e72cea7c88cdcfd2f822c0b4d94",
+    "serialNumber": "0d009b664617f3765918078326053b0b1f5601d7",
+    "systemId": "c8faf7ea180882e37d7a863bb9b663e33ed71c73",
     "productMetadata": {
       "productType": "VR921",
       "productionYear": "21",
@@ -12,14 +12,14 @@
     "state": "CLAIMED",
     "migrationState": "FINISHED",
     "firmware": {
-      "version": "0357.40.30",
+      "version": "0357.40.33",
       "updateEnabled": true,
       "updateRequired": false
     },
-    "productInformation": "VR921",
     "nomenclature": "VR 921",
     "cag": false,
     "countryCode": "PL",
-    "firmwareVersion": "0357.40.30"
+    "firmwareVersion": "0357.40.33",
+    "productInformation": "VR921"
   }
 ]

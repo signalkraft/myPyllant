@@ -2,58 +2,58 @@
   "system_type": "HEATPUMP",
   "has_emf_capable_devices": true,
   "primary_heat_generator": {
-    "device_uuid": "00add06ec6fbc6458c209d2834aa61fbfc1a415a",
+    "device_uuid": "4b5f05023722b5d3e0209f0dd5766bccb85ecef8",
     "ebus_id": "HMU00",
     "spn": 304,
     "bus_coupler_address": 0,
     "article_number": "0010016691",
     "emfValid": true,
-    "device_serial_number": "3a9dd3779d72d0d6ecec4820677f026ae7ace01a",
+    "device_serial_number": "c0a7f0c7571205fedf6ed0cdf3709c074d2b96d6",
     "device_type": "HEATPUMP",
     "first_data": "2020-02-24T22:20:50Z",
-    "last_data": "2023-11-01T11:42:41Z",
+    "last_data": "2024-02-04T13:10:26Z",
     "data": [
       {
         "operation_mode": "DOMESTIC_HOT_WATER",
         "value_type": "CONSUMED_ELECTRICAL_ENERGY",
         "calculated": false,
         "from": "2020-02-24T22:20:50Z",
-        "to": "2023-11-01T11:42:39Z"
+        "to": "2024-02-04T13:10:23Z"
       },
       {
         "operation_mode": "HEATING",
         "value_type": "CONSUMED_ELECTRICAL_ENERGY",
         "calculated": false,
         "from": "2023-07-31T07:32:52Z",
-        "to": "2023-11-01T11:42:39Z"
+        "to": "2024-02-04T13:10:23Z"
       },
       {
         "operation_mode": "DOMESTIC_HOT_WATER",
         "value_type": "EARNED_ENVIRONMENT_ENERGY",
         "calculated": false,
         "from": "2020-02-24T22:20:50Z",
-        "to": "2023-11-01T11:42:39Z"
+        "to": "2024-02-04T13:10:24Z"
       },
       {
         "operation_mode": "HEATING",
         "value_type": "EARNED_ENVIRONMENT_ENERGY",
         "calculated": false,
         "from": "2023-07-31T07:32:52Z",
-        "to": "2023-11-01T11:42:39Z"
+        "to": "2024-02-04T13:10:24Z"
       },
       {
         "operation_mode": "HEATING",
         "value_type": "HEAT_GENERATED",
         "calculated": true,
         "from": "2023-07-31T07:32:52Z",
-        "to": "2023-11-01T11:42:39Z"
+        "to": "2024-02-04T13:10:23Z"
       },
       {
         "operation_mode": "DOMESTIC_HOT_WATER",
         "value_type": "HEAT_GENERATED",
         "calculated": true,
         "from": "2020-02-24T22:20:50Z",
-        "to": "2023-11-01T11:42:39Z"
+        "to": "2024-02-04T13:10:23Z"
       }
     ],
     "product_name": "flexoCOMPACT exclusive"
@@ -62,23 +62,23 @@
   "electric_backup_heater": null,
   "solar_station": null,
   "ventilation": {
-    "device_uuid": "5269841be97279b27ecba08cd627861159ef0d5a",
+    "device_uuid": "7f7aee99dd743b15b5b6396d4bd6e5d679245821",
     "ebus_id": "recoV",
     "spn": 302,
     "bus_coupler_address": 24,
     "article_number": "0010016045",
     "emfValid": false,
-    "device_serial_number": "e9342fab11617333abc65407156af05992c12f2d",
+    "device_serial_number": "9306f73d00bbbb660baddee98f76d5c994c1b938",
     "device_type": "VENTILATION",
     "first_data": "2023-09-08T05:26:43Z",
-    "last_data": "2023-11-01T11:42:44Z",
+    "last_data": "2024-02-04T13:10:29Z",
     "data": [
       {
         "operation_mode": "HEATING",
         "value_type": "CONSUMED_ELECTRICAL_ENERGY",
         "calculated": false,
         "from": "2023-09-08T05:26:43Z",
-        "to": "2023-11-01T11:42:44Z"
+        "to": "2024-02-04T13:10:29Z"
       }
     ],
     "product_name": "VAR 360/4"
