@@ -143,7 +143,6 @@
         "heatingFlowTemperatureMaximumSetpoint": 33.0,
         "heatDemandLimitedByOutsideTemperature": 21.0,
         "heatingCircuitFlowSetpointExcessOffset": 0.0,
-        "setBackModeEnabled": true,
         "roomTemperatureControlMode": "THERMOSTAT_FUNCTION"
       }
     ]

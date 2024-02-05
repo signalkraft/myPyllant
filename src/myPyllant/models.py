@@ -423,7 +423,7 @@ class Circuit(MyPyllantDataClass):
     index: int
     circuit_state: CircuitState
     mixer_circuit_type_external: str
-    set_back_mode_enabled: bool
+    set_back_mode_enabled: bool | None = None
     zones: list = field(default_factory=list)
     is_cooling_allowed: bool | None = None
     current_circuit_flow_temperature: float | None = None
