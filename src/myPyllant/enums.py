@@ -96,6 +96,7 @@ class DHWOperationMode(MyPyllantEnum):
 
 class DHWOperationModeVRC700(MyPyllantEnum):
     MANUAL = "MANUAL"
+    DAY = "DAY"
     AUTO = "AUTO"
     OFF = "OFF"
 
