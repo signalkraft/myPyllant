@@ -1,0 +1,66 @@
+{
+  "system_type": "BOILER_OR_ELECTRIC_HEATER",
+  "has_emf_capable_devices": true,
+  "primary_heat_generator": {
+    "device_uuid": "b4cfb9492d67a3e8d653d125263127679aaa5011",
+    "ebus_id": "BAI00",
+    "spn": 376,
+    "bus_coupler_address": 0,
+    "article_number": "0010043962",
+    "emfValid": true,
+    "device_serial_number": "d79c1cddd3d4a7ab2fce8aee1ce1b3d99ac03177",
+    "device_type": "BOILER",
+    "first_data": "2023-12-22T15:55:03Z",
+    "last_data": "2024-02-06T13:53:17Z",
+    "data": [
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2023-12-22T15:55:03Z",
+        "to": "2024-02-06T13:53:16Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2023-12-22T15:55:03Z",
+        "to": "2024-02-06T13:53:16Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_PRIMARY_ENERGY",
+        "calculated": false,
+        "from": "2023-12-22T15:55:03Z",
+        "to": "2024-02-06T13:53:15Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_PRIMARY_ENERGY",
+        "calculated": false,
+        "from": "2023-12-22T15:55:03Z",
+        "to": "2024-02-06T13:53:15Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2023-12-22T15:55:05Z",
+        "to": "2024-02-06T13:53:17Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2023-12-22T15:55:05Z",
+        "to": "2024-02-06T13:53:17Z"
+      }
+    ],
+    "product_name": "VU 20CS/1-5 (N-INT2) ecoTEC plus"
+  },
+  "secondary_heat_generators": [],
+  "electric_backup_heater": null,
+  "solar_station": null,
+  "ventilation": null,
+  "gateway": null
+}
