@@ -1,0 +1,25 @@
+[
+  {
+    "homeName": "822912cd1ac229e131bc7f00f7b6eaff8705cdf8",
+    "serialNumber": "a6f12624106bea630e2a7c93a3601db64ea6c572",
+    "systemId": "ab2f4a951a7e71431585d56871d447d4ba8be78d",
+    "productMetadata": {
+      "productType": "VR940F",
+      "productionYear": "23",
+      "productionWeek": "20",
+      "articleNumber": "0020292012"
+    },
+    "state": "CLAIMED",
+    "migrationState": null,
+    "firmware": {
+      "version": "0404.01.17",
+      "updateEnabled": true,
+      "updateRequired": false
+    },
+    "nomenclature": "VR 940f",
+    "cag": true,
+    "countryCode": "CZ",
+    "productInformation": "VR940F",
+    "firmwareVersion": "0404.01.17"
+  }
+]
