@@ -301,7 +301,7 @@ class ZoneHeating(MyPyllantDataClass):
 @dataclass
 class ZoneCooling(MyPyllantDataClass):
     setpoint_cooling: float
-    manual_mode_setpoint_cooling: float
+    manual_mode_setpoint_cooling: float | None
     operation_mode_cooling: str  # TODO: Need all values
     time_program_cooling: ZoneTimeProgram
 

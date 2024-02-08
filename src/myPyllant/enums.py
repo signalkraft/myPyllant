@@ -55,7 +55,7 @@ class ZoneHeatingOperatingMode(MyPyllantEnum):
 class ZoneHeatingOperatingModeVRC700(MyPyllantEnum):
     DAY = "DAY"
     AUTO = "AUTO"
-    SETBACK = "SETBACK"
+    SET_BACK = "SET_BACK"
     OFF = "OFF"
 
 

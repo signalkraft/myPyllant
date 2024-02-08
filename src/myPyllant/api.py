@@ -364,6 +364,9 @@ class MyPyllantAPI:
         homes = self.get_homes()
         async for home in homes:
             control_identifier = await self.get_control_identifier(home.system_id)
+            if control_identifier.is_vrc700 and include_rts:
+                include_rts = False
+                logger.debug("RTS is not supported on VRC700 controllers")
             system_url = await self.get_system_api_base(home.system_id)
             current_system_url = (
                 f"{await self.get_api_base()}/emf/v2/{home.system_id}/currentSystem"
