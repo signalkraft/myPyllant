@@ -335,6 +335,12 @@ class MyPyllantAPI:
             f"{await self.get_api_base()}/homes", headers=self.get_authorized_headers()
         ) as homes_resp:
             for home_json in dict_to_snake_case(await homes_resp.json()):
+                if "system_id" not in home_json or not home_json["system_id"]:
+                    logger.warning(
+                        "Skipping home because system_id is missing or empty: %s",
+                        home_json,
+                    )
+                    continue
                 timezone = await self.get_time_zone(home_json["system_id"])
                 yield Home.from_api(timezone=timezone, **home_json)
 
