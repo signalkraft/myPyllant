@@ -213,12 +213,13 @@ def _mypyllant_aioresponses():
                     repeat=True,
                 )
                 system_ids = [h["systemId"] for h in self.test_data["homes"]]
-                # Handle URLs that contain a system ID
-                self.get(
-                    re.compile(rf".*({'|'.join(system_ids)}).*"),
-                    callback=test_data_by_system,
-                    repeat=True,
-                )
+                if any(system_ids):
+                    # Handle URLs that contain a system ID
+                    self.get(
+                        re.compile(rf".*({'|'.join(system_ids)}).*"),
+                        callback=test_data_by_system,
+                        repeat=True,
+                    )
             self.get(
                 re.compile(r".*"),
                 callback=unmatched_url,

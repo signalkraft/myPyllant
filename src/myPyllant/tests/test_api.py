@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta, tzinfo, timezone
 
 import pytest
@@ -310,3 +311,41 @@ async def test_vrc700_holiday(mypyllant_aioresponses, mocked_api: MyPyllantAPI) 
         assert request.kwargs["json"]["setpoint"] == 10.0
 
         await mocked_api.aiohttp_session.close()
+
+
+async def test_home_without_system(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, caplog
+) -> None:
+    test_data = {
+        "homes": [
+            {
+                "homeName": "42f9e5b2390e8d5647494720044a7d20a3f2ee70",
+                "serialNumber": "e78edc21e57ac18f264334da843589f8330deb0e",
+                "systemId": None,
+                "productMetadata": {
+                    "productType": "VR921",
+                    "productionYear": "22",
+                    "productionWeek": "07",
+                    "articleNumber": "0020260965",
+                },
+                "state": "CLAIMED",
+                "migrationState": "FINISHED",
+                "firmware": {
+                    "version": "0357.40.33",
+                    "updateEnabled": True,
+                    "updateRequired": False,
+                },
+                "nomenclature": "VR 921",
+                "cag": False,
+                "countryCode": "BE",
+                "productInformation": "VR921",
+                "firmwareVersion": "0357.40.33",
+            }
+        ]
+    }
+    with mypyllant_aioresponses(test_data) as _:
+        with caplog.at_level(logging.WARNING):
+            async for _ in mocked_api.get_systems():
+                raise AssertionError("Expected no system")
+    assert "Skipping home because system_id is missing or empty" in caplog.text
+    await mocked_api.aiohttp_session.close()
