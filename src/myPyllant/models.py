@@ -474,6 +474,13 @@ class DomesticHotWater(MyPyllantDataClass):
     current_dhw_temperature: float | None = None
     tapping_setpoint: float | None = None
 
+    @property
+    def is_cylinder_boosting(self) -> bool:
+        return self.current_special_function in [
+            DHWCurrentSpecialFunction.CYLINDER_BOOST,
+            DHWCurrentSpecialFunctionVRC700.CYLINDER_BOOST,
+        ]
+
     @classmethod
     def from_api(cls, **kwargs):
         kwargs["time_program_dhw"] = DHWTimeProgram.from_api(
