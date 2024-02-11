@@ -414,7 +414,18 @@ class Zone(MyPyllantDataClass):
 
     @property
     def is_eco_mode(self) -> bool:
-        return self.desired_room_temperature_setpoint == 0.0
+        return (
+            self.is_auto_heating_mode
+            and self.current_special_function == ZoneCurrentSpecialFunction.NONE
+            and self.desired_room_temperature_setpoint == 0.0
+        )
+
+    @property
+    def is_auto_heating_mode(self) -> bool:
+        return self.heating.operation_mode_heating in [
+            ZoneHeatingOperatingMode.TIME_CONTROLLED,
+            ZoneHeatingOperatingModeVRC700.AUTO,
+        ]
 
 
 @dataclass
