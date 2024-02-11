@@ -448,7 +448,7 @@ class MyPyllantAPI:
                 "endDate": end_date,
             }
             device_buckets_url = (
-                f"{await self.get_api_base(device.system_id)}/emf/v2/{device.system_id}/"
+                f"{await self.get_api_base()}/emf/v2/{device.system_id}/"
                 f"devices/{device.device_uuid}/buckets?{urlencode(querystring)}"
             )
             async with self.aiohttp_session.get(
