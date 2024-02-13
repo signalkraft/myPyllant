@@ -85,6 +85,7 @@ class DHWCurrentSpecialFunction(MyPyllantEnum):
 
 class DHWCurrentSpecialFunctionVRC700(MyPyllantEnum):
     CYLINDER_BOOST = "CYLINDER_BOOST"
+    HOLIDAY = "HOLIDAY"
     NONE = "NONE"
 
 
