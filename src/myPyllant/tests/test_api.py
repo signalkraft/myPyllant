@@ -4,7 +4,8 @@ from datetime import datetime, timedelta, tzinfo, timezone
 import pytest
 from freezegun import freeze_time
 
-from ..api import MyPyllantAPI, RealmInvalid
+from ..api import MyPyllantAPI
+from ..http_client import RealmInvalid
 from ..models import (
     Device,
     DeviceData,

@@ -1,0 +1,66 @@
+{
+  "system_type": "HEATPUMP",
+  "has_emf_capable_devices": true,
+  "primary_heat_generator": {
+    "device_uuid": "84ae1bb31a7bc0ae93e524934b45c62a96175b32",
+    "ebus_id": "HMU00",
+    "spn": 304,
+    "bus_coupler_address": 0,
+    "article_number": "0010016422",
+    "emfValid": true,
+    "device_serial_number": "f6ecb1a5dfa6106eb7f5bde2fefd679e60a35aa8",
+    "device_type": "HEATPUMP",
+    "first_data": "2020-08-11T00:00:00Z",
+    "last_data": "2024-02-12T10:57:00Z",
+    "data": [
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2020-08-11T00:00:00Z",
+        "to": "2024-02-12T10:56:57Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2020-08-11T00:00:00Z",
+        "to": "2024-02-12T10:56:57Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2020-08-11T00:00:00Z",
+        "to": "2024-02-12T10:56:59Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2020-08-11T00:00:00Z",
+        "to": "2024-02-12T10:56:58Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "HEAT_GENERATED",
+        "calculated": true,
+        "from": "2020-08-11T00:00:00Z",
+        "to": "2024-02-12T10:56:57Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "HEAT_GENERATED",
+        "calculated": true,
+        "from": "2020-08-11T00:00:00Z",
+        "to": "2024-02-12T10:56:57Z"
+      }
+    ],
+    "product_name": "flexoTHERM exclusive"
+  },
+  "secondary_heat_generators": [],
+  "electric_backup_heater": null,
+  "solar_station": null,
+  "ventilation": null,
+  "gateway": null
+}

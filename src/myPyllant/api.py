@@ -10,7 +10,7 @@ from html import unescape
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
-from aiohttp import ClientResponseError, ClientResponse
+from aiohttp import ClientResponseError
 from dateutil.tz import gettz
 
 from myPyllant.const import (
@@ -36,6 +36,12 @@ from myPyllant.enums import (
     VentilationFanStageType,
     DHWOperationModeVRC700,
 )
+from myPyllant.http_client import (
+    AuthenticationFailed,
+    LoginEndpointInvalid,
+    RealmInvalid,
+    get_http_client,
+)
 from myPyllant.models import (
     Device,
     DeviceData,
@@ -58,48 +64,6 @@ from myPyllant.utils import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-class AuthenticationFailed(ConnectionError):
-    pass
-
-
-class LoginEndpointInvalid(ConnectionError):
-    pass
-
-
-class RealmInvalid(ConnectionError):
-    pass
-
-
-async def on_request_start(session, context, params: aiohttp.TraceRequestStartParams):
-    """
-    See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_start
-    """
-    logger.debug("Starting request %s", params)
-
-
-async def on_request_end(session, context, params: aiohttp.TraceRequestEndParams):
-    """
-    See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_end
-    and https://docs.python.org/3/howto/logging.html#optimization
-    """
-    if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Got response %s", await params.response.text())
-
-
-async def on_raise_for_status(response: ClientResponse):
-    """
-    Add the response text to the exception message of a 400 response
-    """
-    if response.status == 400:
-        text = await response.text()
-        try:
-            response.raise_for_status()
-        except ClientResponseError as e:
-            e.message = f"{e.message}, response was: {text}"
-            raise e
-    response.raise_for_status()
 
 
 def get_system_id(system: System | str) -> str:
@@ -151,15 +115,8 @@ class MyPyllantAPI:
         self.password = password
         self.country = country
         self.brand = brand
-        trace_config = aiohttp.TraceConfig()
-        trace_config.on_request_start.append(on_request_start)
-        trace_config.on_request_end.append(on_request_end)
 
-        self.aiohttp_session = aiohttp.ClientSession(
-            cookie_jar=aiohttp.CookieJar(),
-            raise_for_status=on_raise_for_status,  # type: ignore
-            trace_configs=[trace_config],
-        )
+        self.aiohttp_session = get_http_client()
 
     async def __aenter__(self) -> MyPyllantAPI:
         try:
@@ -356,9 +313,9 @@ class MyPyllantAPI:
 
         Parameters:
             include_connection_status: Fetches connection status for each system
-            include_diagnostic_trouble_codes: Fetches diagnostic trouble codes for each system
-            include_rts: Fetches RTS data for each system
-            include_mpc: Fetches MPC data for each system
+            include_diagnostic_trouble_codes: Fetches diagnostic trouble codes for each system and device
+            include_rts: Fetches RTS data for each system, only supported on TLI controllers
+            include_mpc: Fetches MPC data for each system, only supported on TLI controllers
 
         Returns:
             An Async Iterator with all the `System` objects
@@ -370,9 +327,17 @@ class MyPyllantAPI:
         homes = self.get_homes()
         async for home in homes:
             control_identifier = await self.get_control_identifier(home.system_id)
-            if control_identifier.is_vrc700 and include_rts:
-                include_rts = False
-                logger.debug("RTS is not supported on VRC700 controllers")
+            if control_identifier.is_vrc700:
+                if include_rts:
+                    include_rts = False
+                    logger.info(
+                        "Fetching RTS data is not supported on VRC700 controllers"
+                    )
+                if include_mpc:
+                    include_mpc = False
+                    logger.info(
+                        "Fetching MPC data is not supported on VRC700 controllers"
+                    )
             system_url = await self.get_system_api_base(home.system_id)
             current_system_url = (
                 f"{await self.get_api_base()}/emf/v2/{home.system_id}/currentSystem"
@@ -505,9 +470,7 @@ class MyPyllantAPI:
 
         return await self.aiohttp_session.patch(
             url,
-            json={
-                key: str(mode),
-            },
+            json={key: str(mode)},
             headers=self.get_authorized_headers(),
         )
 
@@ -577,9 +540,7 @@ class MyPyllantAPI:
 
         return await self.aiohttp_session.patch(
             url,
-            json={
-                "duration": duration_hours,
-            },
+            json={"duration": duration_hours},
             headers=self.get_authorized_headers(),
         )
 
@@ -823,9 +784,7 @@ class MyPyllantAPI:
         )
         return await self.aiohttp_session.patch(
             url,
-            json={
-                "operationMode": str(mode),
-            },
+            json={"operationMode": str(mode)},
             headers=self.get_authorized_headers(),
         )
 
