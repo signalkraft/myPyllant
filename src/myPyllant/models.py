@@ -390,6 +390,13 @@ class Zone(MyPyllantDataClass):
         )
         return super().from_api(**kwargs)
 
+    def get_associated_circuit(self, system: System):
+        if self.associated_circuit_index in [c.index for c in system.circuits]:
+            return next(
+                c for c in system.circuits if c.index == self.associated_circuit_index
+            )
+        return None
+
     @property
     def name(self):
         return self.general.name
