@@ -23,6 +23,7 @@ from myPyllant.const import (
     DEFAULT_QUICK_VETO_DURATION,
     LOGIN_URL,
     TOKEN_URL,
+    ZONE_OPERATING_TYPES,
 )
 from myPyllant.enums import (
     ControlIdentifier,
@@ -73,18 +74,48 @@ def get_system_id(system: System | str) -> str:
         return system
 
 
-def get_api_base(control_identifier: ControlIdentifier | str | None = None) -> str:
+def get_api_base(
+    control_identifier: ControlIdentifier | str | None = None, systems: bool = False
+) -> str:
+    """
+    Get the base URL for the API, depending on control identifier (TLI or VRC700)
+    and whether we want to get a list of systems (different for VRC700)
+
+    Args:
+        control_identifier: ControlIdentifier or str
+        systems: Whether to get a list of systems, or a nested API under systems (such as zones)
+
+    Returns: API base URL, without trailing slash
+
+    """
     key = str(control_identifier) if control_identifier else DEFAULT_CONTROL_IDENTIFIER
-    return API_URL_BASE[key]
+    if systems:
+        return API_URL_BASE[key]
+    else:
+        return API_URL_BASE[str(ControlIdentifier.TLI)]
 
 
 def get_system_api_base(
-    system: str | System, control_identifier: ControlIdentifier | str
+    system: str | System,
+    control_identifier: ControlIdentifier | str,
+    systems: bool = False,
 ) -> str:
+    """
+    Get the base URL for a system, depending on control identifier (TLI or VRC700)
+    and whether we want to get a list of systems (different for VRC700)
+
+    Args:
+        system: System or system_id string
+        control_identifier: ControlIdentifier or str
+        systems: Whether to get a list of systems, or a nested API under systems (such as zones)
+
+    Returns: API base URL for a system, without trailing slash
+
+    """
     suffix = ""
     if ControlIdentifier(control_identifier) == ControlIdentifier.TLI:
         suffix = "/tli"
-    return f"{get_api_base(control_identifier)}/systems/{get_system_id(system)}{suffix}"
+    return f"{get_api_base(control_identifier, systems)}/systems/{get_system_id(system)}{suffix}"
 
 
 class MyPyllantAPI:
@@ -264,22 +295,24 @@ class MyPyllantAPI:
         self,
         system: str | System | None = None,
         control_identifier: ControlIdentifier | str | None = None,
+        systems: bool = False,
     ) -> str:
         if system and not control_identifier:
             control_identifier = await self.get_control_identifier(system)
-        return get_api_base(control_identifier)
+        return get_api_base(control_identifier, systems)
 
     async def get_system_api_base(
         self,
         system: str | System,
         control_identifier: ControlIdentifier | str | None = None,
+        systems: bool = False,
     ) -> str:
         if not control_identifier:
             control_identifier = await self.get_control_identifier(system)
         suffix = ""
         if control_identifier == ControlIdentifier.TLI:
             suffix = "/tli"
-        return f"{await self.get_api_base(system, control_identifier)}/systems/{get_system_id(system)}{suffix}"
+        return f"{await self.get_api_base(system, control_identifier, systems)}/systems/{get_system_id(system)}{suffix}"
 
     async def get_homes(self) -> AsyncIterator[Home]:
         """
@@ -338,7 +371,7 @@ class MyPyllantAPI:
                     logger.info(
                         "Fetching MPC data is not supported on VRC700 controllers"
                     )
-            system_url = await self.get_system_api_base(home.system_id)
+            system_url = await self.get_system_api_base(home.system_id, systems=True)
             current_system_url = (
                 f"{await self.get_api_base()}/emf/v2/{home.system_id}/currentSystem"
             )
@@ -446,21 +479,31 @@ class MyPyllantAPI:
             for report in dict_to_snake_case(reports_json):
                 yield SystemReport.from_api(**report)
 
-    async def set_zone_heating_operating_mode(
+    async def set_zone_operating_mode(
         self,
         zone: Zone,
         mode: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700,
+        operating_type: str = "heating",
     ):
         """
-        Sets the heating operating mode for a zone
+        Sets the operating mode for a zone
+
+        Parameters:
+            zone: The target zone
+            mode: The target operating mode
+            operating_type: Either heating or cooling
         """
+        if operating_type not in ZONE_OPERATING_TYPES:
+            raise ValueError(
+                f"Invalid HVAC mode, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+            )
         if zone.control_identifier.is_vrc700:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/operation-mode"
             key = "operationMode"
             mode_enum = ZoneHeatingOperatingModeVRC700  # type: ignore
         else:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating-operation-mode"
-            key = "heatingOperationMode"
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/{operating_type}-operation-mode"
+            key = f"{operating_type}OperationMode"
             mode_enum = ZoneHeatingOperatingMode  # type: ignore
 
         if mode not in mode_enum:
@@ -480,6 +523,7 @@ class MyPyllantAPI:
         temperature: float,
         duration_hours: float | None = None,
         default_duration: float | None = None,
+        veto_type: str = "heating",
     ):
         """
         Temporarily overwrites the desired temperature in a zone
@@ -489,11 +533,16 @@ class MyPyllantAPI:
             temperature: The target temperature
             duration_hours: Optional, sets overwrite for this many hours
             default_duration: Optional, falls back to this default duration if duration_hours is not given
+            veto_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if not default_duration:
             default_duration = DEFAULT_QUICK_VETO_DURATION
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/quick-veto"
+            if veto_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{veto_type}/quick-veto"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
@@ -525,6 +574,7 @@ class MyPyllantAPI:
         self,
         zone: Zone,
         duration_hours: float,
+        veto_type: str = "heating",
     ):
         """
         Updates the quick veto duration
@@ -532,9 +582,14 @@ class MyPyllantAPI:
         Parameters:
             zone: The target zone
             duration_hours: Updates quick veto duration (in hours)
+            veto_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/quick-veto"
+            if veto_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{veto_type}/quick-veto"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
@@ -588,15 +643,22 @@ class MyPyllantAPI:
             headers=self.get_authorized_headers(),
         )
 
-    async def cancel_quick_veto_zone_temperature(self, zone: Zone):
+    async def cancel_quick_veto_zone_temperature(
+        self, zone: Zone, veto_type: str = "heating"
+    ):
         """
         Cancels a previously set quick veto in a zone
 
         Parameters:
             zone: The target zone
+            veto_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/quick-veto"
+            if veto_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{veto_type}/quick-veto"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
@@ -604,16 +666,23 @@ class MyPyllantAPI:
             url, headers=self.get_authorized_headers()
         )
 
-    async def set_set_back_temperature(self, zone: Zone, temperature: float):
+    async def set_set_back_temperature(
+        self, zone: Zone, temperature: float, setback_type: str = "heating"
+    ):
         """
         Sets the temperature that a zone gets lowered to in away mode
 
         Parameters:
             zone: The target zone
             temperature: The setback temperature
+            setback_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/set-back-temperature"
+            if setback_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid setback type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setback_type}/set-back-temperature"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/set-back-temperature"
         return await self.aiohttp_session.patch(
@@ -623,7 +692,11 @@ class MyPyllantAPI:
         )
 
     async def set_zone_time_program(
-        self, zone: Zone, program_type: str, time_program: ZoneTimeProgram
+        self,
+        zone: Zone,
+        program_type: str,
+        time_program: ZoneTimeProgram,
+        setback_type: str = "heating",
     ):
         """
         Sets the temperature that a zone gets lowered to in away mode
@@ -632,13 +705,18 @@ class MyPyllantAPI:
             zone: The target zone
             program_type: Which program to set
             time_program: The time schedule
+            setback_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if program_type not in ZoneTimeProgramType:
             raise ValueError(
                 "Type must be either heating or cooling, not %s", program_type
             )
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/time-windows"
+            if setback_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setback_type}/time-windows"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/time-windows"
         data = asdict(time_program)

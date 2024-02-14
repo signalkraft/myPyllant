@@ -281,7 +281,7 @@ async def test_vrc700_operating_mode(
             ZoneHeatingOperatingModeVRC700,
         )
 
-        await mocked_api.set_zone_heating_operating_mode(
+        await mocked_api.set_zone_operating_mode(
             system.zones[0], ZoneHeatingOperatingModeVRC700.AUTO
         )
         request = list(aio.requests.values())[-1][0]
@@ -290,7 +290,7 @@ async def test_vrc700_operating_mode(
         assert request.kwargs["json"]["operationMode"] == "AUTO"
 
         with pytest.raises(ValueError):
-            await mocked_api.set_zone_heating_operating_mode(
+            await mocked_api.set_zone_operating_mode(
                 system.zones[0], ZoneHeatingOperatingMode.MANUAL
             )
         await mocked_api.aiohttp_session.close()
