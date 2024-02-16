@@ -67,8 +67,10 @@ COUNTRIES = {
     },
 }
 ALL_COUNTRIES = {c: n for d in COUNTRIES.values() for c, n in d.items()}
-ZONE_OPERATING_TYPES = {"heating", "cooling"}
-ZONE_MANUAL_SETPOINT_TYPES = {v.upper(): v.title() for v in ZONE_OPERATING_TYPES}
+MANUAL_SETPOINT_TYPES = {
+    "HEATING": "Heating",
+    "COOLING": "Cooling",
+}
 DEFAULT_HOLIDAY_DURATION = 365  # in days
 DEFAULT_MANUAL_SETPOINT_TYPE = "HEATING"
 DEFAULT_QUICK_VETO_DURATION = 3.0  # in hours

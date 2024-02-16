@@ -55,7 +55,7 @@ async def main(user, password, brand, country):
                         )
                     )
                 print(
-                    await api.set_zone_operating_mode(
+                    await api.set_zone_heating_operating_mode(
                         zone, zone.heating.operation_mode_heating
                     )
                 )
