@@ -7,6 +7,7 @@ import re
 from collections.abc import AsyncIterator
 from dataclasses import asdict
 from html import unescape
+from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
@@ -74,48 +75,18 @@ def get_system_id(system: System | str) -> str:
         return system
 
 
-def get_api_base(
-    control_identifier: ControlIdentifier | str | None = None, systems: bool = False
-) -> str:
-    """
-    Get the base URL for the API, depending on control identifier (TLI or VRC700)
-    and whether we want to get a list of systems (different for VRC700)
-
-    Args:
-        control_identifier: ControlIdentifier or str
-        systems: Whether to get a list of systems, or a nested API under systems (such as zones)
-
-    Returns: API base URL, without trailing slash
-
-    """
+def get_api_base(control_identifier: ControlIdentifier | str | None = None) -> str:
     key = str(control_identifier) if control_identifier else DEFAULT_CONTROL_IDENTIFIER
-    if systems:
-        return API_URL_BASE[key]
-    else:
-        return API_URL_BASE[str(ControlIdentifier.TLI)]
+    return API_URL_BASE[key]
 
 
 def get_system_api_base(
-    system: str | System,
-    control_identifier: ControlIdentifier | str,
-    systems: bool = False,
+    system: str | System, control_identifier: ControlIdentifier | str
 ) -> str:
-    """
-    Get the base URL for a system, depending on control identifier (TLI or VRC700)
-    and whether we want to get a list of systems (different for VRC700)
-
-    Args:
-        system: System or system_id string
-        control_identifier: ControlIdentifier or str
-        systems: Whether to get a list of systems, or a nested API under systems (such as zones)
-
-    Returns: API base URL for a system, without trailing slash
-
-    """
     suffix = ""
     if ControlIdentifier(control_identifier) == ControlIdentifier.TLI:
         suffix = "/tli"
-    return f"{get_api_base(control_identifier, systems)}/systems/{get_system_id(system)}{suffix}"
+    return f"{get_api_base(control_identifier)}/systems/{get_system_id(system)}{suffix}"
 
 
 class MyPyllantAPI:
@@ -295,24 +266,19 @@ class MyPyllantAPI:
         self,
         system: str | System | None = None,
         control_identifier: ControlIdentifier | str | None = None,
-        systems: bool = False,
     ) -> str:
         if system and not control_identifier:
             control_identifier = await self.get_control_identifier(system)
-        return get_api_base(control_identifier, systems)
+        return get_api_base(control_identifier)
 
     async def get_system_api_base(
         self,
         system: str | System,
         control_identifier: ControlIdentifier | str | None = None,
-        systems: bool = False,
     ) -> str:
         if not control_identifier:
             control_identifier = await self.get_control_identifier(system)
-        suffix = ""
-        if control_identifier == ControlIdentifier.TLI:
-            suffix = "/tli"
-        return f"{await self.get_api_base(system, control_identifier, systems)}/systems/{get_system_id(system)}{suffix}"
+        return get_system_api_base(system, control_identifier)
 
     async def get_homes(self) -> AsyncIterator[Home]:
         """
@@ -371,7 +337,7 @@ class MyPyllantAPI:
                     logger.info(
                         "Fetching MPC data is not supported on VRC700 controllers"
                     )
-            system_url = await self.get_system_api_base(home.system_id, systems=True)
+            system_url = await self.get_system_api_base(home.system_id)
             current_system_url = (
                 f"{await self.get_api_base()}/emf/v2/{home.system_id}/currentSystem"
             )
@@ -498,7 +464,7 @@ class MyPyllantAPI:
                 f"Invalid HVAC mode, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
             )
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/operation-mode"
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/operation-mode"
             key = "operationMode"
             mode_enum = ZoneHeatingOperatingModeVRC700  # type: ignore
         else:
@@ -621,7 +587,7 @@ class MyPyllantAPI:
         self,
         zone: Zone,
         temperature: float,
-        setpoint_type: str = "HEATING",
+        setpoint_type: str = "heating",
     ):
         """
         Sets the desired temperature when in manual mode
@@ -629,14 +595,22 @@ class MyPyllantAPI:
         Parameters:
             zone: The target zone
             temperature: The target temperature
-            setpoint_type: Either HEATING or COOLING
+            setpoint_type: Either heating or cooling
         """
         logger.debug("Setting manual mode setpoint for %s", zone.name)
-        url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/manual-mode-setpoint"
-        payload = {
+        if setpoint_type.lower() not in ZONE_OPERATING_TYPES:
+            raise ValueError(
+                f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+            )
+        payload: dict[str, Any] = {
             "setpoint": temperature,
-            "type": setpoint_type,
         }
+        if zone.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setpoint_type.lower()}/manual-mode-setpoint"
+
+        else:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/manual-mode-setpoint"
+            payload["type"] = setpoint_type.upper()
         return await self.aiohttp_session.patch(
             url,
             json=payload,
