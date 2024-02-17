@@ -2,6 +2,7 @@ import pytest
 from dacite import WrongTypeError
 
 from myPyllant.api import MyPyllantAPI
+from .generate_test_data import DATA_DIR
 
 from ..models import (
     Home,
@@ -11,7 +12,7 @@ from ..models import (
     Device,
 )
 from ..enums import ZoneHeatingOperatingMode, ControlIdentifier
-from .utils import list_test_data
+from .utils import list_test_data, load_test_data
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
@@ -51,12 +52,13 @@ async def test_trouble_codes(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        if "diagnostic_trouble_codes" not in test_data:
-            pytest.skip("No diagnostic trouble codes in test data, skipping")
         system = await anext(
             mocked_api.get_systems(include_diagnostic_trouble_codes=True)
         )
         assert isinstance(system.diagnostic_trouble_codes, list)
+        if not system.diagnostic_trouble_codes:
+            await mocked_api.aiohttp_session.close()
+            pytest.skip("No diagnostic trouble codes in test data, skipping")
         dtc = system.diagnostic_trouble_codes[0]
         assert isinstance(dtc, dict)
         assert isinstance(dtc["codes"], list)
@@ -69,13 +71,9 @@ async def test_trouble_codes(
         await mocked_api.aiohttp_session.close()
 
 
-@pytest.mark.parametrize("test_data", list_test_data())
-async def test_ventilation(
-    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
-) -> None:
+async def test_ventilation(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
+    test_data = load_test_data(DATA_DIR / "ventilation")
     with mypyllant_aioresponses(test_data) as _:
-        if "ventilation" not in test_data:
-            pytest.skip("No ventilation devices in test data, skipping")
         system = await anext(mocked_api.get_systems())
         assert isinstance(system.ventilation, list)
         devices = [d for d in system.devices if d.type == "ventilation"]
@@ -107,14 +105,9 @@ async def test_time_program_overlap() -> None:
         time_program.check_overlap()
 
 
-@pytest.mark.parametrize("test_data", list_test_data())
-async def test_rts_statistics(
-    mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
-) -> None:
+async def test_rts_statistics(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
+    test_data = load_test_data(DATA_DIR / "rts")
     with mypyllant_aioresponses(test_data) as _:
-        if "on_off_cycles" not in str(test_data):
-            await mocked_api.aiohttp_session.close()
-            pytest.skip("No RTS statistics in test data, skipping")
         system = await anext(mocked_api.get_systems(include_rts=True))
         assert len(system.rts.get("statistics", [])) > 0
         rts_device_id = system.rts["statistics"][0]["device_id"]
@@ -122,3 +115,15 @@ async def test_rts_statistics(
         assert isinstance(d.on_off_cycles, int)
         assert isinstance(d.operation_time, int)
         await mocked_api.aiohttp_session.close()
+
+
+async def test_extra_system_state_properties(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "two_systems")
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(mocked_api.get_systems())
+        assert system.cylinder_temperature_sensor_top_ch is not None
+        assert system.cylinder_temperature_sensor_top_dhw is not None
+        assert system.cylinder_temperature_sensor_bottom_dhw is not None
+    await mocked_api.aiohttp_session.close()
