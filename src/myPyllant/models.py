@@ -677,7 +677,7 @@ class System(MyPyllantDataClass):
         try:
             return self.state["system"]["outdoor_temperature"]
         except KeyError:
-            logger.info(
+            logger.debug(
                 "Could not get outdoor temperature from system control state",
             )
             return None
@@ -687,7 +687,47 @@ class System(MyPyllantDataClass):
         try:
             return self.state["system"]["system_water_pressure"]
         except KeyError:
-            logger.info("Could not get water pressure from system control state")
+            logger.debug("Could not get water pressure from system control state")
+            return None
+
+    @property
+    def cylinder_temperature_sensor_top_dhw(self) -> float | None:
+        try:
+            return self.state["system"]["cylinder_temperature_sensor_top_d_h_w"]
+        except KeyError:
+            logger.debug(
+                "Could not get top DHW cylinder temperature from system control state"
+            )
+            return None
+
+    @property
+    def cylinder_temperature_sensor_bottom_dhw(self) -> float | None:
+        try:
+            return self.state["system"]["cylinder_temperature_sensor_bottom_d_h_w"]
+        except KeyError:
+            logger.debug(
+                "Could not get bottom DHW cylinder temperature from system control state"
+            )
+            return None
+
+    @property
+    def cylinder_temperature_sensor_top_ch(self) -> float | None:
+        try:
+            return self.state["system"]["cylinder_temperature_sensor_top_c_h"]
+        except KeyError:
+            logger.debug(
+                "Could not get top CH cylinder temperature from system control state"
+            )
+            return None
+
+    @property
+    def cylinder_temperature_sensor_bottom_ch(self) -> float | None:
+        try:
+            return self.state["system"]["cylinder_temperature_sensor_bottom_c_h"]
+        except KeyError:
+            logger.debug(
+                "Could not get bottom CH cylinder temperature from system control state"
+            )
             return None
 
     @property
