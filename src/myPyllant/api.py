@@ -821,7 +821,7 @@ class MyPyllantAPI:
     async def set_domestic_hot_water_operation_mode(
         self,
         domestic_hot_water: DomesticHotWater,
-        mode: DHWOperationMode | DHWOperationModeVRC700,
+        mode: DHWOperationMode | DHWOperationModeVRC700 | str,
     ):
         """
         Sets the operation mode for water heating
