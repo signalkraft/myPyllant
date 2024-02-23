@@ -7,10 +7,11 @@ import re
 from collections.abc import AsyncIterator
 from dataclasses import asdict
 from html import unescape
+from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import aiohttp
-from aiohttp import ClientResponseError, ClientResponse
+from aiohttp import ClientResponseError
 from dateutil.tz import gettz
 
 from myPyllant.const import (
@@ -23,6 +24,7 @@ from myPyllant.const import (
     DEFAULT_QUICK_VETO_DURATION,
     LOGIN_URL,
     TOKEN_URL,
+    ZONE_OPERATING_TYPES,
 )
 from myPyllant.enums import (
     ControlIdentifier,
@@ -35,6 +37,12 @@ from myPyllant.enums import (
     VentilationOperationMode,
     VentilationFanStageType,
     DHWOperationModeVRC700,
+)
+from myPyllant.http_client import (
+    AuthenticationFailed,
+    LoginEndpointInvalid,
+    RealmInvalid,
+    get_http_client,
 )
 from myPyllant.models import (
     Device,
@@ -58,48 +66,6 @@ from myPyllant.utils import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-class AuthenticationFailed(ConnectionError):
-    pass
-
-
-class LoginEndpointInvalid(ConnectionError):
-    pass
-
-
-class RealmInvalid(ConnectionError):
-    pass
-
-
-async def on_request_start(session, context, params: aiohttp.TraceRequestStartParams):
-    """
-    See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_start
-    """
-    logger.debug("Starting request %s", params)
-
-
-async def on_request_end(session, context, params: aiohttp.TraceRequestEndParams):
-    """
-    See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_end
-    and https://docs.python.org/3/howto/logging.html#optimization
-    """
-    if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Got response %s", await params.response.text())
-
-
-async def on_raise_for_status(response: ClientResponse):
-    """
-    Add the response text to the exception message of a 400 response
-    """
-    if response.status == 400:
-        text = await response.text()
-        try:
-            response.raise_for_status()
-        except ClientResponseError as e:
-            e.message = f"{e.message}, response was: {text}"
-            raise e
-    response.raise_for_status()
 
 
 def get_system_id(system: System | str) -> str:
@@ -151,15 +117,8 @@ class MyPyllantAPI:
         self.password = password
         self.country = country
         self.brand = brand
-        trace_config = aiohttp.TraceConfig()
-        trace_config.on_request_start.append(on_request_start)
-        trace_config.on_request_end.append(on_request_end)
 
-        self.aiohttp_session = aiohttp.ClientSession(
-            cookie_jar=aiohttp.CookieJar(),
-            raise_for_status=on_raise_for_status,  # type: ignore
-            trace_configs=[trace_config],
-        )
+        self.aiohttp_session = get_http_client()
 
     async def __aenter__(self) -> MyPyllantAPI:
         try:
@@ -319,10 +278,7 @@ class MyPyllantAPI:
     ) -> str:
         if not control_identifier:
             control_identifier = await self.get_control_identifier(system)
-        suffix = ""
-        if control_identifier == ControlIdentifier.TLI:
-            suffix = "/tli"
-        return f"{await self.get_api_base(system, control_identifier)}/systems/{get_system_id(system)}{suffix}"
+        return get_system_api_base(system, control_identifier)
 
     async def get_homes(self) -> AsyncIterator[Home]:
         """
@@ -335,6 +291,12 @@ class MyPyllantAPI:
             f"{await self.get_api_base()}/homes", headers=self.get_authorized_headers()
         ) as homes_resp:
             for home_json in dict_to_snake_case(await homes_resp.json()):
+                if "system_id" not in home_json or not home_json["system_id"]:
+                    logger.warning(
+                        "Skipping home because system_id is missing or empty: %s",
+                        home_json,
+                    )
+                    continue
                 timezone = await self.get_time_zone(home_json["system_id"])
                 yield Home.from_api(timezone=timezone, **home_json)
 
@@ -350,9 +312,9 @@ class MyPyllantAPI:
 
         Parameters:
             include_connection_status: Fetches connection status for each system
-            include_diagnostic_trouble_codes: Fetches diagnostic trouble codes for each system
-            include_rts: Fetches RTS data for each system
-            include_mpc: Fetches MPC data for each system
+            include_diagnostic_trouble_codes: Fetches diagnostic trouble codes for each system and device
+            include_rts: Fetches RTS data for each system, only supported on TLI controllers
+            include_mpc: Fetches MPC data for each system, only supported on TLI controllers
 
         Returns:
             An Async Iterator with all the `System` objects
@@ -364,6 +326,17 @@ class MyPyllantAPI:
         homes = self.get_homes()
         async for home in homes:
             control_identifier = await self.get_control_identifier(home.system_id)
+            if control_identifier.is_vrc700:
+                if include_rts:
+                    include_rts = False
+                    logger.info(
+                        "Fetching RTS data is not supported on VRC700 controllers"
+                    )
+                if include_mpc:
+                    include_mpc = False
+                    logger.info(
+                        "Fetching MPC data is not supported on VRC700 controllers"
+                    )
             system_url = await self.get_system_api_base(home.system_id)
             current_system_url = (
                 f"{await self.get_api_base()}/emf/v2/{home.system_id}/currentSystem"
@@ -439,7 +412,7 @@ class MyPyllantAPI:
                 "endDate": end_date,
             }
             device_buckets_url = (
-                f"{await self.get_api_base(device.system_id)}/emf/v2/{device.system_id}/"
+                f"{await self.get_api_base()}/emf/v2/{device.system_id}/"
                 f"devices/{device.device_uuid}/buckets?{urlencode(querystring)}"
             )
             async with self.aiohttp_session.get(
@@ -472,21 +445,31 @@ class MyPyllantAPI:
             for report in dict_to_snake_case(reports_json):
                 yield SystemReport.from_api(**report)
 
-    async def set_zone_heating_operating_mode(
+    async def set_zone_operating_mode(
         self,
         zone: Zone,
         mode: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700,
+        operating_type: str = "heating",
     ):
         """
-        Sets the heating operating mode for a zone
+        Sets the operating mode for a zone
+
+        Parameters:
+            zone: The target zone
+            mode: The target operating mode
+            operating_type: Either heating or cooling
         """
+        if operating_type not in ZONE_OPERATING_TYPES:
+            raise ValueError(
+                f"Invalid HVAC mode, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+            )
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating/operation-mode"
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/operation-mode"
             key = "operationMode"
             mode_enum = ZoneHeatingOperatingModeVRC700  # type: ignore
         else:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/heating-operation-mode"
-            key = "heatingOperationMode"
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/{operating_type}-operation-mode"
+            key = f"{operating_type}OperationMode"
             mode_enum = ZoneHeatingOperatingMode  # type: ignore
 
         if mode not in mode_enum:
@@ -496,9 +479,7 @@ class MyPyllantAPI:
 
         return await self.aiohttp_session.patch(
             url,
-            json={
-                key: str(mode),
-            },
+            json={key: str(mode)},
             headers=self.get_authorized_headers(),
         )
 
@@ -508,6 +489,7 @@ class MyPyllantAPI:
         temperature: float,
         duration_hours: float | None = None,
         default_duration: float | None = None,
+        veto_type: str = "heating",
     ):
         """
         Temporarily overwrites the desired temperature in a zone
@@ -517,11 +499,16 @@ class MyPyllantAPI:
             temperature: The target temperature
             duration_hours: Optional, sets overwrite for this many hours
             default_duration: Optional, falls back to this default duration if duration_hours is not given
+            veto_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if not default_duration:
             default_duration = DEFAULT_QUICK_VETO_DURATION
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/quick-veto"
+            if veto_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{veto_type}/quick-veto"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
@@ -553,6 +540,7 @@ class MyPyllantAPI:
         self,
         zone: Zone,
         duration_hours: float,
+        veto_type: str = "heating",
     ):
         """
         Updates the quick veto duration
@@ -560,17 +548,20 @@ class MyPyllantAPI:
         Parameters:
             zone: The target zone
             duration_hours: Updates quick veto duration (in hours)
+            veto_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/quick-veto"
+            if veto_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{veto_type}/quick-veto"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
         return await self.aiohttp_session.patch(
             url,
-            json={
-                "duration": duration_hours,
-            },
+            json={"duration": duration_hours},
             headers=self.get_authorized_headers(),
         )
 
@@ -596,7 +587,7 @@ class MyPyllantAPI:
         self,
         zone: Zone,
         temperature: float,
-        setpoint_type: str = "HEATING",
+        setpoint_type: str = "heating",
     ):
         """
         Sets the desired temperature when in manual mode
@@ -604,29 +595,44 @@ class MyPyllantAPI:
         Parameters:
             zone: The target zone
             temperature: The target temperature
-            setpoint_type: Either HEATING or COOLING
+            setpoint_type: Either heating or cooling
         """
         logger.debug("Setting manual mode setpoint for %s", zone.name)
-        url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/manual-mode-setpoint"
-        payload = {
+        if setpoint_type.lower() not in ZONE_OPERATING_TYPES:
+            raise ValueError(
+                f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+            )
+        payload: dict[str, Any] = {
             "setpoint": temperature,
-            "type": setpoint_type,
         }
+        if zone.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setpoint_type.lower()}/manual-mode-setpoint"
+
+        else:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/manual-mode-setpoint"
+            payload["type"] = setpoint_type.upper()
         return await self.aiohttp_session.patch(
             url,
             json=payload,
             headers=self.get_authorized_headers(),
         )
 
-    async def cancel_quick_veto_zone_temperature(self, zone: Zone):
+    async def cancel_quick_veto_zone_temperature(
+        self, zone: Zone, veto_type: str = "heating"
+    ):
         """
         Cancels a previously set quick veto in a zone
 
         Parameters:
             zone: The target zone
+            veto_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/quick-veto"
+            if veto_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{veto_type}/quick-veto"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
@@ -634,16 +640,23 @@ class MyPyllantAPI:
             url, headers=self.get_authorized_headers()
         )
 
-    async def set_set_back_temperature(self, zone: Zone, temperature: float):
+    async def set_set_back_temperature(
+        self, zone: Zone, temperature: float, setback_type: str = "heating"
+    ):
         """
         Sets the temperature that a zone gets lowered to in away mode
 
         Parameters:
             zone: The target zone
             temperature: The setback temperature
+            setback_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/set-back-temperature"
+            if setback_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid setback type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setback_type}/set-back-temperature"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/set-back-temperature"
         return await self.aiohttp_session.patch(
@@ -653,7 +666,11 @@ class MyPyllantAPI:
         )
 
     async def set_zone_time_program(
-        self, zone: Zone, program_type: str, time_program: ZoneTimeProgram
+        self,
+        zone: Zone,
+        program_type: str,
+        time_program: ZoneTimeProgram,
+        setback_type: str = "heating",
     ):
         """
         Sets the temperature that a zone gets lowered to in away mode
@@ -662,13 +679,18 @@ class MyPyllantAPI:
             zone: The target zone
             program_type: Which program to set
             time_program: The time schedule
+            setback_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if program_type not in ZoneTimeProgramType:
             raise ValueError(
                 "Type must be either heating or cooling, not %s", program_type
             )
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/time-windows"
+            if setback_type not in ZONE_OPERATING_TYPES:
+                raise ValueError(
+                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                )
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setback_type}/time-windows"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/time-windows"
         data = asdict(time_program)
@@ -799,7 +821,7 @@ class MyPyllantAPI:
     async def set_domestic_hot_water_operation_mode(
         self,
         domestic_hot_water: DomesticHotWater,
-        mode: DHWOperationMode | DHWOperationModeVRC700,
+        mode: DHWOperationMode | DHWOperationModeVRC700 | str,
     ):
         """
         Sets the operation mode for water heating
@@ -814,9 +836,7 @@ class MyPyllantAPI:
         )
         return await self.aiohttp_session.patch(
             url,
-            json={
-                "operationMode": str(mode),
-            },
+            json={"operationMode": str(mode)},
             headers=self.get_authorized_headers(),
         )
 

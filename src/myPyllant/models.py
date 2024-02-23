@@ -301,7 +301,7 @@ class ZoneHeating(MyPyllantDataClass):
 @dataclass
 class ZoneCooling(MyPyllantDataClass):
     setpoint_cooling: float
-    manual_mode_setpoint_cooling: float
+    manual_mode_setpoint_cooling: float | None
     operation_mode_cooling: str  # TODO: Need all values
     time_program_cooling: ZoneTimeProgram
 
@@ -390,6 +390,13 @@ class Zone(MyPyllantDataClass):
         )
         return super().from_api(**kwargs)
 
+    def get_associated_circuit(self, system: System):
+        if self.associated_circuit_index in [c.index for c in system.circuits]:
+            return next(
+                c for c in system.circuits if c.index == self.associated_circuit_index
+            )
+        return None
+
     @property
     def name(self):
         return self.general.name
@@ -414,7 +421,18 @@ class Zone(MyPyllantDataClass):
 
     @property
     def is_eco_mode(self) -> bool:
-        return self.desired_room_temperature_setpoint == 0.0
+        return (
+            self.is_auto_heating_mode
+            and self.current_special_function == ZoneCurrentSpecialFunction.NONE
+            and self.desired_room_temperature_setpoint == 0.0
+        )
+
+    @property
+    def is_auto_heating_mode(self) -> bool:
+        return self.heating.operation_mode_heating in [
+            ZoneHeatingOperatingMode.TIME_CONTROLLED,
+            ZoneHeatingOperatingModeVRC700.AUTO,
+        ]
 
 
 @dataclass
@@ -423,7 +441,7 @@ class Circuit(MyPyllantDataClass):
     index: int
     circuit_state: CircuitState
     mixer_circuit_type_external: str
-    set_back_mode_enabled: bool
+    set_back_mode_enabled: bool | None = None
     zones: list = field(default_factory=list)
     is_cooling_allowed: bool | None = None
     current_circuit_flow_temperature: float | None = None
@@ -473,6 +491,13 @@ class DomesticHotWater(MyPyllantDataClass):
     time_program_circulation_pump: DHWTimeProgram
     current_dhw_temperature: float | None = None
     tapping_setpoint: float | None = None
+
+    @property
+    def is_cylinder_boosting(self) -> bool:
+        return self.current_special_function in [
+            DHWCurrentSpecialFunction.CYLINDER_BOOST,
+            DHWCurrentSpecialFunctionVRC700.CYLINDER_BOOST,
+        ]
 
     @classmethod
     def from_api(cls, **kwargs):
@@ -652,7 +677,7 @@ class System(MyPyllantDataClass):
         try:
             return self.state["system"]["outdoor_temperature"]
         except KeyError:
-            logger.info(
+            logger.debug(
                 "Could not get outdoor temperature from system control state",
             )
             return None
@@ -662,7 +687,47 @@ class System(MyPyllantDataClass):
         try:
             return self.state["system"]["system_water_pressure"]
         except KeyError:
-            logger.info("Could not get water pressure from system control state")
+            logger.debug("Could not get water pressure from system control state")
+            return None
+
+    @property
+    def cylinder_temperature_sensor_top_dhw(self) -> float | None:
+        try:
+            return self.state["system"]["cylinder_temperature_sensor_top_d_h_w"]
+        except KeyError:
+            logger.debug(
+                "Could not get top DHW cylinder temperature from system control state"
+            )
+            return None
+
+    @property
+    def cylinder_temperature_sensor_bottom_dhw(self) -> float | None:
+        try:
+            return self.state["system"]["cylinder_temperature_sensor_bottom_d_h_w"]
+        except KeyError:
+            logger.debug(
+                "Could not get bottom DHW cylinder temperature from system control state"
+            )
+            return None
+
+    @property
+    def cylinder_temperature_sensor_top_ch(self) -> float | None:
+        try:
+            return self.state["system"]["cylinder_temperature_sensor_top_c_h"]
+        except KeyError:
+            logger.debug(
+                "Could not get top CH cylinder temperature from system control state"
+            )
+            return None
+
+    @property
+    def cylinder_temperature_sensor_bottom_ch(self) -> float | None:
+        try:
+            return self.state["system"]["cylinder_temperature_sensor_bottom_c_h"]
+        except KeyError:
+            logger.debug(
+                "Could not get bottom CH cylinder temperature from system control state"
+            )
             return None
 
     @property

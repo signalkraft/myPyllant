@@ -2,7 +2,8 @@ from unittest import mock
 
 import pytest
 
-from myPyllant.api import MyPyllantAPI, RealmInvalid
+from myPyllant.api import MyPyllantAPI
+from myPyllant.http_client import RealmInvalid
 from myPyllant.tests.find_countries import countries_with_realm
 
 

@@ -25,6 +25,7 @@ parser.add_argument(
 
 async def main(user, password, brand, year: int, country=None, write_results=True):
     async with MyPyllantAPI(user, password, brand, country) as api:
+        results = []
         async for system in api.get_systems():
             reports = api.get_yearly_reports(system, year)
             async for report in reports:
@@ -33,7 +34,9 @@ async def main(user, password, brand, year: int, country=None, write_results=Tru
                         fh.write(report.file_content)
                     sys.stdout.write(f"Wrote {year} report to {report.file_name}\n")
                 else:
-                    yield report
+                    results.append(report)
+        if not write_results:
+            return results
 
 
 if __name__ == "__main__":

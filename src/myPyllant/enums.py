@@ -13,7 +13,7 @@ class MyPyllantEnumMeta(EnumMeta):
             return True
 
 
-class MyPyllantEnum(Enum, metaclass=MyPyllantEnumMeta):
+class MyPyllantEnum(str, Enum, metaclass=MyPyllantEnumMeta):
     def __str__(self):
         """
         Return 'HOUR' instead of 'DeviceDataBucketResolution.HOUR'
@@ -55,7 +55,7 @@ class ZoneHeatingOperatingMode(MyPyllantEnum):
 class ZoneHeatingOperatingModeVRC700(MyPyllantEnum):
     DAY = "DAY"
     AUTO = "AUTO"
-    SETBACK = "SETBACK"
+    SET_BACK = "SET_BACK"
     OFF = "OFF"
 
 
@@ -85,6 +85,7 @@ class DHWCurrentSpecialFunction(MyPyllantEnum):
 
 class DHWCurrentSpecialFunctionVRC700(MyPyllantEnum):
     CYLINDER_BOOST = "CYLINDER_BOOST"
+    HOLIDAY = "HOLIDAY"
     NONE = "NONE"
 
 
@@ -95,7 +96,7 @@ class DHWOperationMode(MyPyllantEnum):
 
 
 class DHWOperationModeVRC700(MyPyllantEnum):
-    MANUAL = "MANUAL"
+    DAY = "DAY"
     AUTO = "AUTO"
     OFF = "OFF"
 
