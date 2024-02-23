@@ -13,7 +13,7 @@ class MyPyllantEnumMeta(EnumMeta):
             return True
 
 
-class MyPyllantEnum(Enum, metaclass=MyPyllantEnumMeta):
+class MyPyllantEnum(str, Enum, metaclass=MyPyllantEnumMeta):
     def __str__(self):
         """
         Return 'HOUR' instead of 'DeviceDataBucketResolution.HOUR'
