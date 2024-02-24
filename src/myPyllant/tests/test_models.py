@@ -1,5 +1,5 @@
 import pytest
-from dacite import WrongTypeError
+from pydantic import ValidationError
 
 from myPyllant.api import MyPyllantAPI
 from .generate_test_data import DATA_DIR
@@ -29,10 +29,10 @@ async def test_systems(
 
 
 async def test_type_validation() -> None:
-    with pytest.raises(WrongTypeError):
+    with pytest.raises(ValidationError):
         ZoneHeating.from_api(
             control_identifier=ControlIdentifier.TLI,
-            manual_mode_setpoint_heating="15.0",
+            manual_mode_setpoint_heating="shouldbenumber",
             operation_mode_heating=ZoneHeatingOperatingMode.MANUAL,
             time_program_heating={},
             set_back_temperature=15.0,

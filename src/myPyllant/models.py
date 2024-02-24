@@ -4,12 +4,9 @@ import calendar
 import datetime
 import logging
 from collections.abc import Iterator
-from dataclasses import dataclass, field, asdict
-from enum import Enum
+from dataclasses import asdict, fields, field
 from typing import TypeVar, Any
-
-from dacite import Config, from_dict
-from dacite.dataclasses import get_fields
+from pydantic.dataclasses import dataclass
 
 from myPyllant.const import BRANDS
 from myPyllant.enums import (
@@ -33,7 +30,15 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound="MyPyllantDataClass")
 
 
-@dataclass(kw_only=True)
+class MyPyllantConfig:
+    """
+    Necessary for timezone field
+    """
+
+    arbitrary_types_allowed = True
+
+
+@dataclass(kw_only=True, config=MyPyllantConfig)
 class MyPyllantDataClass:
     """
     Base class that runs type validation in __init__ and can create an instance from API values
@@ -42,42 +47,37 @@ class MyPyllantDataClass:
     extra_fields: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def type_hooks(cls: type[T], timezone: datetime.tzinfo | None) -> dict:
-        if timezone:
-            return {datetime.datetime: lambda x: datetime_parse(x, timezone)}
-        else:
-            return {}
-
-    @classmethod
-    def from_api(cls: type[T], **kwargs) -> T:
+    def from_api(cls: type[T], **data) -> T:
         """
         Creates enums & dates from strings before calling __init__
         """
-        dataclass_fields = get_fields(cls)
-        extra_fields = set(kwargs.keys()) - {f.name for f in dataclass_fields}
-        datetime_fields = set(f.name for f in dataclass_fields if "datetime" in f.type)
-        timezone: datetime.tzinfo | None = kwargs.get("timezone")
+        dataclass_fields = fields(cls)
+        extra_fields = set(data.keys()) - {f.name for f in dataclass_fields}
+        datetime_fields = set(
+            f.name for f in dataclass_fields if f.type == "datetime.datetime"
+        )
+        timezone: datetime.tzinfo | None = data.get("timezone")
 
         if timezone is None and datetime_fields:
             raise ValueError(
                 f"timezone is required in {cls.__name__}.from_api() for datetime field {', '.join(datetime_fields)}"
             )
 
-        if extra_fields:
-            kwargs["extra_fields"] = {f: kwargs[f] for f in extra_fields}
+        for k, v in data.items():
+            if k in datetime_fields and timezone is not None:
+                data[k] = datetime_parse(v, timezone)
 
-        return from_dict(
-            data_class=cls,
-            data=kwargs,
-            config=Config(cast=[Enum], type_hooks=cls.type_hooks(timezone)),
-        )
+        if extra_fields:
+            data["extra_fields"] = {f: data[f] for f in extra_fields}
+
+        return cls(**data)
 
     def prepare_dict(self) -> dict:
         data = asdict(self)
         return prepare_field_value_for_dict(data)
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class Home(MyPyllantDataClass):
     country_code: str
     timezone: datetime.tzinfo
@@ -99,7 +99,7 @@ class Home(MyPyllantDataClass):
         return f"{self.home_name} {self.nomenclature}"
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class BaseTimeProgramDay(MyPyllantDataClass):
     index: int
     weekday_name: str
@@ -139,7 +139,7 @@ class BaseTimeProgramDay(MyPyllantDataClass):
             )
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class BaseTimeProgram(MyPyllantDataClass):
     monday: list
     tuesday: list
@@ -211,16 +211,16 @@ class BaseTimeProgram(MyPyllantDataClass):
         raise NotImplementedError
 
     @classmethod
-    def from_api(cls, **kwargs):
+    def from_api(cls, **data):
         for weekday_name in [w for w in cls.weekday_names()]:
-            kwargs[weekday_name] = [
+            data[weekday_name] = [
                 cls.create_day_from_api(index=i, weekday_name=weekday_name, **d)
-                for i, d in enumerate(kwargs.get(weekday_name, []))
+                for i, d in enumerate(data.get(weekday_name, []))
             ]
-        return super().from_api(**kwargs)
+        return super().from_api(**data)
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class ZoneTimeProgramDay(BaseTimeProgramDay):
     setpoint: float | None = None
 
@@ -237,7 +237,7 @@ class ZoneTimeProgramDay(BaseTimeProgramDay):
         )
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class ZoneTimeProgram(BaseTimeProgram):
     monday: list[ZoneTimeProgramDay]
     tuesday: list[ZoneTimeProgramDay]
@@ -271,7 +271,7 @@ class ZoneTimeProgram(BaseTimeProgram):
                 d.setpoint = temperature
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class ZoneHeating(MyPyllantDataClass):
     control_identifier: ControlIdentifier
     operation_mode_heating: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700
@@ -281,24 +281,24 @@ class ZoneHeating(MyPyllantDataClass):
     day_temperature_heating: float | None = None  # VRC700 only
 
     @classmethod
-    def from_api(cls, **kwargs):
-        kwargs["time_program_heating"] = ZoneTimeProgram.from_api(
-            **kwargs["time_program_heating"]
+    def from_api(cls, **data):
+        data["time_program_heating"] = ZoneTimeProgram.from_api(
+            **data["time_program_heating"]
         )
-        control_identifier: ControlIdentifier = kwargs["control_identifier"]
+        control_identifier: ControlIdentifier = data["control_identifier"]
         if control_identifier.is_vrc700:
-            kwargs["operation_mode_heating"] = ZoneHeatingOperatingModeVRC700(
-                kwargs["operation_mode_heating"]
+            data["operation_mode_heating"] = ZoneHeatingOperatingModeVRC700(
+                data["operation_mode_heating"]
             )
         else:
-            kwargs["operation_mode_heating"] = ZoneHeatingOperatingMode(
-                kwargs["operation_mode_heating"]
+            data["operation_mode_heating"] = ZoneHeatingOperatingMode(
+                data["operation_mode_heating"]
             )
 
-        return super().from_api(**kwargs)
+        return super().from_api(**data)
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class ZoneCooling(MyPyllantDataClass):
     setpoint_cooling: float
     manual_mode_setpoint_cooling: float | None
@@ -306,14 +306,14 @@ class ZoneCooling(MyPyllantDataClass):
     time_program_cooling: ZoneTimeProgram
 
     @classmethod
-    def from_api(cls, **kwargs):
-        kwargs["time_program_cooling"] = ZoneTimeProgram.from_api(
-            **kwargs["time_program_cooling"]
+    def from_api(cls, **data):
+        data["time_program_cooling"] = ZoneTimeProgram.from_api(
+            **data["time_program_cooling"]
         )
-        return super().from_api(**kwargs)
+        return super().from_api(**data)
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class ZoneGeneral(MyPyllantDataClass):
     name: str
     timezone: datetime.tzinfo
@@ -354,7 +354,7 @@ class ZoneGeneral(MyPyllantDataClass):
         )
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class Zone(MyPyllantDataClass):
     system_id: str
     general: ZoneGeneral
@@ -378,17 +378,17 @@ class Zone(MyPyllantDataClass):
     quick_veto_end_date_time: datetime.datetime | None = None
 
     @classmethod
-    def from_api(cls, **kwargs):
-        kwargs["heating"] = ZoneHeating.from_api(
-            control_identifier=kwargs["control_identifier"], **kwargs["heating"]
+    def from_api(cls, **data):
+        data["heating"] = ZoneHeating.from_api(
+            control_identifier=data["control_identifier"], **data["heating"]
         )
-        kwargs["cooling"] = (
-            ZoneCooling.from_api(**kwargs["cooling"]) if "cooling" in kwargs else None
+        data["cooling"] = (
+            ZoneCooling.from_api(**data["cooling"]) if "cooling" in data else None
         )
-        kwargs["general"] = ZoneGeneral.from_api(
-            timezone=kwargs["timezone"], **kwargs["general"]
+        data["general"] = ZoneGeneral.from_api(
+            timezone=data["timezone"], **data["general"]
         )
-        return super().from_api(**kwargs)
+        return super().from_api(**data)
 
     def get_associated_circuit(self, system: System):
         if self.associated_circuit_index in [c.index for c in system.circuits]:
@@ -435,7 +435,7 @@ class Zone(MyPyllantDataClass):
         ]
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class Circuit(MyPyllantDataClass):
     system_id: str
     index: int
@@ -452,7 +452,7 @@ class Circuit(MyPyllantDataClass):
     calculated_energy_manager_state: str | None = None
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class DHWTimeProgramDay(BaseTimeProgramDay):
     def __eq__(self, other):
         """
@@ -463,7 +463,7 @@ class DHWTimeProgramDay(BaseTimeProgramDay):
         return self.start_time == other.start_time and self.end_time == other.end_time
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class DHWTimeProgram(BaseTimeProgram):
     monday: list[DHWTimeProgramDay]
     tuesday: list[DHWTimeProgramDay]
@@ -478,7 +478,7 @@ class DHWTimeProgram(BaseTimeProgram):
         return DHWTimeProgramDay(**kwargs)
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class DomesticHotWater(MyPyllantDataClass):
     system_id: str
     index: int
@@ -500,32 +500,28 @@ class DomesticHotWater(MyPyllantDataClass):
         ]
 
     @classmethod
-    def from_api(cls, **kwargs):
-        kwargs["time_program_dhw"] = DHWTimeProgram.from_api(
-            **kwargs["time_program_dhw"]
+    def from_api(cls, **data):
+        data["time_program_dhw"] = DHWTimeProgram.from_api(**data["time_program_dhw"])
+        data["time_program_circulation_pump"] = DHWTimeProgram.from_api(
+            **data["time_program_circulation_pump"]
         )
-        kwargs["time_program_circulation_pump"] = DHWTimeProgram.from_api(
-            **kwargs["time_program_circulation_pump"]
-        )
-        control_identifier: ControlIdentifier = kwargs["control_identifier"]
+        control_identifier: ControlIdentifier = data["control_identifier"]
         if control_identifier.is_vrc700:
-            kwargs["current_special_function"] = DHWCurrentSpecialFunctionVRC700(
-                kwargs["current_special_function"]
+            data["current_special_function"] = DHWCurrentSpecialFunctionVRC700(
+                data["current_special_function"]
             )
-            kwargs["operation_mode_dhw"] = DHWOperationModeVRC700(
-                kwargs["operation_mode_dhw"]
+            data["operation_mode_dhw"] = DHWOperationModeVRC700(
+                data["operation_mode_dhw"]
             )
         else:
-            kwargs["current_special_function"] = DHWCurrentSpecialFunction(
-                kwargs["current_special_function"]
+            data["current_special_function"] = DHWCurrentSpecialFunction(
+                data["current_special_function"]
             )
-            kwargs["operation_mode_dhw"] = DHWOperationMode(
-                kwargs["operation_mode_dhw"]
-            )
-        return super().from_api(**kwargs)
+            data["operation_mode_dhw"] = DHWOperationMode(data["operation_mode_dhw"])
+        return super().from_api(**data)
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class Ventilation(MyPyllantDataClass):
     system_id: str
     index: int
@@ -535,7 +531,108 @@ class Ventilation(MyPyllantDataClass):
     time_program_ventilation: dict
 
 
-@dataclass
+@dataclass(config=MyPyllantConfig)
+class DeviceDataBucket(MyPyllantDataClass):
+    start_date: datetime.datetime
+    end_date: datetime.datetime
+    value: float | None = None
+
+
+@dataclass(config=MyPyllantConfig)
+class DeviceData(MyPyllantDataClass):
+    operation_mode: str
+    device: Any = None
+    data_from: datetime.datetime | None = None
+    data_to: datetime.datetime | None = None
+    start_date: datetime.datetime | None = None
+    end_date: datetime.datetime | None = None
+    resolution: DeviceDataBucketResolution | None = None
+    energy_type: str | None = None
+    value_type: str | None = None
+    calculated: bool | None = None
+    data: list[DeviceDataBucket] = field(default_factory=list)
+
+    @classmethod
+    def from_api(cls, **data):
+        data["data_from"] = data.pop("from", None)
+        data["data_to"] = data.pop("to", None)
+        data["data"] = [
+            DeviceDataBucket.from_api(timezone=data["timezone"], **dd)
+            for dd in data.pop("data", [])
+        ]
+        return super().from_api(**data)
+
+
+@dataclass(config=MyPyllantConfig)
+class Device(MyPyllantDataClass):
+    system_id: str
+    timezone: datetime.tzinfo
+    device_uuid: str
+    ebus_id: str
+    article_number: str
+    device_serial_number: str
+    type: str
+    device_type: str
+    first_data: datetime.datetime
+    last_data: datetime.datetime
+    brand: str
+    name: str | None = None
+    product_name: str | None = None
+    spn: int | None = None
+    bus_coupler_address: int | None = None
+    emf_valid: bool | None = None
+    operational_data: dict = field(default_factory=dict)
+    data: list[DeviceData] = field(default_factory=list)
+    properties: list = field(default_factory=list)
+    rts_statistics: dict = field(default_factory=dict)
+    diagnostic_trouble_codes: list | None = None
+
+    @property
+    def name_display(self) -> str:
+        """
+        Product name might be empty, fall back to title-cased device type
+        """
+        return self.name or self.product_name_display
+
+    @property
+    def product_name_display(self) -> str:
+        """
+        Product name might be None, fall back to title-cased device type
+        """
+        if self.product_name:
+            return (
+                self.product_name.title()
+                if self.product_name.islower()
+                else self.product_name
+            )
+        else:
+            return self.device_type.replace("_", "").title()
+
+    @property
+    def brand_name(self) -> str:
+        return BRANDS[self.brand]
+
+    @property
+    def on_off_cycles(self) -> int | None:
+        return self.rts_statistics.get("on_off_cycles")
+
+    @property
+    def operation_time(self) -> int | None:
+        return self.rts_statistics.get("operation_time")
+
+    @classmethod
+    def from_api(cls, **data):
+        device_data = []
+        if "data" in data:
+            for dd in data["data"]:
+                if "timezone" not in dd:
+                    dd["timezone"] = data["timezone"]
+                device_data.append(DeviceData.from_api(**dd))
+        data["data"] = device_data
+        return super().from_api(**data)
+
+
+@dataclass(config=MyPyllantConfig)
 class System(MyPyllantDataClass):
     id: str
     state: dict
@@ -557,11 +654,11 @@ class System(MyPyllantDataClass):
     rts: dict = field(default_factory=dict)
 
     @classmethod
-    def from_api(cls, **kwargs):
-        if "home" in kwargs and "id" not in kwargs:
-            kwargs["id"] = kwargs["home"].system_id
-        system: System = super().from_api(**kwargs)
-        logger.debug(f"Creating related models from state: {kwargs}")
+    def from_api(cls, **data):
+        if "home" in data and "id" not in data:
+            data["id"] = data["home"].system_id
+        system: System = super().from_api(**data)
+        logger.debug(f"Creating related models from state: {data}")
         system.extra_fields = system.merge_extra_fields()
         system.zones = [
             Zone.from_api(
@@ -769,108 +866,7 @@ class System(MyPyllantDataClass):
         return statistics[0] if statistics else None
 
 
-@dataclass
-class Device(MyPyllantDataClass):
-    system_id: str
-    timezone: datetime.tzinfo
-    device_uuid: str
-    ebus_id: str
-    article_number: str
-    device_serial_number: str
-    type: str
-    device_type: str
-    first_data: datetime.datetime
-    last_data: datetime.datetime
-    brand: str
-    name: str | None = None
-    product_name: str | None = None
-    spn: int | None = None
-    bus_coupler_address: int | None = None
-    emf_valid: bool | None = None
-    operational_data: dict = field(default_factory=dict)
-    data: list[DeviceData] = field(default_factory=list)
-    properties: list = field(default_factory=list)
-    rts_statistics: dict = field(default_factory=dict)
-    diagnostic_trouble_codes: list | None = None
-
-    @property
-    def name_display(self) -> str:
-        """
-        Product name might be empty, fall back to title-cased device type
-        """
-        return self.name or self.product_name_display
-
-    @property
-    def product_name_display(self) -> str:
-        """
-        Product name might be None, fall back to title-cased device type
-        """
-        if self.product_name:
-            return (
-                self.product_name.title()
-                if self.product_name.islower()
-                else self.product_name
-            )
-        else:
-            return self.device_type.replace("_", "").title()
-
-    @property
-    def brand_name(self) -> str:
-        return BRANDS[self.brand]
-
-    @property
-    def on_off_cycles(self) -> int | None:
-        return self.rts_statistics.get("on_off_cycles")
-
-    @property
-    def operation_time(self) -> int | None:
-        return self.rts_statistics.get("operation_time")
-
-    @classmethod
-    def from_api(cls, **kwargs):
-        data = []
-        if "data" in kwargs:
-            for dd in kwargs["data"]:
-                if "timezone" not in dd:
-                    dd["timezone"] = kwargs["timezone"]
-                data.append(DeviceData.from_api(**dd))
-        kwargs["data"] = data
-        return super().from_api(**kwargs)
-
-
-@dataclass
-class DeviceDataBucket(MyPyllantDataClass):
-    start_date: datetime.datetime
-    end_date: datetime.datetime
-    value: float | None = None
-
-
-@dataclass
-class DeviceData(MyPyllantDataClass):
-    operation_mode: str
-    device: Device | None = None
-    data_from: datetime.datetime | None = None
-    data_to: datetime.datetime | None = None
-    start_date: datetime.datetime | None = None
-    end_date: datetime.datetime | None = None
-    resolution: DeviceDataBucketResolution | None = None
-    energy_type: str | None = None
-    value_type: str | None = None
-    calculated: bool | None = None
-    data: list[DeviceDataBucket] = field(default_factory=list)
-
-    @classmethod
-    def from_api(cls, **kwargs):
-        kwargs["data_from"] = kwargs.pop("from", None)
-        kwargs["data_to"] = kwargs.pop("to", None)
-        kwargs["data"] = [
-            DeviceDataBucket.from_api(timezone=kwargs["timezone"], **dd)
-            for dd in kwargs.pop("data", [])
-        ]
-        return super().from_api(**kwargs)
-
-
-@dataclass
+@dataclass(config=MyPyllantConfig)
 class SystemReport(MyPyllantDataClass):
     file_name: str
     file_content: str

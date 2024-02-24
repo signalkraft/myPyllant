@@ -306,15 +306,16 @@ def _recursive_data_anonymize(data: T, salt: bytes = b"") -> T:
     return data
 
 
+def signal_handler(user, sig):
+    user_json_dir(user).rmdir()
+    sys.exit(sig)
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level="DEBUG")
 
-    def signal_handler(sig, frame):
-        user_json_dir(args.user).rmdir()
-        sys.exit(sig)
-
-    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGINT, lambda sig, _: signal_handler(args.user, sig))
 
     asyncio.run(main(args.user, args.password, args.brand, args.country))

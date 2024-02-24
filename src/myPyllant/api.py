@@ -128,7 +128,7 @@ class MyPyllantAPI:
             raise
         return self
 
-    async def __aexit__(self, exc_type, exc, tb) -> None:
+    async def __aexit__(self, *args, **kwargs) -> None:
         if not self.aiohttp_session.closed:
             await self.aiohttp_session.close()
 
