@@ -35,7 +35,7 @@ if __name__ == "__main__":
     if mypyllant_component.exists():
         docs = (
             Path(__file__).resolve().parents[4]
-            / "mypyllant-component/docs/docs/2-library.md"
+            / "mypyllant-component/docs/docs/3-library.md"
         )
         new_docs_content = f"""## Using the API in Python
 
@@ -58,4 +58,4 @@ if __name__ == "__main__":
                     flags=re.DOTALL,
                 )
             )
-            print("docs/2-library.md was updated with latest sample.py")
+            print("docs/3-library.md was updated with latest sample.py")
