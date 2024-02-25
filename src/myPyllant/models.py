@@ -364,7 +364,7 @@ class Zone(MyPyllantDataClass):
     zone_binding: str
     heating: ZoneHeating
     current_special_function: ZoneCurrentSpecialFunction
-    is_active: bool | None
+    is_active: bool | None = None
     heating_state: ZoneHeatingState | None = None
     is_cooling_allowed: bool | None = None
     cooling: ZoneCooling | None = None
