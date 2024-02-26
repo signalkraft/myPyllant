@@ -37,6 +37,7 @@ from myPyllant.enums import (
     VentilationOperationMode,
     VentilationFanStageType,
     DHWOperationModeVRC700,
+    DHWCurrentSpecialFunction,
 )
 from myPyllant.http_client import (
     AuthenticationFailed,
@@ -477,11 +478,19 @@ class MyPyllantAPI:
                 f"Invalid mode, must be one of {', '.join(mode_enum.__members__)}"
             )
 
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json={key: str(mode)},
             headers=self.get_authorized_headers(),
         )
+
+        # zone.heating.operation_mode_heating or zone.cooling.operation_mode_cooling
+        setattr(
+            getattr(zone, operating_type),
+            f"operation_mode_{operating_type}",
+            mode,
+        )
+        return zone
 
     async def quick_veto_zone_temperature(
         self,
@@ -521,13 +530,15 @@ class MyPyllantAPI:
             }
             if duration_hours:
                 payload["duration"] = duration_hours
-            return await self.aiohttp_session.patch(
+            await self.aiohttp_session.patch(
                 url,
                 json=payload,
                 headers=self.get_authorized_headers(),
             )
+            zone.desired_room_temperature_setpoint = temperature
+            return zone
         else:
-            return await self.aiohttp_session.post(
+            await self.aiohttp_session.post(
                 url,
                 json={
                     "desiredRoomTemperatureSetpoint": temperature,
@@ -535,6 +546,12 @@ class MyPyllantAPI:
                 },
                 headers=self.get_authorized_headers(),
             )
+            zone.desired_room_temperature_setpoint = temperature
+            zone.quick_veto_start_date_time = datetime.datetime.now(zone.timezone)
+            zone.quick_veto_end_date_time = datetime.datetime.now(
+                zone.timezone
+            ) + datetime.timedelta(hours=(duration_hours or default_duration))
+            return zone
 
     async def quick_veto_zone_duration(
         self,
@@ -559,11 +576,15 @@ class MyPyllantAPI:
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json={"duration": duration_hours},
             headers=self.get_authorized_headers(),
         )
+        zone.quick_veto_end_date_time = datetime.datetime.now(
+            zone.timezone
+        ) + datetime.timedelta(hours=duration_hours)
+        return zone
 
     async def set_time_program_temperature(
         self,
@@ -611,11 +632,18 @@ class MyPyllantAPI:
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/manual-mode-setpoint"
             payload["type"] = setpoint_type.upper()
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json=payload,
             headers=self.get_authorized_headers(),
         )
+        # zone.heating.manual_mode_setpoint_heating or zone.cooling.manual_mode_setpoint_cooling
+        setattr(
+            getattr(zone, setpoint_type.lower()),
+            f"manual_mode_setpoint_{setpoint_type.lower()}",
+            temperature,
+        )
+        return zone
 
     async def cancel_quick_veto_zone_temperature(
         self, zone: Zone, veto_type: str = "heating"
@@ -636,9 +664,11 @@ class MyPyllantAPI:
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/quick-veto"
 
-        return await self.aiohttp_session.delete(
-            url, headers=self.get_authorized_headers()
-        )
+        await self.aiohttp_session.delete(url, headers=self.get_authorized_headers())
+        zone.quick_veto_start_date_time = None
+        zone.quick_veto_end_date_time = None
+        zone.current_special_function = ZoneCurrentSpecialFunction.NONE
+        return zone
 
     async def set_set_back_temperature(
         self, zone: Zone, temperature: float, setback_type: str = "heating"
@@ -659,11 +689,15 @@ class MyPyllantAPI:
             url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setback_type}/set-back-temperature"
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/set-back-temperature"
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json={"setBackTemperature": temperature},
             headers=self.get_authorized_headers(),
         )
+        # TODO: What to do with cooling?
+        if setback_type == "heating":
+            zone.heating.set_back_temperature = temperature
+        return zone
 
     async def set_zone_time_program(
         self,
@@ -696,11 +730,17 @@ class MyPyllantAPI:
         data = asdict(time_program)
         data["type"] = program_type
         del data["meta_info"]
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json=dict_to_camel_case(data),
             headers=self.get_authorized_headers(),
         )
+
+        # zone.heating.time_program_heating = time_program or zone.cooling.time_program_cooling = time_program
+        setattr(
+            getattr(zone, setback_type), f"time_program_{setback_type}", time_program
+        )
+        return zone
 
     async def set_holiday(
         self,
@@ -740,9 +780,14 @@ class MyPyllantAPI:
             if setpoint is not None:
                 raise ValueError("setpoint is not supported on this controller")
 
-        return await self.aiohttp_session.post(
+        await self.aiohttp_session.post(
             url, json=data, headers=self.get_authorized_headers()
         )
+        for zone in system.zones:
+            zone.current_special_function = ZoneCurrentSpecialFunction.HOLIDAY
+            zone.general.holiday_start_date_time = start
+            zone.general.holiday_end_date_time = end
+        return system
 
     async def cancel_holiday(self, system: System):
         """
@@ -759,13 +804,16 @@ class MyPyllantAPI:
         if system.zones and system.zones[0].general.holiday_start_in_future:
             # For some reason cancelling holidays in the future doesn't work, but setting a past value does
             default_holiday = datetime.datetime(2019, 1, 1, 0, 0, 0)
-            return await self.set_holiday(
-                system, start=default_holiday, end=default_holiday
-            )
+            await self.set_holiday(system, start=default_holiday, end=default_holiday)
         else:
-            return await self.aiohttp_session.delete(
+            await self.aiohttp_session.delete(
                 url, headers=self.get_authorized_headers()
             )
+        for zone in system.zones:
+            zone.current_special_function = ZoneCurrentSpecialFunction.NONE
+            zone.general.holiday_start_date_time = None
+            zone.general.holiday_end_date_time = None
+        return system
 
     async def set_domestic_hot_water_temperature(
         self, domestic_hot_water: DomesticHotWater, temperature: int | float
@@ -784,9 +832,11 @@ class MyPyllantAPI:
             f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
             f"/domestic-hot-water/{domestic_hot_water.index}/temperature"
         )
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url, json={"setpoint": temperature}, headers=self.get_authorized_headers()
         )
+        domestic_hot_water.tapping_setpoint = temperature
+        return domestic_hot_water
 
     async def boost_domestic_hot_water(self, domestic_hot_water: DomesticHotWater):
         """
@@ -799,9 +849,13 @@ class MyPyllantAPI:
             f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
             f"/domestic-hot-water/{domestic_hot_water.index}/boost"
         )
-        return await self.aiohttp_session.post(
+        await self.aiohttp_session.post(
             url, json={}, headers=self.get_authorized_headers()
         )
+        domestic_hot_water.current_special_function = (
+            DHWCurrentSpecialFunction.CYLINDER_BOOST
+        )
+        return domestic_hot_water
 
     async def cancel_hot_water_boost(self, domestic_hot_water: DomesticHotWater):
         """
@@ -814,9 +868,9 @@ class MyPyllantAPI:
             f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
             f"/domestic-hot-water/{domestic_hot_water.index}/boost"
         )
-        return await self.aiohttp_session.delete(
-            url, headers=self.get_authorized_headers()
-        )
+        await self.aiohttp_session.delete(url, headers=self.get_authorized_headers())
+        domestic_hot_water.current_special_function = DHWCurrentSpecialFunction.REGULAR
+        return domestic_hot_water
 
     async def set_domestic_hot_water_operation_mode(
         self,
@@ -834,11 +888,19 @@ class MyPyllantAPI:
             f"{await self.get_system_api_base(domestic_hot_water.system_id)}/domestic-hot-water/"
             f"{domestic_hot_water.index}/operation-mode"
         )
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json={"operationMode": str(mode)},
             headers=self.get_authorized_headers(),
         )
+
+        if isinstance(mode, str):
+            if domestic_hot_water.control_identifier.is_vrc700:
+                mode = DHWOperationModeVRC700(mode)
+            else:
+                mode = DHWOperationMode(mode)
+        domestic_hot_water.operation_mode_dhw = mode
+        return domestic_hot_water
 
     async def set_domestic_hot_water_time_program(
         self, domestic_hot_water: DomesticHotWater, time_program: DHWTimeProgram
@@ -856,11 +918,13 @@ class MyPyllantAPI:
         )
         data = asdict(time_program)
         del data["meta_info"]
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json=dict_to_camel_case(data),
             headers=self.get_authorized_headers(),
         )
+        domestic_hot_water.time_program_dhw = time_program
+        return domestic_hot_water
 
     async def set_domestic_hot_water_circulation_time_program(
         self, domestic_hot_water: DomesticHotWater, time_program: DHWTimeProgram
@@ -878,11 +942,13 @@ class MyPyllantAPI:
         )
         data = asdict(time_program)
         del data["meta_info"]
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json=dict_to_camel_case(data),
             headers=self.get_authorized_headers(),
         )
+        domestic_hot_water.time_program_circulation_pump = time_program
+        return domestic_hot_water
 
     async def set_ventilation_operation_mode(
         self, ventilation: Ventilation, mode: VentilationOperationMode
@@ -898,13 +964,15 @@ class MyPyllantAPI:
             f"{await self.get_system_api_base(ventilation.system_id)}"
             f"/ventilation/{ventilation.index}/operation-mode"
         )
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json={
                 "operationMode": str(mode),
             },
             headers=self.get_authorized_headers(),
         )
+        ventilation.operation_mode_ventilation = mode
+        return ventilation
 
     async def set_ventilation_fan_stage(
         self,
@@ -924,7 +992,7 @@ class MyPyllantAPI:
             f"{await self.get_system_api_base(ventilation.system_id)}"
             f"/ventilation/{ventilation.index}/fan-stage"
         )
-        return await self.aiohttp_session.patch(
+        await self.aiohttp_session.patch(
             url,
             json={
                 "maximumFanStage": maximum_fan_stage,
@@ -932,6 +1000,12 @@ class MyPyllantAPI:
             },
             headers=self.get_authorized_headers(),
         )
+        setattr(
+            ventilation,
+            f"maximum_{fan_stage_type.lower()}_fan_stage",
+            maximum_fan_stage,
+        )
+        return ventilation
 
     async def get_connection_status(self, system: System | str) -> bool:
         """
