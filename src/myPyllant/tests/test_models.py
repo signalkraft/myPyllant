@@ -106,15 +106,32 @@ async def test_time_program_overlap() -> None:
 
 
 async def test_rts_statistics(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
-    test_data = load_test_data(DATA_DIR / "rts")
+    data_list = [
+        load_test_data(DATA_DIR / "vrc700_mpc_rts.yaml"),
+        load_test_data(DATA_DIR / "rts"),
+    ]
+    for test_data in data_list:
+        with mypyllant_aioresponses(test_data) as _:
+            system = await anext(mocked_api.get_systems(include_rts=True))
+            assert isinstance(system.rts, dict)
+            assert len(system.rts.get("statistics", [])) > 0
+            rts_device_id = system.rts["statistics"][0]["device_id"]
+            d: Device = [d for d in system.devices if d.device_uuid == rts_device_id][0]
+            assert isinstance(d.on_off_cycles, int)
+            assert isinstance(d.operation_time, int)
+    await mocked_api.aiohttp_session.close()
+
+
+async def test_mpc(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
+    test_data = load_test_data(DATA_DIR / "vrc700_mpc_rts.yaml")
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(mocked_api.get_systems(include_rts=True))
-        assert len(system.rts.get("statistics", [])) > 0
-        rts_device_id = system.rts["statistics"][0]["device_id"]
-        d: Device = [d for d in system.devices if d.device_uuid == rts_device_id][0]
-        assert isinstance(d.on_off_cycles, int)
-        assert isinstance(d.operation_time, int)
-        await mocked_api.aiohttp_session.close()
+        system = await anext(mocked_api.get_systems(include_mpc=True))
+        assert isinstance(system.mpc, dict)
+        assert len(system.mpc.get("devices", [])) > 0
+        mpc_device_id = system.mpc["devices"][0]["device_id"]
+        d: Device = [d for d in system.devices if d.device_uuid == mpc_device_id][0]
+        assert isinstance(d.current_power, int)
+    await mocked_api.aiohttp_session.close()
 
 
 async def test_extra_system_state_properties(

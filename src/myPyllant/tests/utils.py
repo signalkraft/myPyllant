@@ -248,16 +248,19 @@ def list_test_data():
         if list(d.rglob("*.json")):
             test_data.append(load_test_data(d))
     for f in DATA_DIR.glob("*.yaml"):
-        test_data.append({"_directory": str(f), **yaml.safe_load(f.read_text())})
+        test_data.append(load_test_data(f))
     return test_data
 
 
 def load_test_data(data_dir: Path):
-    user_data: dict[str, Any] = defaultdict(dict)
-    user_data["_directory"] = str(data_dir)
-    for f in data_dir.rglob("*.json"):
-        if f.parent != data_dir:
-            user_data[f.parent.stem][f.stem] = json.loads(f.read_text())
-        else:
-            user_data[f.stem] = json.loads(f.read_text())
-    return user_data
+    if data_dir.is_dir():
+        user_data: dict[str, Any] = defaultdict(dict)
+        user_data["_directory"] = str(data_dir)
+        for f in data_dir.rglob("*.json"):
+            if f.parent != data_dir:
+                user_data[f.parent.stem][f.stem] = json.loads(f.read_text())
+            else:
+                user_data[f.stem] = json.loads(f.read_text())
+        return user_data
+    else:
+        return {"_directory": str(data_dir), **yaml.safe_load(data_dir.read_text())}

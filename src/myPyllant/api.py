@@ -327,17 +327,6 @@ class MyPyllantAPI:
         homes = self.get_homes()
         async for home in homes:
             control_identifier = await self.get_control_identifier(home.system_id)
-            if control_identifier.is_vrc700:
-                if include_rts:
-                    include_rts = False
-                    logger.info(
-                        "Fetching RTS data is not supported on VRC700 controllers"
-                    )
-                if include_mpc:
-                    include_mpc = False
-                    logger.info(
-                        "Fetching MPC data is not supported on VRC700 controllers"
-                    )
             system_url = await self.get_system_api_base(home.system_id)
             current_system_url = (
                 f"{await self.get_api_base()}/emf/v2/{home.system_id}/currentSystem"
@@ -1119,15 +1108,13 @@ class MyPyllantAPI:
             )
         except ClientResponseError as e:
             logger.warning("Could not get RTS data", exc_info=e)
-            return {}
+            return {"statistics": []}
         result = await response.json()
         return dict_to_snake_case(result)
 
     async def get_mpc(self, system: System | str) -> dict:
         """
-        Gets MPC data. What is MPC data? No idea, I just saw it getting requested by the app. It seems to be empty?
-
-        TODO: Figure out what this is
+        Gets live power usage data per device
 
         Parameters:
             system: The System object or system ID string
@@ -1140,6 +1127,6 @@ class MyPyllantAPI:
             )
         except ClientResponseError as e:
             logger.warning("Could not get MPC data", exc_info=e)
-            return {}
+            return {"devices": []}
         result = await response.json()
         return dict_to_snake_case(result)

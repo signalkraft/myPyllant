@@ -584,7 +584,8 @@ class Device(MyPyllantDataClass):
     operational_data: dict = field(default_factory=dict)
     data: list[DeviceData] = field(default_factory=list)
     properties: list = field(default_factory=list)
-    rts_statistics: dict = field(default_factory=dict)
+    mpc: dict | None = None
+    rts_statistics: dict | None = None
     diagnostic_trouble_codes: list | None = None
 
     @property
@@ -614,11 +615,17 @@ class Device(MyPyllantDataClass):
 
     @property
     def on_off_cycles(self) -> int | None:
-        return self.rts_statistics.get("on_off_cycles")
+        return self.rts_statistics.get("on_off_cycles") if self.rts_statistics else None
 
     @property
     def operation_time(self) -> int | None:
-        return self.rts_statistics.get("operation_time")
+        return (
+            self.rts_statistics.get("operation_time") if self.rts_statistics else None
+        )
+
+    @property
+    def current_power(self) -> int | None:
+        return self.mpc.get("current_power") if self.mpc else None
 
     @classmethod
     def from_api(cls, **data):
@@ -650,8 +657,8 @@ class System(MyPyllantDataClass):
     domestic_hot_water: list[DomesticHotWater] = field(default_factory=list)
     ventilation: list[Ventilation] = field(default_factory=list)
     devices: list[Device] = field(default_factory=list)
-    mpc: dict = field(default_factory=dict)
-    rts: dict = field(default_factory=dict)
+    mpc: dict | None = None
+    rts: dict | None = None
 
     @classmethod
     def from_api(cls, **data):
@@ -709,6 +716,11 @@ class System(MyPyllantDataClass):
         if rts_statistics:
             device["rts_statistics"] = rts_statistics
 
+    def apply_mpc(self, device):
+        mpc = self.mpc_by_device_uuid(device["device_uuid"])
+        if mpc:
+            device["mpc"] = mpc
+
     @property
     def raw_devices(self) -> Iterator[tuple[str, dict]]:
         for key, device in self.current_system.items():
@@ -717,10 +729,12 @@ class System(MyPyllantDataClass):
                     if isinstance(secdevice, dict) and "device_uuid" in secdevice:
                         self.apply_diagnostic(secdevice)
                         self.apply_rts(secdevice)
+                        self.apply_mpc(secdevice)
                         yield key, secdevice
             if isinstance(device, dict) and "device_uuid" in device:
                 self.apply_diagnostic(device)
                 self.apply_rts(device)
+                self.apply_mpc(device)
                 yield key, device
 
     @property
@@ -860,10 +874,18 @@ class System(MyPyllantDataClass):
             return None
 
     def rts_statistics_by_device_uuid(self, device_uuid: str) -> dict | None:
+        if not self.rts:
+            return None
         statistics = [
             s for s in self.rts.get("statistics", []) if s["device_id"] == device_uuid
         ]
         return statistics[0] if statistics else None
+
+    def mpc_by_device_uuid(self, device_uuid: str) -> dict | None:
+        if not self.mpc:
+            return None
+        mpc = [m for m in self.mpc.get("devices", []) if m["device_id"] == device_uuid]
+        return mpc[0] if mpc else None
 
 
 @dataclass(config=MyPyllantConfig)
