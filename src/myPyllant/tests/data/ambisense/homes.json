@@ -1,0 +1,27 @@
+[
+  {
+    "homeName": "ef573acb9e76ba79672d985ede21ea717de01487",
+    "serialNumber": "04ee82aa72ef4aa17a08e420cab922546cde8137",
+    "systemId": "fc9ac9ea562b2a82a48708045a7c628e33c0de4b",
+    "productMetadata": {
+      "productType": "VR920",
+      "productionYear": "17",
+      "productionWeek": "48",
+      "articleNumber": "0020252922"
+    },
+    "state": "CLAIMED",
+    "migrationState": "FINISHED",
+    "migrationFinishedAt": "2024-03-15T09:40:07.807377922Z",
+    "onlineState": "ONLINE",
+    "firmware": {
+      "version": "0357.40.34",
+      "updateEnabled": false,
+      "updateRequired": false
+    },
+    "nomenclature": "VR 920",
+    "cag": false,
+    "countryCode": "BE",
+    "productInformation": "VR920",
+    "firmwareVersion": "0357.40.34"
+  }
+]

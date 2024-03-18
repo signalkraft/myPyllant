@@ -1,0 +1,336 @@
+[
+  {
+    "roomIndex": 3,
+    "roomConfiguration": {
+      "name": "Chambre Jules",
+      "temperatureSetpoint": 17.0,
+      "operationMode": "auto",
+      "currentTemperature": 19.3,
+      "currentHumidity": null,
+      "buttonLock": true,
+      "windowState": false,
+      "devices": [
+        {
+          "name": "Chambre Jules",
+          "sgtin": "3014F59C28000A1810000777",
+          "deviceType": "TRV",
+          "lowBat": false,
+          "unreach": false,
+          "rssi": -64,
+          "rssiPeer": -65
+        }
+      ],
+      "iconId": "BEDROOM",
+      "quickVetoEndTime": null
+    },
+    "timeprogram": {
+      "monday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "tuesday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "wednesday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "thursday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "friday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "saturday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "sunday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ]
+    }
+  },
+  {
+    "roomIndex": 0,
+    "roomConfiguration": {
+      "name": "Chambre parentale",
+      "temperatureSetpoint": 4.5,
+      "operationMode": "off",
+      "currentTemperature": 20.2,
+      "currentHumidity": null,
+      "buttonLock": null,
+      "windowState": false,
+      "devices": [
+        {
+          "name": "Chambre parentale",
+          "sgtin": "3014F59C28000A18100007C2",
+          "deviceType": "TRV",
+          "lowBat": false,
+          "unreach": false,
+          "rssi": -60,
+          "rssiPeer": -62
+        }
+      ],
+      "iconId": "BEDROOM",
+      "quickVetoEndTime": null
+    },
+    "timeprogram": {
+      "monday": [],
+      "tuesday": [],
+      "wednesday": [],
+      "thursday": [],
+      "friday": [],
+      "saturday": [],
+      "sunday": []
+    }
+  },
+  {
+    "roomIndex": 2,
+    "roomConfiguration": {
+      "name": "Chambre Lucie",
+      "temperatureSetpoint": 17.0,
+      "operationMode": "auto",
+      "currentTemperature": 19.4,
+      "currentHumidity": null,
+      "buttonLock": true,
+      "windowState": false,
+      "devices": [
+        {
+          "name": "Chambre Lucie",
+          "sgtin": "3014F59C28000A1810000779",
+          "deviceType": "TRV",
+          "lowBat": false,
+          "unreach": false,
+          "rssi": -68,
+          "rssiPeer": -68
+        }
+      ],
+      "iconId": "BEDROOM",
+      "quickVetoEndTime": null
+    },
+    "timeprogram": {
+      "monday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "tuesday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "wednesday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "thursday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "friday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "saturday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ],
+      "sunday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 17.0
+        }
+      ]
+    }
+  },
+  {
+    "roomIndex": 1,
+    "roomConfiguration": {
+      "name": "Salle de bain",
+      "temperatureSetpoint": 22.0,
+      "operationMode": "auto",
+      "currentTemperature": 23.8,
+      "currentHumidity": null,
+      "buttonLock": false,
+      "windowState": false,
+      "devices": [
+        {
+          "name": "Radiateur salle de bain",
+          "sgtin": "3014F59C28000A1810000725",
+          "deviceType": "TRV",
+          "lowBat": false,
+          "unreach": false,
+          "rssi": -71,
+          "rssiPeer": -72
+        },
+        {
+          "name": "S\u00e8che serviette salle de bain",
+          "sgtin": "3014F59C28000A18100007B8",
+          "deviceType": "TRV",
+          "lowBat": false,
+          "unreach": false,
+          "rssi": -55,
+          "rssiPeer": -56
+        }
+      ],
+      "iconId": "BATHROOM",
+      "quickVetoEndTime": null
+    },
+    "timeprogram": {
+      "monday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 19.5
+        },
+        {
+          "startTime": 360,
+          "temperatureSetpoint": 22.0
+        },
+        {
+          "startTime": 990,
+          "temperatureSetpoint": 25.0
+        },
+        {
+          "startTime": 1150,
+          "temperatureSetpoint": 19.5
+        }
+      ],
+      "tuesday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 19.5
+        },
+        {
+          "startTime": 360,
+          "temperatureSetpoint": 22.0
+        },
+        {
+          "startTime": 990,
+          "temperatureSetpoint": 25.0
+        },
+        {
+          "startTime": 1150,
+          "temperatureSetpoint": 19.5
+        }
+      ],
+      "wednesday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 19.5
+        },
+        {
+          "startTime": 360,
+          "temperatureSetpoint": 22.0
+        },
+        {
+          "startTime": 990,
+          "temperatureSetpoint": 25.0
+        },
+        {
+          "startTime": 1150,
+          "temperatureSetpoint": 19.5
+        }
+      ],
+      "thursday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 19.5
+        },
+        {
+          "startTime": 360,
+          "temperatureSetpoint": 22.0
+        },
+        {
+          "startTime": 990,
+          "temperatureSetpoint": 25.0
+        },
+        {
+          "startTime": 1150,
+          "temperatureSetpoint": 19.5
+        }
+      ],
+      "friday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 19.5
+        },
+        {
+          "startTime": 360,
+          "temperatureSetpoint": 22.0
+        },
+        {
+          "startTime": 990,
+          "temperatureSetpoint": 25.0
+        },
+        {
+          "startTime": 1150,
+          "temperatureSetpoint": 19.5
+        }
+      ],
+      "saturday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 19.5
+        },
+        {
+          "startTime": 360,
+          "temperatureSetpoint": 22.0
+        },
+        {
+          "startTime": 990,
+          "temperatureSetpoint": 25.0
+        },
+        {
+          "startTime": 1150,
+          "temperatureSetpoint": 19.5
+        }
+      ],
+      "sunday": [
+        {
+          "startTime": 0,
+          "temperatureSetpoint": 19.5
+        },
+        {
+          "startTime": 360,
+          "temperatureSetpoint": 22.0
+        },
+        {
+          "startTime": 990,
+          "temperatureSetpoint": 25.0
+        },
+        {
+          "startTime": 1150,
+          "temperatureSetpoint": 19.5
+        }
+      ]
+    }
+  }
+]
