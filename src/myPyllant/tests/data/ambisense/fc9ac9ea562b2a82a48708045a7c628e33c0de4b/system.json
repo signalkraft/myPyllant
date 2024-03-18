@@ -1,0 +1,330 @@
+{
+  "state": {
+    "system": {
+      "outdoorTemperature": 12.0625,
+      "outdoorTemperatureAverage24h": 9.2109375,
+      "systemWaterPressure": 1.9,
+      "legionellaProtectionStartWeekday": "THURSDAY",
+      "energyManagerState": "HEATING",
+      "systemOff": false
+    },
+    "zones": [
+      {
+        "index": 0,
+        "desiredRoomTemperatureSetpointHeating": 21.5,
+        "desiredRoomTemperatureSetpoint": 21.5,
+        "currentSpecialFunction": "NONE"
+      },
+      {
+        "index": 1,
+        "desiredRoomTemperatureSetpointHeating": 5.0,
+        "desiredRoomTemperatureSetpoint": 5.0,
+        "currentRoomTemperature": 21.8125,
+        "currentRoomHumidity": 58.0,
+        "currentSpecialFunction": "NONE"
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "circuitState": "HEATING",
+        "currentCircuitFlowTemperature": 37.5,
+        "heatingCircuitFlowSetpoint": 0.0,
+        "calculatedEnergyManagerState": "HEATING_ACTIVE"
+      },
+      {
+        "index": 1,
+        "circuitState": "STANDBY",
+        "currentCircuitFlowTemperature": 26.4375,
+        "heatingCircuitFlowSetpoint": 0.0,
+        "calculatedEnergyManagerState": "HEATING_STANDBY"
+      }
+    ],
+    "domesticHotWater": [
+      {
+        "index": 255,
+        "currentSpecialFunction": "NONE",
+        "currentDomesticHotWaterTemperature": 47.0
+      }
+    ]
+  },
+  "properties": {
+    "system": {
+      "controllerType": "VRC700",
+      "controllerRevision": "R5",
+      "systemScheme": 1,
+      "backupHeaterType": "CONDENSING",
+      "backupHeaterAllowedFor": "DOMESTIC_HOT_WATER_AND_HEATING",
+      "moduleConfigurationVR71": 3,
+      "energyProvidePowerCutBehavior": "DISABLE_HEATPUMP",
+      "smartPhotovoltaicBufferOffset": 10.0,
+      "externalEnergyManagementActivation": false
+    },
+    "zones": [
+      {
+        "index": 0,
+        "isActive": true,
+        "zoneBinding": "NONE",
+        "associatedCircuitIndex": 0
+      },
+      {
+        "index": 1,
+        "isActive": true,
+        "zoneBinding": "CENTRAL_CONTROL",
+        "associatedCircuitIndex": 1
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "mixerCircuitTypeExternal": "HEATING",
+        "heatingCircuitType": "DIRECT_HEATING_CIRCUIT",
+        "isCoolingAllowed": false
+      },
+      {
+        "index": 1,
+        "mixerCircuitTypeExternal": "HEATING",
+        "heatingCircuitType": "MIXER_CIRCUIT_EXTERNAL",
+        "isCoolingAllowed": false
+      }
+    ],
+    "domesticHotWater": [
+      {
+        "index": 255,
+        "minSetpoint": 35.0,
+        "maxSetpoint": 70.0
+      }
+    ]
+  },
+  "configuration": {
+    "system": {
+      "continuousHeatingStartSetpoint": -26.0,
+      "alternativePoint": -21.0,
+      "heatingCircuitBivalencePoint": 0.0,
+      "domesticHotWaterBivalencePoint": -7.0,
+      "adaptiveHeatingCurve": true,
+      "domesticHotWaterMaximumLoadingTime": 60,
+      "domesticHotWaterHysteresis": 5.0,
+      "domesticHotWaterFlowSetpointOffset": 25.0,
+      "maxFlowSetpointHeatpumpError": 25.0,
+      "domesticHotWaterMaximumTemperature": 80.0,
+      "hybridControlStrategy": "BIVALENCE_POINT",
+      "paralellTankLoadingAllowed": true
+    },
+    "zones": [
+      {
+        "index": 0,
+        "general": {
+          "name": "ETAGE     ",
+          "holidayStartDateTime": "2015-01-01T00:00:00Z",
+          "holidayEndDateTime": "2015-01-01T00:00:00Z",
+          "holidaySetpoint": 5.0
+        },
+        "heating": {
+          "operationModeHeating": "DAY",
+          "setBackTemperature": 13.0,
+          "dayTemperatureHeating": 21.5,
+          "timeProgramHeating": {
+            "metaInfo": {
+              "minSlotsPerDay": 0,
+              "maxSlotsPerDay": 3,
+              "setpointRequiredPerSlot": false
+            },
+            "monday": [],
+            "tuesday": [],
+            "wednesday": [],
+            "thursday": [],
+            "friday": [],
+            "saturday": [],
+            "sunday": []
+          }
+        }
+      },
+      {
+        "index": 1,
+        "general": {
+          "name": "SALON     ",
+          "holidayStartDateTime": "2015-01-01T00:00:00Z",
+          "holidayEndDateTime": "2015-01-01T00:00:00Z",
+          "holidaySetpoint": 5.0
+        },
+        "heating": {
+          "operationModeHeating": "AUTO",
+          "setBackTemperature": 18.5,
+          "dayTemperatureHeating": 20.5,
+          "timeProgramHeating": {
+            "metaInfo": {
+              "minSlotsPerDay": 0,
+              "maxSlotsPerDay": 3,
+              "setpointRequiredPerSlot": false
+            },
+            "monday": [
+              {
+                "startTime": 320,
+                "endTime": 1080
+              }
+            ],
+            "tuesday": [
+              {
+                "startTime": 320,
+                "endTime": 1080
+              }
+            ],
+            "wednesday": [
+              {
+                "startTime": 320,
+                "endTime": 1080
+              }
+            ],
+            "thursday": [
+              {
+                "startTime": 320,
+                "endTime": 1080
+              }
+            ],
+            "friday": [
+              {
+                "startTime": 320,
+                "endTime": 1080
+              }
+            ],
+            "saturday": [
+              {
+                "startTime": 320,
+                "endTime": 1080
+              }
+            ],
+            "sunday": [
+              {
+                "startTime": 320,
+                "endTime": 1080
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "heatingCurve": 4.0,
+        "heatingFlowTemperatureMinimumSetpoint": 35.0,
+        "heatingFlowTemperatureMaximumSetpoint": 45.0,
+        "heatDemandLimitedByOutsideTemperature": 25.0,
+        "heatingCircuitFlowSetpointExcessOffset": 0.0,
+        "setbackModeEnabled": false,
+        "roomTemperatureControlMode": "THERMOSTAT_FUNCTION"
+      },
+      {
+        "index": 1,
+        "heatingCurve": 0.30357337,
+        "heatingFlowTemperatureMinimumSetpoint": 21.0,
+        "heatingFlowTemperatureMaximumSetpoint": 38.0,
+        "heatDemandLimitedByOutsideTemperature": 22.0,
+        "heatingCircuitFlowSetpointExcessOffset": 0.0,
+        "setbackModeEnabled": false,
+        "roomTemperatureControlMode": "THERMOSTAT_FUNCTION"
+      }
+    ],
+    "domesticHotWater": [
+      {
+        "index": 255,
+        "operationModeDomesticHotWater": "AUTO",
+        "tappingSetpoint": 55.0,
+        "holidayStartDateTime": "2015-01-01T00:00:00Z",
+        "holidayEndDateTime": "2015-01-01T00:00:00Z",
+        "timeProgramDomesticHotWater": {
+          "metaInfo": {
+            "minSlotsPerDay": 0,
+            "maxSlotsPerDay": 3,
+            "setpointRequiredPerSlot": false
+          },
+          "monday": [
+            {
+              "startTime": 330,
+              "endTime": 360
+            },
+            {
+              "startTime": 1050,
+              "endTime": 1090
+            }
+          ],
+          "tuesday": [
+            {
+              "startTime": 330,
+              "endTime": 360
+            },
+            {
+              "startTime": 1050,
+              "endTime": 1090
+            }
+          ],
+          "wednesday": [
+            {
+              "startTime": 330,
+              "endTime": 360
+            },
+            {
+              "startTime": 1050,
+              "endTime": 1090
+            }
+          ],
+          "thursday": [
+            {
+              "startTime": 330,
+              "endTime": 360
+            },
+            {
+              "startTime": 1050,
+              "endTime": 1090
+            }
+          ],
+          "friday": [
+            {
+              "startTime": 330,
+              "endTime": 360
+            },
+            {
+              "startTime": 1050,
+              "endTime": 1090
+            }
+          ],
+          "saturday": [
+            {
+              "startTime": 330,
+              "endTime": 360
+            },
+            {
+              "startTime": 1050,
+              "endTime": 1090
+            }
+          ],
+          "sunday": [
+            {
+              "startTime": 330,
+              "endTime": 360
+            },
+            {
+              "startTime": 1050,
+              "endTime": 1090
+            }
+          ]
+        },
+        "timeProgramCirculationPump": {
+          "metaInfo": {
+            "minSlotsPerDay": 0,
+            "maxSlotsPerDay": 3,
+            "setpointRequiredPerSlot": false
+          },
+          "monday": [],
+          "tuesday": [],
+          "wednesday": [],
+          "thursday": [],
+          "friday": [],
+          "saturday": [],
+          "sunday": []
+        }
+      }
+    ]
+  }
+}
