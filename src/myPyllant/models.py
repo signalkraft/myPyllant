@@ -692,6 +692,7 @@ class AmbisenseDevice(MyPyllantDataClass):
     low_bat: bool
     name: str
     rssi: int
+    rssi_peer: int
     sgtin: str
     unreach: bool
 
@@ -711,7 +712,6 @@ class AmbisenseRoomConfiguration(MyPyllantDataClass):
 
     @classmethod
     def from_api(cls, **data):
-        data["devices"] = [AmbisenseDevice.from_api(**d) for d in data["devices"]]
         data["operation_mode"] = AmbisenseRoomOperationMode(
             data["operation_mode"].upper()
         )

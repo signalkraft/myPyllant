@@ -12,6 +12,7 @@ from ..models import (
     Device,
     AmbisenseRoom,
     RoomTimeProgram,
+    AmbisenseDevice,
 )
 from ..enums import ZoneHeatingOperatingMode, ControlIdentifier
 from .utils import list_test_data, load_test_data
@@ -156,6 +157,8 @@ async def test_ambisense(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> No
         assert isinstance(system.ambisense_rooms[0], AmbisenseRoom)
         for room in system.ambisense_rooms:
             assert isinstance(room.name, str)
+            assert isinstance(room.room_configuration.devices[0], AmbisenseDevice)
+            assert len(room.room_configuration.devices[0].name) > 0
             assert isinstance(room.time_program, RoomTimeProgram)
             assert isinstance(room.room_configuration.current_temperature, float)
             if room.room_index == 1:
