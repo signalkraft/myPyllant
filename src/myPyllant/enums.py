@@ -111,3 +111,9 @@ class VentilationOperationMode(MyPyllantEnum):
 class VentilationFanStageType(MyPyllantEnum):
     DAY = "DAY"
     NIGHT = "NIGHT"
+
+
+class AmbisenseRoomOperationMode(MyPyllantEnum):
+    MANUAL = "MANUAL"
+    OFF = "OFF"
+    AUTO = "AUTO"

@@ -38,6 +38,7 @@ from myPyllant.enums import (
     VentilationFanStageType,
     DHWOperationModeVRC700,
     DHWCurrentSpecialFunction,
+    AmbisenseRoomOperationMode,
 )
 from myPyllant.http_client import (
     AuthenticationFailed,
@@ -56,6 +57,7 @@ from myPyllant.models import (
     Ventilation,
     Zone,
     ZoneTimeProgram,
+    AmbisenseRoom,
 )
 from myPyllant.utils import (
     datetime_format,
@@ -1178,3 +1180,86 @@ class MyPyllantAPI:
         for room in result:
             room["time_program"] = room.pop("timeprogram")
         return result
+
+    async def set_ambisense_room_operation_mode(
+        self,
+        room: AmbisenseRoom,
+        mode: AmbisenseRoomOperationMode | str,
+    ) -> AmbisenseRoom:
+        """
+        Sets the operation mode for a room
+
+        Parameters:
+            room: The room
+            mode: The operation mode
+        """
+        url = f"{await self.get_api_base()}/api/v1/ambisense/facilities/{room.system_id}/rooms/{room.room_index}/configuration/operation-mode"
+        await self.aiohttp_session.put(
+            url,
+            json={"operationMode": str(mode).lower()},
+            headers=self.get_authorized_headers(),
+        )
+
+        if isinstance(mode, str):
+            room.room_configuration.operation_mode = AmbisenseRoomOperationMode(
+                mode.upper()
+            )
+        else:
+            room.room_configuration.operation_mode = mode
+        return room
+
+    async def quick_veto_ambisense_room(
+        self,
+        room: AmbisenseRoom,
+        temperature: float,
+        duration_seconds: int | None = None,
+        default_duration: int | None = None,
+    ) -> AmbisenseRoom:
+        """
+        Temporarily overwrites the desired temperature in a room
+
+        Parameters:
+            room: The target room
+            temperature: The target temperature
+            duration_seconds: Optional, sets overwrite for this many seconds
+            default_duration: Optional, falls back to this default duration if duration_seconds is not given
+        """
+        if not default_duration:
+            default_duration = (
+                int(DEFAULT_QUICK_VETO_DURATION) * 60
+            )  # duration for quick veto for room is in seconds
+
+        url = f"{await self.get_api_base()}/api/v1/ambisense/facilities/{room.system_id}/rooms/{room.room_index}/configuration/quick-veto"
+
+        payload = {
+            "temperatureSetpoint": temperature,
+            "duration": duration_seconds or default_duration,
+        }
+
+        await self.aiohttp_session.put(
+            url,
+            json=payload,
+            headers=self.get_authorized_headers(),
+        )
+
+        room.room_configuration.temperature_setpoint = temperature
+        room.room_configuration.quick_veto_end_time = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(seconds=(duration_seconds or default_duration))
+        return room
+
+    async def cancel_quick_veto_ambisense_room(
+        self, room: AmbisenseRoom
+    ) -> AmbisenseRoom:
+        """
+        Cancels a previously set quick veto in a room
+
+        Parameters:
+            room: The target room
+        """
+        url = f"{await self.get_api_base()}/api/v1/ambisense/facilities/{room.system_id}/rooms/{room.room_index}/configuration/quick-veto"
+
+        await self.aiohttp_session.delete(url, headers=self.get_authorized_headers())
+        room.room_configuration.quick_veto_end_time = None
+        # TODO not sure what to do with room.room_configuration.temperature_setpoint
+        return room

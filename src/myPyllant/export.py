@@ -61,6 +61,7 @@ async def main(
             include_diagnostic_trouble_codes=True,
             include_rts=True,
             include_mpc=True,
+            include_ambisense_rooms=True,
         ):
             if data:
                 for device in system.devices:
@@ -74,6 +75,16 @@ async def main(
 
             else:
                 export_list.append(system.prepare_dict())
+
+            # TODO to be removed, but to ensure that it works with real API calls
+            # await api.quick_veto_ambisense_room(system.ambisense_rooms[0], 12, 100)
+            # await api.cancel_quick_veto_ambisense_room(system.ambisense_rooms[0])
+            # await api.set_ambisense_room_operation_mode(
+            #    system.ambisense_rooms[0], AmbisenseRoomOperationMode.OFF
+            # )
+            # await api.set_ambisense_room_operation_mode(
+            #    system.ambisense_rooms[0], AmbisenseRoomOperationMode.AUTO
+            # )
 
         return export_list
 

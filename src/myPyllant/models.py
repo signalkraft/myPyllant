@@ -22,6 +22,7 @@ from myPyllant.enums import (
     ZoneHeatingOperatingModeVRC700,
     DHWCurrentSpecialFunctionVRC700,
     DHWOperationModeVRC700,
+    AmbisenseRoomOperationMode,
 )
 from myPyllant.utils import datetime_parse, prepare_field_value_for_dict
 
@@ -686,9 +687,19 @@ class RoomTimeProgram(BaseTimeProgram):
 
 
 @dataclass(config=MyPyllantConfig)
+class AmbisenseDevice(MyPyllantDataClass):
+    device_type: str
+    low_bat: bool
+    name: str
+    rssi: int
+    sgtin: str
+    unreach: bool
+
+
+@dataclass(config=MyPyllantConfig)
 class AmbisenseRoomConfiguration(MyPyllantDataClass):
     name: str
-    operation_mode: str
+    operation_mode: AmbisenseRoomOperationMode
     current_temperature: float
     temperature_setpoint: float
     icon_id: str | None = None
@@ -696,11 +707,20 @@ class AmbisenseRoomConfiguration(MyPyllantDataClass):
     button_lock: bool | None = None
     window_state: bool | None = None
     quick_veto_end_time: datetime.datetime | None = None
-    devices: list[dict] = field(default_factory=list)
+    devices: list[AmbisenseDevice] = field(default_factory=list)
+
+    @classmethod
+    def from_api(cls, **data):
+        data["devices"] = [AmbisenseDevice.from_api(**d) for d in data["devices"]]
+        data["operation_mode"] = AmbisenseRoomOperationMode(
+            data["operation_mode"].upper()
+        )
+        return super().from_api(**data)
 
 
 @dataclass(config=MyPyllantConfig)
 class AmbisenseRoom(MyPyllantDataClass):
+    system_id: str
     room_index: int
     room_configuration: AmbisenseRoomConfiguration
     time_program: RoomTimeProgram
@@ -712,6 +732,9 @@ class AmbisenseRoom(MyPyllantDataClass):
     @classmethod
     def from_api(cls, **data):
         data["time_program"] = RoomTimeProgram.from_api(**data["time_program"])
+        data["room_configuration"] = AmbisenseRoomConfiguration.from_api(
+            **data["room_configuration"]
+        )
         return super().from_api(**data)
 
 
@@ -782,7 +805,9 @@ class System(MyPyllantDataClass):
             )
             for k, v in system.raw_devices
         ]
-        system.ambisense_rooms = [AmbisenseRoom.from_api(**r) for r in ambisense_rooms]
+        system.ambisense_rooms = [
+            AmbisenseRoom.from_api(system_id=system.id, **r) for r in ambisense_rooms
+        ]
         return system
 
     def apply_diagnostic(self, device):

@@ -146,6 +146,20 @@ def _mypyllant_aioresponses():
                 payload={},
                 repeat=True,
             )
+            self.put(
+                re.compile(
+                    r".*/ambisense/.*/rooms/.*/configuration/(operation-mode|quick-veto)$"
+                ),
+                status=200,
+                payload={},
+                repeat=True,
+            )
+            self.delete(
+                re.compile(r".*/ambisense/.*/rooms/.*/configuration/quick-veto$"),
+                status=200,
+                payload={},
+                repeat=True,
+            )
 
             def get_test_data(url: str, key: str, default=None) -> CallbackResult:
                 """
