@@ -307,6 +307,7 @@ class MyPyllantAPI:
         include_diagnostic_trouble_codes: bool = False,
         include_rts: bool = False,
         include_mpc: bool = False,
+        include_ambisense_rooms: bool = False,
     ) -> AsyncIterator[System]:
         """
         Returns an async generator of systems under control of the user
@@ -316,6 +317,7 @@ class MyPyllantAPI:
             include_diagnostic_trouble_codes: Fetches diagnostic trouble codes for each system and device
             include_rts: Fetches RTS data for each system, only supported on TLI controllers
             include_mpc: Fetches MPC data for each system, only supported on TLI controllers
+            include_ambisense_rooms: Fetches Ambisense room data
 
         Returns:
             An Async Iterator with all the `System` objects
@@ -346,6 +348,8 @@ class MyPyllantAPI:
             ) as current_system_resp:
                 current_system_json = await current_system_resp.json()
 
+            ambisense_capability = await self.get_ambisense_capability(home.system_id)
+
             system = System.from_api(
                 brand=self.brand,
                 home=home,
@@ -362,6 +366,10 @@ class MyPyllantAPI:
                 rts=await self.get_rts(home.system_id) if include_rts else {},
                 mpc=await self.get_mpc(home.system_id) if include_mpc else {},
                 current_system=dict_to_snake_case(current_system_json),
+                ambisense_capability=ambisense_capability,
+                ambisense_rooms=await self.get_ambisense_rooms(home.system_id)
+                if include_ambisense_rooms and ambisense_capability
+                else [],
                 **dict_to_snake_case(system_json),
             )
             yield system
@@ -1130,3 +1138,43 @@ class MyPyllantAPI:
             return {"devices": []}
         result = await response.json()
         return dict_to_snake_case(result)
+
+    async def get_ambisense_capability(self, system: System | str) -> bool:
+        """
+        Whether a system is ambisense capable
+
+        Parameters:
+            system: The System object or system ID string
+        """
+        url = f"{get_api_base()}/api/v1/ambisense/facilities/{get_system_id(system)}/capability"
+        try:
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+        except ClientResponseError as e:
+            logger.warning("Could not get ambisense capability data", exc_info=e)
+            return False
+        result = await response.json()
+        return dict_to_snake_case(result).get("rbr_capable", False)
+
+    async def get_ambisense_rooms(self, system: System | str) -> list[dict]:
+        """
+        Whether a system is ambisense capable
+
+        Parameters:
+            system: The System object or system ID string
+        """
+        url = f"{get_api_base()}/api/v1/ambisense/facilities/{get_system_id(system)}/rooms"
+        try:
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+        except ClientResponseError as e:
+            logger.warning("Could not get rooms data", exc_info=e)
+            return []
+        result = dict_to_snake_case(await response.json())
+        for room in result:
+            room["time_program"] = room.pop("timeprogram")
+        return result

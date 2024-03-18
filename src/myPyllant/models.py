@@ -640,6 +640,82 @@ class Device(MyPyllantDataClass):
 
 
 @dataclass(config=MyPyllantConfig)
+class RoomTimeProgramDay(MyPyllantDataClass):
+    index: int
+    weekday_name: str
+    start_time: int
+    temperature_setpoint: float | None = None
+
+    @property
+    def start_datetime_time(self) -> datetime.time:
+        return datetime.time(self.start_time // 60, self.start_time % 60)
+
+    def start_datetime(self, date) -> datetime.datetime:
+        return date.replace(
+            hour=self.start_time // 60,
+            minute=self.start_time % 60,
+            second=0,
+            microsecond=0,
+        )
+
+    def __eq__(self, other):
+        """
+        When comparing two ZoneTimeProgramDay, we only care about start_time, end_time, and setpoint
+        """
+        if not isinstance(other, RoomTimeProgramDay):
+            return False
+        return (
+            self.start_time == other.start_time
+            and self.temperature_setpoint == other.temperature_setpoint
+        )
+
+
+@dataclass(config=MyPyllantConfig)
+class RoomTimeProgram(BaseTimeProgram):
+    monday: list[RoomTimeProgramDay]
+    tuesday: list[RoomTimeProgramDay]
+    wednesday: list[RoomTimeProgramDay]
+    thursday: list[RoomTimeProgramDay]
+    friday: list[RoomTimeProgramDay]
+    saturday: list[RoomTimeProgramDay]
+    sunday: list[RoomTimeProgramDay]
+
+    @classmethod
+    def create_day_from_api(cls, **kwargs):
+        return RoomTimeProgramDay(**kwargs)
+
+
+@dataclass(config=MyPyllantConfig)
+class AmbisenseRoomConfiguration(MyPyllantDataClass):
+    name: str
+    operation_mode: str
+    current_temperature: float
+    temperature_setpoint: float
+    icon_id: str | None = None
+    current_humidity: float | None = None
+    button_lock: bool | None = None
+    window_state: bool | None = None
+    quick_veto_end_time: datetime.datetime | None = None
+    devices: list[dict] = field(default_factory=list)
+
+
+@dataclass(config=MyPyllantConfig)
+class AmbisenseRoom(MyPyllantDataClass):
+    room_index: int
+    room_configuration: AmbisenseRoomConfiguration
+    time_program: RoomTimeProgram
+
+    @property
+    def name(self) -> str:
+        return self.room_configuration.name
+
+    @classmethod
+    def from_api(cls, **data):
+        data["time_program"] = RoomTimeProgram.from_api(**data["time_program"])
+        return super().from_api(**data)
+
+
+@dataclass(config=MyPyllantConfig)
 class System(MyPyllantDataClass):
     id: str
     state: dict
@@ -659,11 +735,14 @@ class System(MyPyllantDataClass):
     devices: list[Device] = field(default_factory=list)
     mpc: dict | None = None
     rts: dict | None = None
+    ambisense_capability: bool = False
+    ambisense_rooms: list[AmbisenseRoom] = field(default_factory=list)
 
     @classmethod
     def from_api(cls, **data):
         if "home" in data and "id" not in data:
             data["id"] = data["home"].system_id
+        ambisense_rooms = data.pop("ambisense_rooms")
         system: System = super().from_api(**data)
         logger.debug(f"Creating related models from state: {data}")
         system.extra_fields = system.merge_extra_fields()
@@ -703,6 +782,7 @@ class System(MyPyllantDataClass):
             )
             for k, v in system.raw_devices
         ]
+        system.ambisense_rooms = [AmbisenseRoom.from_api(**r) for r in ambisense_rooms]
         return system
 
     def apply_diagnostic(self, device):

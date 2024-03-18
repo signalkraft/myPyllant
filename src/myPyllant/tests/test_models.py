@@ -10,6 +10,8 @@ from ..models import (
     ZoneHeating,
     ZoneTimeProgram,
     Device,
+    AmbisenseRoom,
+    RoomTimeProgram,
 )
 from ..enums import ZoneHeatingOperatingMode, ControlIdentifier
 from .utils import list_test_data, load_test_data
@@ -143,4 +145,22 @@ async def test_extra_system_state_properties(
         assert system.cylinder_temperature_sensor_top_ch is not None
         assert system.cylinder_temperature_sensor_top_dhw is not None
         assert system.cylinder_temperature_sensor_bottom_dhw is not None
+    await mocked_api.aiohttp_session.close()
+
+
+async def test_ambisense(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
+    test_data = load_test_data(DATA_DIR / "ambisense")
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
+        assert len(system.ambisense_rooms) > 0
+        assert isinstance(system.ambisense_rooms[0], AmbisenseRoom)
+        for room in system.ambisense_rooms:
+            assert isinstance(room.name, str)
+            assert isinstance(room.time_program, RoomTimeProgram)
+            assert isinstance(room.room_configuration.current_temperature, float)
+            if room.room_index == 1:
+                assert isinstance(room.time_program.monday[0].start_time, int)
+                assert isinstance(
+                    room.time_program.monday[0].temperature_setpoint, float
+                )
     await mocked_api.aiohttp_session.close()

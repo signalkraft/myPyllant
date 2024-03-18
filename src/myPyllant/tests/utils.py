@@ -160,6 +160,8 @@ def _mypyllant_aioresponses():
                     raise ValueError(f"Could not find API base in URL {url}")
                 if url_parts[1] == "emf":
                     system_id = url_parts[3]
+                elif "ambisense/facilities" in url:
+                    system_id = url_parts[5]
                 else:
                     system_id = url_parts[2]
                 return CallbackResult(
@@ -194,6 +196,10 @@ def _mypyllant_aioresponses():
                         result = get_test_data(url, "mpc", {"devices": []})
                     case url if re.match(r".*/rts/.*", url):
                         result = get_test_data(url, "rts", {"statistics": []})
+                    case url if re.match(r".*/ambisense/.*/capability", url):
+                        result = get_test_data(url, "rbr", {"rbrCapable": True})
+                    case url if re.match(r".*/ambisense/.*/rooms", url):
+                        result = get_test_data(url, "rooms", [])
                 return result
 
             def unmatched_url(url, **kwargs):

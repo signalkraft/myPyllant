@@ -275,6 +275,22 @@ async def main(user, password, brand, country=None, write_results=True):
                         f"Error fetching {device_buckets_url}: {e}", exc_info=e
                     )
 
+        rbr_url = (
+            f"{get_api_base()}/api/v1/ambisense/facilities/{real_system_id}/capability"
+        )
+        try:
+            async with api.aiohttp_session.get(
+                rbr_url, headers=api.get_authorized_headers()
+            ) as rbr_resp:
+                rbr = await rbr_resp.json()
+                create_result(
+                    rbr,
+                    "rbr",
+                    anonymized_system_id,
+                )
+        except Exception as e:
+            logger.error(f"Error fetching {rbr_url}: {e}", exc_info=e)
+
         rooms_url = (
             f"{get_api_base()}/api/v1/ambisense/facilities/{real_system_id}/rooms"
         )
