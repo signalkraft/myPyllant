@@ -692,9 +692,9 @@ class AmbisenseDevice(MyPyllantDataClass):
     low_bat: bool
     name: str
     rssi: int
-    rssi_peer: int
     sgtin: str
     unreach: bool
+    rssi_peer: int | None = None
 
 
 @dataclass(config=MyPyllantConfig)
