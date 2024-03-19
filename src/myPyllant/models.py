@@ -742,7 +742,6 @@ class AmbisenseRoom(MyPyllantDataClass):
 class System(MyPyllantDataClass):
     id: str
     state: dict
-    properties: dict
     configuration: dict
     home: Home
     brand: str
@@ -750,6 +749,7 @@ class System(MyPyllantDataClass):
     control_identifier: ControlIdentifier
     connected: bool | None = None
     diagnostic_trouble_codes: list | None = None
+    properties: dict = field(default_factory=dict)
     current_system: dict = field(default_factory=dict)
     zones: list[Zone] = field(default_factory=list)
     circuits: list[Circuit] = field(default_factory=list)
