@@ -19,6 +19,7 @@ from ..enums import (
     ZoneHeatingOperatingMode,
     ZoneHeatingOperatingModeVRC700,
     ControlIdentifier,
+    AmbisenseRoomOperationMode,
 )
 from .generate_test_data import DATA_DIR
 from .utils import list_test_data, load_test_data
@@ -350,3 +351,88 @@ async def test_home_without_system(
                 raise AssertionError("Expected no system")
     assert "Skipping home because system_id is missing or empty" in caplog.text
     await mocked_api.aiohttp_session.close()
+
+
+async def test_get_ambisense_rooms(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "ambisense")
+    print(test_data)
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
+        assert len(system.ambisense_rooms) == 4
+
+        await mocked_api.get_ambisense_rooms(system.id)
+
+        request_url = list(aio.requests.keys())[-1][1]
+        assert str(request_url).endswith("/rooms")
+
+        await mocked_api.aiohttp_session.close()
+
+
+async def test_set_ambisense_room_operation_mode(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "ambisense")
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
+
+        await mocked_api.set_ambisense_room_operation_mode(
+            system.ambisense_rooms[0], AmbisenseRoomOperationMode.OFF
+        )
+
+        request = list(aio.requests.values())[-1][0]
+        request_url = list(aio.requests.keys())[-1][1]
+        assert str(request_url).endswith(
+            f"/rooms/{system.ambisense_rooms[0].room_index}/configuration/operation-mode"
+        )
+        assert request.kwargs["json"]["operationMode"] == "off"
+
+        await mocked_api.aiohttp_session.close()
+
+
+async def test_set_ambisense_room_quick_veto(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "ambisense")
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
+
+        new_room = await mocked_api.quick_veto_ambisense_room(
+            system.ambisense_rooms[0], 22, 220
+        )
+
+        request = list(aio.requests.values())[-1][0]
+        request_url = list(aio.requests.keys())[-1][1]
+        assert str(request_url).endswith(
+            f"/rooms/{system.ambisense_rooms[0].room_index}/configuration/quick-veto"
+        )
+        assert request.kwargs["json"]["temperatureSetpoint"] == 22
+        assert request.kwargs["json"]["duration"] == 220
+
+        assert new_room.room_configuration.quick_veto_end_time is not None
+
+        await mocked_api.aiohttp_session.close()
+
+
+async def test_cancel_ambisense_room_quick_veto(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "ambisense")
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
+
+        system.ambisense_rooms[
+            0
+        ].room_configuration.quick_veto_end_time = datetime.now()
+        new_room = await mocked_api.cancel_quick_veto_ambisense_room(
+            system.ambisense_rooms[0]
+        )
+
+        request_url = list(aio.requests.keys())[-1][1]
+        assert str(request_url).endswith(
+            f"/rooms/{system.ambisense_rooms[0].room_index}/configuration/quick-veto"
+        )
+        assert new_room.room_configuration.quick_veto_end_time is None
+
+        await mocked_api.aiohttp_session.close()

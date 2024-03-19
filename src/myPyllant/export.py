@@ -61,6 +61,7 @@ async def main(
             include_diagnostic_trouble_codes=True,
             include_rts=True,
             include_mpc=True,
+            include_ambisense_rooms=True,
         ):
             if data:
                 for device in system.devices:
