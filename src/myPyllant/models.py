@@ -442,7 +442,7 @@ class Circuit(MyPyllantDataClass):
     system_id: str
     index: int
     circuit_state: CircuitState
-    mixer_circuit_type_external: str
+    mixer_circuit_type_external: str | None = None
     set_back_mode_enabled: bool | None = None
     zones: list = field(default_factory=list)
     is_cooling_allowed: bool | None = None
