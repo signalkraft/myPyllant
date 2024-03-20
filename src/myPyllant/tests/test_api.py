@@ -412,6 +412,11 @@ async def test_set_ambisense_room_quick_veto(
 
         assert new_room.room_configuration.quick_veto_end_time is not None
 
+        with pytest.raises(ValueError):
+            await mocked_api.quick_veto_ambisense_room(
+                system.ambisense_rooms[0], 22, 10
+            )
+
         await mocked_api.aiohttp_session.close()
 
 

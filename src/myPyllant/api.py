@@ -1235,6 +1235,9 @@ class MyPyllantAPI:
                 int(DEFAULT_QUICK_VETO_DURATION) * 60
             )  # duration for quick veto for room is in minutes
 
+        if duration_minutes and duration_minutes < 30:
+            raise ValueError("duration_minutes must be greater than 30")
+
         url = f"{await self.get_api_base()}/api/v1/ambisense/facilities/{room.system_id}/rooms/{room.room_index}/configuration/quick-veto"
 
         payload = {
