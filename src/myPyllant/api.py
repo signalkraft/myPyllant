@@ -599,6 +599,12 @@ class MyPyllantAPI:
                 "Type must be either heating or cooling, not %s", program_type
             )
 
+        if not zone.heating.time_program_heating:
+            raise ValueError(
+                "There is no time program set, temperature can't be updated",
+                program_type,
+            )
+
         time_program = zone.heating.time_program_heating
         time_program.set_setpoint(temperature, update_similar_to_dow)
         return await self.set_zone_time_program(zone, program_type, time_program)

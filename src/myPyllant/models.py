@@ -276,16 +276,17 @@ class ZoneTimeProgram(BaseTimeProgram):
 class ZoneHeating(MyPyllantDataClass):
     control_identifier: ControlIdentifier
     operation_mode_heating: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700
-    time_program_heating: ZoneTimeProgram
     set_back_temperature: float
+    time_program_heating: ZoneTimeProgram | None = None
     manual_mode_setpoint_heating: float | None = None
     day_temperature_heating: float | None = None  # VRC700 only
 
     @classmethod
     def from_api(cls, **data):
-        data["time_program_heating"] = ZoneTimeProgram.from_api(
-            **data["time_program_heating"]
-        )
+        if "time_program_heating" in data:
+            data["time_program_heating"] = ZoneTimeProgram.from_api(
+                **data["time_program_heating"]
+            )
         control_identifier: ControlIdentifier = data["control_identifier"]
         if control_identifier.is_vrc700:
             data["operation_mode_heating"] = ZoneHeatingOperatingModeVRC700(
