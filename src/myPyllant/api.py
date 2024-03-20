@@ -599,6 +599,12 @@ class MyPyllantAPI:
                 "Type must be either heating or cooling, not %s", program_type
             )
 
+        if not zone.heating.time_program_heating:
+            raise ValueError(
+                "There is no time program set, temperature can't be updated",
+                program_type,
+            )
+
         time_program = zone.heating.time_program_heating
         time_program.set_setpoint(temperature, update_similar_to_dow)
         return await self.set_zone_time_program(zone, program_type, time_program)
@@ -1212,7 +1218,7 @@ class MyPyllantAPI:
         self,
         room: AmbisenseRoom,
         temperature: float,
-        duration_seconds: int | None = None,
+        duration_minutes: int | None = None,
         default_duration: int | None = None,
     ) -> AmbisenseRoom:
         """
@@ -1221,19 +1227,22 @@ class MyPyllantAPI:
         Parameters:
             room: The target room
             temperature: The target temperature
-            duration_seconds: Optional, sets overwrite for this many seconds
-            default_duration: Optional, falls back to this default duration if duration_seconds is not given
+            duration_minutes: Optional, sets overwrite for this many minutes
+            default_duration: Optional, falls back to this default duration if duration_minutes is not given
         """
         if not default_duration:
             default_duration = (
                 int(DEFAULT_QUICK_VETO_DURATION) * 60
-            )  # duration for quick veto for room is in seconds
+            )  # duration for quick veto for room is in minutes
+
+        if duration_minutes and duration_minutes < 30:
+            raise ValueError("duration_minutes must be greater than 30")
 
         url = f"{await self.get_api_base()}/api/v1/ambisense/facilities/{room.system_id}/rooms/{room.room_index}/configuration/quick-veto"
 
         payload = {
             "temperatureSetpoint": temperature,
-            "duration": duration_seconds or default_duration,
+            "duration": duration_minutes or default_duration,
         }
 
         await self.aiohttp_session.put(
@@ -1245,7 +1254,7 @@ class MyPyllantAPI:
         room.room_configuration.temperature_setpoint = temperature
         room.room_configuration.quick_veto_end_time = datetime.datetime.now(
             datetime.timezone.utc
-        ) + datetime.timedelta(seconds=(duration_seconds or default_duration))
+        ) + datetime.timedelta(minutes=(duration_minutes or default_duration))
         return room
 
     async def cancel_quick_veto_ambisense_room(
@@ -1261,5 +1270,35 @@ class MyPyllantAPI:
 
         await self.aiohttp_session.delete(url, headers=self.get_authorized_headers())
         room.room_configuration.quick_veto_end_time = None
-        # TODO not sure what to do with room.room_configuration.temperature_setpoint
+        return room
+
+    async def set_ambisense_room_manual_mode_setpoint_temperature(
+        self,
+        room: AmbisenseRoom,
+        temperature: float,
+    ):
+        """
+        Sets the desired temperature when in manual mode. The temperature is only taken into account if the room is in
+        MANUAL mode, otherwise it has no effect.
+
+        Parameters:
+            room: The target room
+            temperature: The target temperature
+        """
+        logger.debug(
+            "Setting manual mode setpoint temperature to %.1f for %s",
+            temperature,
+            room.name,
+        )
+        payload: dict[str, Any] = {
+            "temperatureSetpoint": temperature,
+        }
+        url = f"{await self.get_api_base()}/api/v1/ambisense/facilities/{room.system_id}/rooms/{room.room_index}/configuration/temperature-setpoint"
+
+        await self.aiohttp_session.put(
+            url,
+            json=payload,
+            headers=self.get_authorized_headers(),
+        )
+        room.room_configuration.temperature_setpoint = temperature
         return room

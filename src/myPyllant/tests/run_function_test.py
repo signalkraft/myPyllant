@@ -69,20 +69,21 @@ async def main(user, password, brand, country):
                 )
                 await print_changes(api.quick_veto_zone_temperature, zone, 21, 5)
                 await print_changes(api.cancel_quick_veto_zone_temperature, zone)
-                await print_changes(
-                    api.set_zone_time_program,
-                    zone,
-                    "heating",
-                    zone.heating.time_program_heating,
-                )
-
-                if zone.heating.time_program_heating.monday[0].setpoint:
+                if zone.heating.time_program_heating:
                     await print_changes(
-                        api.set_time_program_temperature,
+                        api.set_zone_time_program,
                         zone,
                         "heating",
-                        zone.heating.time_program_heating.monday[0].setpoint,
+                        zone.heating.time_program_heating,
                     )
+
+                    if zone.heating.time_program_heating.monday[0].setpoint:
+                        await print_changes(
+                            api.set_time_program_temperature,
+                            zone,
+                            "heating",
+                            zone.heating.time_program_heating.monday[0].setpoint,
+                        )
 
             if system.domestic_hot_water:
                 dhw = system.domestic_hot_water[0]

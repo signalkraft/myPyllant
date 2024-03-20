@@ -148,7 +148,7 @@ def _mypyllant_aioresponses():
             )
             self.put(
                 re.compile(
-                    r".*/ambisense/.*/rooms/.*/configuration/(operation-mode|quick-veto)$"
+                    r".*/ambisense/.*/rooms/.*/configuration/(operation-mode|quick-veto|temperature-setpoint)$"
                 ),
                 status=200,
                 payload={},
