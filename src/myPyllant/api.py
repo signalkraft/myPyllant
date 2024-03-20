@@ -1262,3 +1262,34 @@ class MyPyllantAPI:
         await self.aiohttp_session.delete(url, headers=self.get_authorized_headers())
         room.room_configuration.quick_veto_end_time = None
         return room
+
+    async def set_ambisense_room_manual_mode_setpoint_temperature(
+        self,
+        room: AmbisenseRoom,
+        temperature: float,
+    ):
+        """
+        Sets the desired temperature when in manual mode. The temperature is only taken into account if the room is in
+        MANUAL mode, otherwise it has no effect.
+
+        Parameters:
+            room: The target room
+            temperature: The target temperature
+        """
+        logger.debug(
+            "Setting manual mode setpoint temperature to %.1f for %s",
+            temperature,
+            room.name,
+        )
+        payload: dict[str, Any] = {
+            "temperatureSetpoint": temperature,
+        }
+        url = f"{await self.get_api_base()}/api/v1/ambisense/facilities/{room.system_id}/rooms/{room.room_index}/configuration/temperature-setpoint"
+
+        await self.aiohttp_session.put(
+            url,
+            json=payload,
+            headers=self.get_authorized_headers(),
+        )
+        room.room_configuration.temperature_setpoint = temperature
+        return room

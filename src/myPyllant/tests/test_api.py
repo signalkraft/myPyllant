@@ -436,3 +436,26 @@ async def test_cancel_ambisense_room_quick_veto(
         assert new_room.room_configuration.quick_veto_end_time is None
 
         await mocked_api.aiohttp_session.close()
+
+
+async def test_set_ambisense_room_manual_mode_setpoint_temperature(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "ambisense")
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
+
+        system.ambisense_rooms[
+            0
+        ].room_configuration.operation_mode = AmbisenseRoomOperationMode.MANUAL
+        new_room = await mocked_api.set_ambisense_room_manual_mode_setpoint_temperature(
+            system.ambisense_rooms[0], 10
+        )
+
+        request_url = list(aio.requests.keys())[-1][1]
+        assert str(request_url).endswith(
+            f"/rooms/{system.ambisense_rooms[0].room_index}/configuration/temperature-setpoint"
+        )
+        assert new_room.room_configuration.temperature_setpoint == 10
+
+        await mocked_api.aiohttp_session.close()
