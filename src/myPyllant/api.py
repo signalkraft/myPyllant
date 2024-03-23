@@ -448,7 +448,7 @@ class MyPyllantAPI:
     async def set_zone_operating_mode(
         self,
         zone: Zone,
-        mode: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700,
+        mode: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700 | str,
         operating_type: str = "heating",
     ):
         """
@@ -487,7 +487,7 @@ class MyPyllantAPI:
         setattr(
             getattr(zone, operating_type),
             f"operation_mode_{operating_type}",
-            mode,
+            mode_enum(mode),
         )
         return zone
 
