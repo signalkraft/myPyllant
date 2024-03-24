@@ -464,3 +464,22 @@ async def test_set_ambisense_room_manual_mode_setpoint_temperature(
         assert new_room.room_configuration.temperature_setpoint == 10
 
         await mocked_api.aiohttp_session.close()
+
+
+async def test_set_ambisense_room_time_program(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "ambisense")
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
+
+        await mocked_api.set_ambisense_room_time_program(
+            system.ambisense_rooms[0], system.ambisense_rooms[0].time_program
+        )
+
+        request_url = list(aio.requests.keys())[-1][1]
+        assert str(request_url).endswith(
+            f"/rooms/{system.ambisense_rooms[0].room_index}/timeprogram"
+        )
+
+        await mocked_api.aiohttp_session.close()

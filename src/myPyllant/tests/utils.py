@@ -154,6 +154,12 @@ def _mypyllant_aioresponses():
                 payload={},
                 repeat=True,
             )
+            self.put(
+                re.compile(r".*/ambisense/.*/rooms/.*/timeprogram$"),
+                status=200,
+                payload={},
+                repeat=True,
+            )
             self.delete(
                 re.compile(r".*/ambisense/.*/rooms/.*/configuration/quick-veto$"),
                 status=200,
