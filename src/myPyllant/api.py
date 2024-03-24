@@ -1316,14 +1316,7 @@ class MyPyllantAPI:
         """
         url = f"{await self.get_api_base()}/api/v1/ambisense/facilities/{room.system_id}/rooms/{room.room_index}/timeprogram"
 
-        data = asdict(time_program)
-        del data["extra_fields"]
-        del data["meta_info"]
-        for day in data.values():
-            for tp in day:
-                del tp["extra_fields"]
-                del tp["weekday_name"]
-                del tp["index"]
+        data = asdict(time_program, dict_factory=RoomTimeProgram.dict_factory)
         payload = dict_to_camel_case(data)
 
         await self.aiohttp_session.put(

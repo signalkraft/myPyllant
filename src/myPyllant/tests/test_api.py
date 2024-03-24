@@ -13,6 +13,7 @@ from ..models import (
     Home,
     System,
     Zone,
+    BaseTimeProgram,
 )
 from ..enums import (
     ZoneCurrentSpecialFunction,
@@ -476,6 +477,11 @@ async def test_set_ambisense_room_time_program(
         await mocked_api.set_ambisense_room_time_program(
             system.ambisense_rooms[0], system.ambisense_rooms[0].time_program
         )
+
+        request_json = aio.requests[list(aio.requests.keys())[-1]][0][1]["json"]
+        monday_slot = request_json["monday"][0]
+        assert set(monday_slot.keys()) == {"startTime", "temperatureSetpoint"}
+        assert set(request_json.keys()) == set(BaseTimeProgram.weekday_names())
 
         request_url = list(aio.requests.keys())[-1][1]
         assert str(request_url).endswith(
