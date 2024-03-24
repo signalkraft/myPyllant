@@ -150,7 +150,7 @@ async def test_extra_system_state_properties(
 
 
 async def test_ambisense(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
-    test_data = load_test_data(DATA_DIR / "ambisense")
+    test_data = load_test_data(DATA_DIR / "ambisense2.yml")
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
         assert len(system.ambisense_rooms) > 0
@@ -160,7 +160,8 @@ async def test_ambisense(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> No
             assert isinstance(room.room_configuration.devices[0], AmbisenseDevice)
             assert len(room.room_configuration.devices[0].name) > 0
             assert isinstance(room.time_program, RoomTimeProgram)
-            assert isinstance(room.room_configuration.current_temperature, float)
+            if room.room_configuration.operation_mode:
+                assert isinstance(room.room_configuration.current_temperature, float)
             if room.room_index == 1:
                 assert isinstance(room.time_program.monday[0].start_time, int)
                 assert isinstance(

@@ -708,20 +708,20 @@ class RoomTimeProgram(BaseTimeProgram):
 @dataclass(config=MyPyllantConfig)
 class AmbisenseDevice(MyPyllantDataClass):
     device_type: str
-    low_bat: bool
     name: str
-    rssi: int
     sgtin: str
     unreach: bool
+    low_bat: bool | None = None
+    rssi: int | None = None
     rssi_peer: int | None = None
 
 
 @dataclass(config=MyPyllantConfig)
 class AmbisenseRoomConfiguration(MyPyllantDataClass):
     name: str
-    operation_mode: AmbisenseRoomOperationMode
-    current_temperature: float
-    temperature_setpoint: float
+    operation_mode: AmbisenseRoomOperationMode | None = None
+    current_temperature: float | None = None
+    temperature_setpoint: float | None = None
     icon_id: str | None = None
     current_humidity: float | None = None
     button_lock: bool | None = None
@@ -731,9 +731,10 @@ class AmbisenseRoomConfiguration(MyPyllantDataClass):
 
     @classmethod
     def from_api(cls, **data):
-        data["operation_mode"] = AmbisenseRoomOperationMode(
-            data["operation_mode"].upper()
-        )
+        if data["operation_mode"]:
+            data["operation_mode"] = AmbisenseRoomOperationMode(
+                data["operation_mode"].upper()
+            )
         return super().from_api(**data)
 
 

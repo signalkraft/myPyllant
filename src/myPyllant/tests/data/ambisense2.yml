@@ -1,0 +1,494 @@
+homes:
+  - homeName: 99d73f365c9fa331f33b13c2ee5c3568699f
+    serialNumber: 07d0a780d5fb5df9c65a1482dcd5d273bdac
+    systemId: e89f1adbbd1d543633bc749643814ea0cc6f
+    productMetadata:
+      productType: VR920
+      productionYear: "19"
+      productionWeek: "21"
+      articleNumber: "0020252923"
+    state: CLAIMED
+    migrationState: FINISHED
+    migrationFinishedAt: "2024-03-20T09:54:29.371206854Z"
+    onlineState: ONLINE
+    firmware:
+      version: 0357.40.34
+      updateEnabled: true
+      updateRequired: false
+    nomenclature: VR 920
+    cag: false
+    countryCode: GB
+    productInformation: VR920
+    firmwareVersion: 0357.40.34
+e89f1adbbd1d543633bc749643814ea0cc6f:
+  control_identifier:
+    controlIdentifier: vrc700
+  time_zone:
+    timeZone: Europe/London
+  diagnostic_trouble_codes:
+    - serialNumber: 9080034f05a2b6a352f916820632e6149fe04338
+      articleNumber: "0020197207"
+      codes:
+        - code: "3"
+          type: MAINTENANCE
+          title: Issues with your heating system
+          description: Your heating system reported errors. Please check it.
+          occurrenceTimestamp: "2024-03-20T09:57:52Z"
+    - serialNumber: daba3c52fc18b581738a132c0a02f0238b98bea8
+      articleNumber: "0010021832"
+      codes: [ ]
+    - serialNumber: 07d0a780d5fb5df9c65a1482dcd5d273bdacf210
+      articleNumber: "0020252923"
+      codes: [ ]
+    - serialNumber: 7859ddbacb164eb95510e1bc6241d74bd3f365b2
+      articleNumber: "0000000000"
+      codes: [ ]
+  connection_status:
+    connected: true
+  system:
+    state:
+      system:
+        outdoorTemperature: 4.5664062
+        outdoorTemperatureAverage24h: 7.2109375
+        systemWaterPressure: 1.6
+        legionellaProtectionStartWeekday: "OFF"
+        energyManagerState: HEATING
+        systemOff: false
+      zones:
+        - index: 0
+          desiredRoomTemperatureSetpointHeating: 20
+          desiredRoomTemperatureSetpoint: 20
+          currentRoomTemperature: 14.125
+          currentRoomHumidity: 57
+          currentSpecialFunction: NONE
+      circuits:
+        - index: 0
+          circuitState: HEATING
+          currentCircuitFlowTemperature: 64.5
+          heatingCircuitFlowSetpoint: 63.86703
+          calculatedEnergyManagerState: HEATING_ACTIVE
+        - index: 2
+          circuitState: STANDBY
+          heatingCircuitFlowSetpoint: 0
+          calculatedEnergyManagerState: HEATING_STANDBY
+      domesticHotWater:
+        - index: 255
+          currentSpecialFunction: NONE
+          currentDomesticHotWaterTemperature: 65.125
+    properties:
+      system:
+        controllerType: VRC700
+        controllerRevision: R4
+        systemScheme: 2
+        backupHeaterType: CONDENSING
+        backupHeaterAllowedFor: DOMESTIC_HOT_WATER_AND_HEATING
+        moduleConfigurationVR71: 3
+        energyProvidePowerCutBehavior: DISABLE_HEATPUMP
+        smartPhotovoltaicBufferOffset: 10
+        externalEnergyManagementActivation: false
+      zones:
+        - index: 0
+          isActive: true
+          zoneBinding: CENTRAL_CONTROL
+          associatedCircuitIndex: 0
+      circuits:
+        - index: 0
+          mixerCircuitTypeExternal: HEATING
+          heatingCircuitType: DIRECT_HEATING_CIRCUIT
+          isCoolingAllowed: false
+        - index: 2
+          mixerCircuitTypeExternal: HEATING
+          heatingCircuitType: DIRECT_HEATING_CIRCUIT
+          isCoolingAllowed: false
+      domesticHotWater:
+        - index: 255
+          minSetpoint: 35
+          maxSetpoint: 70
+    configuration:
+      system:
+        continuousHeatingStartSetpoint: -26
+        alternativePoint: -21
+        heatingCircuitBivalencePoint: 0
+        domesticHotWaterBivalencePoint: -7
+        adaptiveHeatingCurve: false
+        domesticHotWaterMaximumLoadingTime: 45
+        domesticHotWaterHysteresis: 5
+        domesticHotWaterFlowSetpointOffset: 25
+        maxFlowSetpointHeatpumpError: 25
+        domesticHotWaterMaximumTemperature: 80
+        hybridControlStrategy: BIVALENCE_POINT
+        paralellTankLoadingAllowed: false
+      zones:
+        - index: 0
+          general:
+            name: ZONE 1
+            holidayStartDateTime: "2015-01-01T00:00:00Z"
+            holidayEndDateTime: "2015-01-01T00:00:00Z"
+            holidaySetpoint: 5
+          heating:
+            operationModeHeating: DAY
+            setBackTemperature: 15
+            dayTemperatureHeating: 20
+            timeProgramHeating:
+              metaInfo:
+                minSlotsPerDay: 0
+                maxSlotsPerDay: 3
+                setpointRequiredPerSlot: false
+              monday:
+                - startTime: 300
+                  endTime: 1440
+              tuesday:
+                - startTime: 300
+                  endTime: 1440
+              wednesday:
+                - startTime: 300
+                  endTime: 1440
+              thursday:
+                - startTime: 300
+                  endTime: 1440
+              friday:
+                - startTime: 300
+                  endTime: 1440
+              saturday:
+                - startTime: 450
+                  endTime: 1410
+              sunday:
+                - startTime: 450
+                  endTime: 1320
+      circuits:
+        - index: 0
+          heatingCurve: 2.599999
+          heatingFlowTemperatureMinimumSetpoint: 15
+          heatingFlowTemperatureMaximumSetpoint: 90
+          heatDemandLimitedByOutsideTemperature: 50
+          heatingCircuitFlowSetpointExcessOffset: 0
+          setbackModeEnabled: true
+          roomTemperatureControlMode: NON
+        - index: 2
+          heatingCurve: 1.2
+          heatingFlowTemperatureMinimumSetpoint: 15
+          heatingFlowTemperatureMaximumSetpoint: 90
+          heatDemandLimitedByOutsideTemperature: 21
+          heatingCircuitFlowSetpointExcessOffset: 0
+          setbackModeEnabled: false
+          roomTemperatureControlMode: NON
+      domesticHotWater:
+        - index: 255
+          operationModeDomesticHotWater: AUTO
+          tappingSetpoint: 65
+          holidayStartDateTime: "2015-01-01T00:00:00Z"
+          holidayEndDateTime: "2015-01-01T00:00:00Z"
+          timeProgramDomesticHotWater:
+            metaInfo:
+              minSlotsPerDay: 0
+              maxSlotsPerDay: 3
+              setpointRequiredPerSlot: false
+            monday:
+              - startTime: 330
+                endTime: 420
+              - startTime: 1200
+                endTime: 1230
+            tuesday:
+              - startTime: 330
+                endTime: 420
+              - startTime: 1200
+                endTime: 1230
+            wednesday:
+              - startTime: 330
+                endTime: 420
+              - startTime: 1200
+                endTime: 1230
+            thursday:
+              - startTime: 330
+                endTime: 420
+              - startTime: 1200
+                endTime: 1230
+            friday:
+              - startTime: 330
+                endTime: 420
+              - startTime: 1200
+                endTime: 1230
+            saturday:
+              - startTime: 330
+                endTime: 420
+              - startTime: 1200
+                endTime: 1230
+            sunday:
+              - startTime: 330
+                endTime: 420
+              - startTime: 1200
+                endTime: 1230
+          timeProgramCirculationPump:
+            metaInfo:
+              minSlotsPerDay: 0
+              maxSlotsPerDay: 3
+              setpointRequiredPerSlot: false
+            monday:
+              - startTime: 360
+                endTime: 1320
+            tuesday:
+              - startTime: 360
+                endTime: 1320
+            wednesday:
+              - startTime: 360
+                endTime: 1320
+            thursday:
+              - startTime: 360
+                endTime: 1320
+            friday:
+              - startTime: 360
+                endTime: 1320
+            saturday:
+              - startTime: 450
+                endTime: 1410
+            sunday:
+              - startTime: 450
+                endTime: 1320
+  current_system:
+    system_type: UNKNOWN
+    has_emf_capable_devices: false
+    primary_heat_generator: null
+    secondary_heat_generators: [ ]
+    electric_backup_heater: null
+    solar_station: null
+    ventilation: null
+    gateway: null
+  mpc:
+    devices: [ ]
+  rts:
+    statistics: [ ]
+  rbr:
+    rbrCapable: true
+  rooms:
+    - roomIndex: 0
+      roomConfiguration:
+        name: Kitchen
+        temperatureSetpoint: 17
+        operationMode: auto
+        currentTemperature: 16.9
+        currentHumidity: null
+        buttonLock: false
+        windowState: false
+        devices:
+          - name: Kitchen Rad
+            sgtin: 3014F59C280013D9B00044B0
+            deviceType: TRV
+            lowBat: false
+            unreach: false
+            rssi: -55
+            rssiPeer: -55
+        iconId: KITCHEN
+        quickVetoEndTime: null
+      timeprogram:
+        monday:
+          - startTime: 0
+            temperatureSetpoint: 17
+        tuesday:
+          - startTime: 0
+            temperatureSetpoint: 17
+        wednesday:
+          - startTime: 0
+            temperatureSetpoint: 17
+        thursday:
+          - startTime: 0
+            temperatureSetpoint: 17
+        friday:
+          - startTime: 0
+            temperatureSetpoint: 17
+        saturday:
+          - startTime: 0
+            temperatureSetpoint: 17
+        sunday:
+          - startTime: 0
+            temperatureSetpoint: 17
+    - roomIndex: 5
+      roomConfiguration:
+        name: Pippa Bedroom
+        temperatureSetpoint: null
+        operationMode: null
+        currentTemperature: null
+        currentHumidity: null
+        buttonLock: null
+        windowState: null
+        devices:
+          - name: Pippa Bedroom Rad
+            sgtin: 3014F59C280013DCF0000A2B
+            deviceType: TRV
+            lowBat: null
+            unreach: true
+            rssi: null
+            rssiPeer: null
+        iconId: BEDROOM
+        quickVetoEndTime: null
+      timeprogram:
+        monday: [ ]
+        tuesday: [ ]
+        wednesday: [ ]
+        thursday: [ ]
+        friday: [ ]
+        saturday: [ ]
+        sunday: [ ]
+    - roomIndex: 3
+      roomConfiguration:
+        name: Master Bedroom
+        temperatureSetpoint: 19
+        operationMode: auto
+        currentTemperature: 20.2
+        currentHumidity: null
+        buttonLock: false
+        windowState: false
+        devices:
+          - name: Master Bedroom Rad
+            sgtin: 3014F59C280013DCF00009CC
+            deviceType: TRV
+            lowBat: false
+            unreach: false
+            rssi: -69
+            rssiPeer: -68
+        iconId: BEDROOM
+        quickVetoEndTime: null
+      timeprogram:
+        monday:
+          - startTime: 0
+            temperatureSetpoint: 20
+          - startTime: 360
+            temperatureSetpoint: 19
+          - startTime: 1260
+            temperatureSetpoint: 20
+        tuesday:
+          - startTime: 0
+            temperatureSetpoint: 20
+          - startTime: 360
+            temperatureSetpoint: 19
+          - startTime: 1260
+            temperatureSetpoint: 20
+        wednesday:
+          - startTime: 0
+            temperatureSetpoint: 20
+          - startTime: 360
+            temperatureSetpoint: 19
+          - startTime: 1260
+            temperatureSetpoint: 20
+        thursday:
+          - startTime: 0
+            temperatureSetpoint: 20
+          - startTime: 360
+            temperatureSetpoint: 19
+          - startTime: 1260
+            temperatureSetpoint: 20
+        friday:
+          - startTime: 0
+            temperatureSetpoint: 20
+          - startTime: 360
+            temperatureSetpoint: 19
+          - startTime: 1260
+            temperatureSetpoint: 20
+        saturday:
+          - startTime: 0
+            temperatureSetpoint: 20
+          - startTime: 360
+            temperatureSetpoint: 19
+          - startTime: 1260
+            temperatureSetpoint: 20
+        sunday:
+          - startTime: 0
+            temperatureSetpoint: 20
+          - startTime: 360
+            temperatureSetpoint: 19
+          - startTime: 1260
+            temperatureSetpoint: 20
+    - roomIndex: 1
+      roomConfiguration:
+        name: Dining Room
+        temperatureSetpoint: 15
+        operationMode: auto
+        currentTemperature: 17
+        currentHumidity: null
+        buttonLock: false
+        windowState: false
+        devices:
+          - name: Dining Room Rad
+            sgtin: 3014F59C280013D9B000451C
+            deviceType: TRV
+            lowBat: false
+            unreach: false
+            rssi: -66
+            rssiPeer: -66
+        iconId: DINING_ROOM
+        quickVetoEndTime: null
+      timeprogram:
+        monday:
+          - startTime: 0
+            temperatureSetpoint: 15
+        tuesday:
+          - startTime: 0
+            temperatureSetpoint: 15
+        wednesday:
+          - startTime: 0
+            temperatureSetpoint: 15
+        thursday:
+          - startTime: 0
+            temperatureSetpoint: 15
+        friday:
+          - startTime: 0
+            temperatureSetpoint: 15
+        saturday:
+          - startTime: 0
+            temperatureSetpoint: 15
+        sunday:
+          - startTime: 0
+            temperatureSetpoint: 15
+    - roomIndex: 4
+      roomConfiguration:
+        name: Joseph Bedroom
+        temperatureSetpoint: 18
+        operationMode: auto
+        currentTemperature: 20.1
+        currentHumidity: null
+        buttonLock: null
+        windowState: false
+        devices:
+          - name: Joseph Bedroom Rad
+            sgtin: 3014F59C280013DCF0000AAA
+            deviceType: TRV
+            lowBat: false
+            unreach: false
+            rssi: -76
+            rssiPeer: -69
+        iconId: BEDROOM
+        quickVetoEndTime: null
+      timeprogram:
+        monday: [ ]
+        tuesday: [ ]
+        wednesday: [ ]
+        thursday: [ ]
+        friday: [ ]
+        saturday: [ ]
+        sunday: [ ]
+    - roomIndex: 2
+      roomConfiguration:
+        name: Living Room
+        temperatureSetpoint: 18
+        operationMode: auto
+        currentTemperature: 19.7
+        currentHumidity: null
+        buttonLock: null
+        windowState: false
+        devices:
+          - name: Living Room Rad
+            sgtin: 3014F59C280013D9B0004A03
+            deviceType: TRV
+            lowBat: false
+            unreach: false
+            rssi: -70
+            rssiPeer: -72
+        iconId: LIVING_ROOM
+        quickVetoEndTime: null
+      timeprogram:
+        monday: [ ]
+        tuesday: [ ]
+        wednesday: [ ]
+        thursday: [ ]
+        friday: [ ]
+        saturday: [ ]
+        sunday: [ ]
