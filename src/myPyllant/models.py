@@ -5,7 +5,7 @@ import datetime
 import logging
 from collections.abc import Iterator
 from dataclasses import asdict, fields, field
-from typing import TypeVar, Any
+from typing import TypeVar, Any, Iterable
 from pydantic.dataclasses import dataclass
 
 from myPyllant.const import BRANDS
@@ -681,6 +681,19 @@ class RoomTimeProgram(BaseTimeProgram):
     friday: list[RoomTimeProgramDay]
     saturday: list[RoomTimeProgramDay]
     sunday: list[RoomTimeProgramDay]
+
+    @classmethod
+    def dict_factory(cls, obj: Iterable[tuple[str, Any]]) -> dict[str, Any]:
+        """
+        Only includes certain fields when converting to dict with asdict()
+        See https://stackoverflow.com/a/76017464
+
+        Example::
+
+            asdict(time_program, dict_factory=RoomTimeProgram.dict_factory)
+        """
+        include_fields = cls.weekday_names() + ["temperature_setpoint", "start_time"]
+        return {k: v for (k, v) in obj if ((v is not None) and (k in include_fields))}
 
     @classmethod
     def create_day_from_api(cls, **kwargs):

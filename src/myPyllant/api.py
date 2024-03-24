@@ -58,6 +58,7 @@ from myPyllant.models import (
     Zone,
     ZoneTimeProgram,
     AmbisenseRoom,
+    RoomTimeProgram,
 )
 from myPyllant.utils import (
     datetime_format,
@@ -1301,4 +1302,25 @@ class MyPyllantAPI:
             headers=self.get_authorized_headers(),
         )
         room.room_configuration.temperature_setpoint = temperature
+        return room
+
+    async def set_ambisense_room_time_program(
+        self, room: AmbisenseRoom, time_program: RoomTimeProgram
+    ) -> AmbisenseRoom:
+        """
+        Set time program for an ambisense room
+
+        Parameters:
+            room: The target room
+            time_program: The new time program
+        """
+        url = f"{await self.get_api_base()}/api/v1/ambisense/facilities/{room.system_id}/rooms/{room.room_index}/timeprogram"
+
+        data = asdict(time_program, dict_factory=RoomTimeProgram.dict_factory)
+        payload = dict_to_camel_case(data)
+
+        await self.aiohttp_session.put(
+            url, json=payload, headers=self.get_authorized_headers()
+        )
+        room.time_program = time_program
         return room
