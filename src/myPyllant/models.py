@@ -697,6 +697,11 @@ class RoomTimeProgram(BaseTimeProgram):
 
     @classmethod
     def create_day_from_api(cls, **kwargs):
+        if "end_time" in kwargs:
+            raise ValueError("Ambisense room time program does not support end_time")
+        if "setpoint" in kwargs:
+            # Allow setpoint as well as temperature_setpoint, for consistency with the other classes
+            kwargs["temperature_setpoint"] = kwargs.pop("setpoint")
         return RoomTimeProgramDay(**kwargs)
 
 

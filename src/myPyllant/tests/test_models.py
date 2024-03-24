@@ -167,3 +167,32 @@ async def test_ambisense(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> No
                     room.time_program.monday[0].temperature_setpoint, float
                 )
     await mocked_api.aiohttp_session.close()
+
+
+async def test_ambisense_time_program() -> None:
+    time_program = RoomTimeProgram.from_api(
+        **{
+            "monday": [
+                {"start_time": 360, "temperature_setpoint": 21.0},
+            ]
+        }
+    )
+    assert time_program.monday[0].temperature_setpoint == 21.0
+
+    time_program = RoomTimeProgram.from_api(
+        **{
+            "monday": [
+                {"start_time": 360, "setpoint": 21.0},
+            ]
+        }
+    )
+    assert time_program.monday[0].temperature_setpoint == 21.0
+
+    with pytest.raises(ValueError):
+        RoomTimeProgram.from_api(
+            **{
+                "monday": [
+                    {"start_time": 360, "end_time": 480, "setpoint": 21.0},
+                ]
+            }
+        )
