@@ -116,7 +116,8 @@ class BaseTimeProgramDay(MyPyllantDataClass):
 
     @property
     def end_datetime_time(self) -> datetime.time:
-        return datetime.time(self.end_time // 60, self.end_time % 60)
+        end_time = self.end_time % 1440
+        return datetime.time(end_time // 60, end_time % 60)
 
     def start_datetime(self, date) -> datetime.datetime:
         return date.replace(
@@ -127,17 +128,19 @@ class BaseTimeProgramDay(MyPyllantDataClass):
         )
 
     def end_datetime(self, date) -> datetime.datetime:
-        if self.end_time == 1440:
-            return date.replace(
-                hour=0, minute=0, second=0, microsecond=0
-            ) + datetime.timedelta(days=1)
-        else:
-            return date.replace(
-                hour=self.end_time // 60,
-                minute=self.end_time % 60,
-                second=0,
-                microsecond=0,
-            )
+        """
+        end_time can be > 1440 for RoomTimeProgramDay, which indicates the time slot ends on a later day
+
+        On all other time programs, end_time is <= 1440. Exactly 1440 is returned as midnight on the next day.
+        """
+        days = self.end_time // 1440
+        end_time = self.end_time % 1440
+        return date.replace(
+            hour=end_time // 60,
+            minute=end_time % 60,
+            second=0,
+            microsecond=0,
+        ) + datetime.timedelta(days=days)
 
 
 @dataclass(config=MyPyllantConfig)
@@ -642,10 +645,7 @@ class Device(MyPyllantDataClass):
 
 
 @dataclass(config=MyPyllantConfig)
-class RoomTimeProgramDay(MyPyllantDataClass):
-    index: int
-    weekday_name: str
-    start_time: int
+class RoomTimeProgramDay(BaseTimeProgramDay):
     temperature_setpoint: float | None = None
 
     @property
@@ -696,9 +696,65 @@ class RoomTimeProgram(BaseTimeProgram):
         return {k: v for (k, v) in obj if ((v is not None) and (k in include_fields))}
 
     @classmethod
+    def from_api(cls, **data) -> RoomTimeProgram:
+        """
+        Unlike the other time programs, the Ambisense room time program does not have an end_time.
+        Instead, the end_time is the start_time of the next slot.
+
+        It takes this: {"monday": [{"start_time": 360, "temperature_setpoint": 21.0}, {"start_time": 480, "temperature_setpoint": 22.0}]}
+        ...and converts it to this: {"monday": [RoomTimeProgramDay(start_time=360, end_time=480, temperature_setpoint=21.0), RoomTimeProgramDay(start_time=480, end_time=10440, temperature_setpoint=22.0)]}
+
+        In RoomTimeProgramDay, end_time can be greater than 1440 (24h), if it ends on a later day.
+        """
+
+        # Keep a copy of the original data, because we need to traverse it to find the next time slot,
+        # but we want to overwrite the weekdays with RoomTimeProgramDay instances
+        orig_data = data.copy()
+        for weekday_index, weekday_name in enumerate(cls.weekday_names()):
+            weekday_slots = data.pop(weekday_name, [])
+            # Make sure slots are sorted ascending by start time, so the next slot is always later
+            sorted(weekday_slots, key=lambda x: x["start_time"])
+            data[weekday_name] = []
+            for slot_index, weekday_slot in enumerate(weekday_slots):
+                if "end_time" in weekday_slot:
+                    raise ValueError(
+                        "Ambisense room time program does not allow setting end_time"
+                    )
+                if len(weekday_slots) > slot_index + 1:
+                    # If there is another slot on the same day, use its start_time as the end_time
+                    end_time = weekday_slots[slot_index + 1]["start_time"]
+                else:
+                    end_time = None
+                    i = 0
+                    # Iterate over weekdays until we find one with a time program slot
+                    while not end_time:
+                        i += 1
+                        next_weekday_index = (weekday_index + i) % 7
+                        next_day = orig_data.get(
+                            cls.weekday_names()[next_weekday_index], []
+                        )
+                        if next_day:
+                            # 24h == 1440min
+                            end_time = (i * 1440) + next_day[0]["start_time"]
+                        elif i == 7:
+                            raise ValueError(
+                                "Could not find end_time for time program %s"
+                                % weekday_slot
+                            )
+
+                data[weekday_name].append(
+                    cls.create_day_from_api(
+                        index=slot_index,
+                        end_time=end_time,
+                        weekday_name=weekday_name,
+                        **weekday_slot,
+                    )
+                )
+        # Skip from_api of BaseTimeProgram, because we already did the conversion to TimeProgramDay
+        return super(BaseTimeProgram, cls).from_api(**data)
+
+    @classmethod
     def create_day_from_api(cls, **kwargs):
-        if "end_time" in kwargs:
-            raise ValueError("Ambisense room time program does not support end_time")
         if "setpoint" in kwargs:
             # Allow setpoint as well as temperature_setpoint, for consistency with the other classes
             kwargs["temperature_setpoint"] = kwargs.pop("setpoint")
@@ -895,14 +951,14 @@ class System(MyPyllantDataClass):
                     c for c in self.state.get(obj_name, []) if c["index"] == idx
                 )
             except (StopIteration, KeyError) as e:
-                logger.warning("Error when merging state", exc_info=e)
+                logger.debug("Error when merging state", exc_info=e)
                 state = {}
             try:
                 properties = next(
                     c for c in self.properties.get(obj_name, []) if c["index"] == idx
                 )
             except (StopIteration, KeyError) as e:
-                logger.warning("Error when merging properties", exc_info=e)
+                logger.debug("Error when merging properties", exc_info=e)
                 properties = {}
             configuration.update(state)
             configuration.update(properties)

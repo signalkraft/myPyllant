@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from pydantic import ValidationError
 
@@ -175,10 +177,47 @@ async def test_ambisense_time_program() -> None:
         **{
             "monday": [
                 {"start_time": 360, "temperature_setpoint": 21.0},
-            ]
+                {"start_time": 480, "temperature_setpoint": 22.0},
+            ],
+            "tuesday": [
+                {"start_time": 300, "temperature_setpoint": 20.0},
+            ],
         }
     )
     assert time_program.monday[0].temperature_setpoint == 21.0
+    assert time_program.monday[0].start_time == 360
+    assert time_program.monday[0].end_time == 480
+    test_date = datetime.datetime(2024, 1, 1, 0, 0, 0)  # Monday
+    assert time_program.monday[0].end_datetime(test_date) == datetime.datetime(
+        2024, 1, 1, 8, 0
+    ), "Expected end time to be 8:00 on the same day"
+
+    assert time_program.monday[1].temperature_setpoint == 22.0
+    assert time_program.monday[1].start_time == 480
+    assert time_program.monday[1].end_time == 1740
+    assert time_program.monday[1].end_datetime(test_date) == datetime.datetime(
+        2024, 1, 2, 5, 0
+    ), "Expected end time to be 5:00 on the next day"
+
+    test_date = datetime.datetime(2024, 1, 2, 0, 0, 0)  # Tuesday
+    assert time_program.tuesday[0].temperature_setpoint == 20.0
+    assert time_program.tuesday[0].start_time == 300
+    assert time_program.tuesday[0].end_time == 360 + 1440 * 6
+    assert time_program.tuesday[0].end_datetime(test_date) == datetime.datetime(
+        2024, 1, 8, 6, 0
+    ), "Expected end time to be Monday 6:00 one week later"
+
+    time_program = RoomTimeProgram.from_api(
+        **{
+            "monday": [
+                {"start_time": 360, "temperature_setpoint": 21.0},
+            ],
+            "sunday": [
+                {"start_time": 1200, "temperature_setpoint": 20.0},
+            ],
+        }
+    )
+    assert time_program.sunday[0].end_time == 1440 + 360
 
     time_program = RoomTimeProgram.from_api(
         **{
