@@ -11,7 +11,7 @@ repos:
       - id: codespell
         args:
           - --ignore-words-list=hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing
-          - --skip="./.*,*.csv,*.json"
+          - "--skip=./.*,*.csv,*.json,src/myPyllant/tests/data/*"
           - --quiet-level=2
         exclude_types: [ csv, json ]
   - repo: https://github.com/pre-commit/pre-commit-hooks

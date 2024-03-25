@@ -23,6 +23,7 @@ from myPyllant.enums import (
     DHWCurrentSpecialFunctionVRC700,
     DHWOperationModeVRC700,
     AmbisenseRoomOperationMode,
+    VentilationOperationModeVRC700,
 )
 from myPyllant.utils import datetime_parse, prepare_field_value_for_dict
 
@@ -530,10 +531,25 @@ class DomesticHotWater(MyPyllantDataClass):
 class Ventilation(MyPyllantDataClass):
     system_id: str
     index: int
+    control_identifier: ControlIdentifier
     maximum_day_fan_stage: int
     maximum_night_fan_stage: int
-    operation_mode_ventilation: VentilationOperationMode
+    operation_mode_ventilation: VentilationOperationMode | VentilationOperationModeVRC700
     time_program_ventilation: dict
+
+    @classmethod
+    def from_api(cls, **data):
+        control_identifier: ControlIdentifier = data["control_identifier"]
+        if control_identifier.is_vrc700:
+            data["operation_mode_ventilation"] = VentilationOperationModeVRC700(
+                data["operation_mode_ventilation"]
+            )
+        else:
+            data["operation_mode_ventilation"] = VentilationOperationMode(
+                data["operation_mode_ventilation"]
+            )
+
+        return super().from_api(**data)
 
 
 @dataclass(config=MyPyllantConfig)
@@ -867,9 +883,19 @@ class System(MyPyllantDataClass):
             )
             for d in system.merge_object("dhw")
         ]
+        # TODO: Is it called ventilations everywhere, or just on VRC700 controllers?
+        if "ventilations" in system.configuration:
+            ventilation_key = "ventilations"
+        else:
+            ventilation_key = "ventilation"
         system.ventilation = [
-            Ventilation.from_api(system_id=system.id, timezone=system.timezone, **d)
-            for d in system.merge_object("ventilation")
+            Ventilation.from_api(
+                system_id=system.id,
+                control_identifier=system.control_identifier,
+                timezone=system.timezone,
+                **d,
+            )
+            for d in system.merge_object(ventilation_key)
         ]
         system.devices = [
             Device.from_api(

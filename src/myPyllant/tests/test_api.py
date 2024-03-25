@@ -367,7 +367,7 @@ async def test_get_ambisense_rooms(
         request_url = list(aio.requests.keys())[-1][1]
         assert str(request_url).endswith("/rooms")
 
-    test_data = load_test_data(DATA_DIR / "ambisense2.yml")
+    test_data = load_test_data(DATA_DIR / "ambisense2.yaml")
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
         assert len(system.ambisense_rooms) == 6
@@ -377,7 +377,7 @@ async def test_get_ambisense_rooms(
 async def test_set_ambisense_room_operation_mode(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI
 ) -> None:
-    test_data_files = ["ambisense", "ambisense2.yml"]
+    test_data_files = ["ambisense", "ambisense2.yaml"]
     for f in test_data_files:
         test_data = load_test_data(DATA_DIR / f)
         with mypyllant_aioresponses(test_data) as aio:
@@ -400,7 +400,7 @@ async def test_set_ambisense_room_operation_mode(
 async def test_set_ambisense_room_quick_veto(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI
 ) -> None:
-    test_data_files = ["ambisense", "ambisense2.yml"]
+    test_data_files = ["ambisense", "ambisense2.yaml"]
     for f in test_data_files:
         test_data = load_test_data(DATA_DIR / f)
         with mypyllant_aioresponses(test_data) as aio:
@@ -431,7 +431,7 @@ async def test_set_ambisense_room_quick_veto(
 async def test_cancel_ambisense_room_quick_veto(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI
 ) -> None:
-    test_data_files = ["ambisense", "ambisense2.yml"]
+    test_data_files = ["ambisense", "ambisense2.yaml"]
     for f in test_data_files:
         test_data = load_test_data(DATA_DIR / f)
         with mypyllant_aioresponses(test_data) as aio:
@@ -456,7 +456,7 @@ async def test_cancel_ambisense_room_quick_veto(
 async def test_set_ambisense_room_manual_mode_setpoint_temperature(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI
 ) -> None:
-    test_data_files = ["ambisense", "ambisense2.yml"]
+    test_data_files = ["ambisense", "ambisense2.yaml"]
     for f in test_data_files:
         test_data = load_test_data(DATA_DIR / f)
         with mypyllant_aioresponses(test_data) as aio:
@@ -483,7 +483,7 @@ async def test_set_ambisense_room_manual_mode_setpoint_temperature(
 async def test_set_ambisense_room_time_program(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI
 ) -> None:
-    test_data_files = ["ambisense", "ambisense2.yml"]
+    test_data_files = ["ambisense", "ambisense2.yaml"]
     for f in test_data_files:
         test_data = load_test_data(DATA_DIR / f)
         with mypyllant_aioresponses(test_data) as aio:

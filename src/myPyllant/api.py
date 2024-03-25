@@ -39,6 +39,7 @@ from myPyllant.enums import (
     DHWOperationModeVRC700,
     DHWCurrentSpecialFunction,
     AmbisenseRoomOperationMode,
+    VentilationOperationModeVRC700,
 )
 from myPyllant.http_client import (
     AuthenticationFailed,
@@ -957,7 +958,9 @@ class MyPyllantAPI:
         return domestic_hot_water
 
     async def set_ventilation_operation_mode(
-        self, ventilation: Ventilation, mode: VentilationOperationMode
+        self,
+        ventilation: Ventilation,
+        mode: VentilationOperationMode | VentilationOperationModeVRC700,
     ):
         """
         Sets the operation mode for a ventilation device

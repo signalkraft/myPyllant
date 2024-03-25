@@ -108,6 +108,19 @@ class VentilationOperationMode(MyPyllantEnum):
     OFF = "OFF"
 
 
+class VentilationOperationModeVRC700(MyPyllantEnum):
+    """
+    TODO: Other than AUTO, these are just guesses
+    """
+
+    DAY = "DAY"
+    AUTO = "AUTO"
+    SET_BACK = "SET_BACK"
+    OFF = "OFF"
+    NORMAL = "NORMAL"
+    REDUCED = "REDUCED"
+
+
 class VentilationFanStageType(MyPyllantEnum):
     DAY = "DAY"
     NIGHT = "NIGHT"

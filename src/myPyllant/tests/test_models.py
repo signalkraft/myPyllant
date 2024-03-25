@@ -77,13 +77,18 @@ async def test_trouble_codes(
 
 
 async def test_ventilation(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
-    test_data = load_test_data(DATA_DIR / "ventilation")
-    with mypyllant_aioresponses(test_data) as _:
-        system = await anext(mocked_api.get_systems())
-        assert isinstance(system.ventilation, list)
-        devices = [d for d in system.devices if d.type == "ventilation"]
-        assert devices[0].device_type == "VENTILATION"
-        await mocked_api.aiohttp_session.close()
+    data_list = [
+        load_test_data(DATA_DIR / "vrc700_ventilation.yaml"),
+        load_test_data(DATA_DIR / "ventilation"),
+    ]
+    for test_data in data_list:
+        with mypyllant_aioresponses(test_data) as _:
+            system = await anext(mocked_api.get_systems())
+            assert isinstance(system.ventilation, list)
+            assert len(system.ventilation) > 0
+            devices = [d for d in system.devices if d.type == "ventilation"]
+            assert devices[0].device_type == "VENTILATION"
+    await mocked_api.aiohttp_session.close()
 
 
 async def test_time_program_overlap() -> None:
@@ -152,7 +157,7 @@ async def test_extra_system_state_properties(
 
 
 async def test_ambisense(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
-    test_data = load_test_data(DATA_DIR / "ambisense2.yml")
+    test_data = load_test_data(DATA_DIR / "ambisense2.yaml")
     with mypyllant_aioresponses(test_data) as _:
         system = await anext(mocked_api.get_systems(include_ambisense_rooms=True))
         assert len(system.ambisense_rooms) > 0
