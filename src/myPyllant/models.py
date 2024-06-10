@@ -91,6 +91,7 @@ class Home(MyPyllantDataClass):
     address: dict = field(default_factory=dict)
     product_information: str | None = None
     migration_state: str | None = None
+    online_state: str | None = None
     cag: bool | None = None
     firmware_version: str | None = None
     firmware: dict = field(default_factory=dict)
@@ -325,6 +326,7 @@ class ZoneGeneral(MyPyllantDataClass):
     timezone: datetime.tzinfo
     holiday_start_date_time: datetime.datetime | None = None
     holiday_end_date_time: datetime.datetime | None = None
+    holiday_setpoint: float | None = None
 
     @property
     def holiday_planned(self) -> bool:
@@ -989,6 +991,13 @@ class System(MyPyllantDataClass):
             configuration.update(state)
             configuration.update(properties)
             yield configuration
+
+    @property
+    def system_off(self) -> bool | None:
+        try:
+            return self.state["system"]["system_off"]
+        except KeyError:
+            return None
 
     @property
     def outdoor_temperature(self) -> float | None:
