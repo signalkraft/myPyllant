@@ -13,7 +13,7 @@ classifiers = [
 ]
 dependencies = [
     "aiohttp>=3.8.0",
-    "pydantic~=1.10.15",
+    "pydantic>=1.10.15,<2.8.0",
     "python-dateutil>=2.8.0",
 ]
 dynamic = ["version"]
