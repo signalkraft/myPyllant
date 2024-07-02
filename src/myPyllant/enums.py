@@ -65,6 +65,7 @@ class ZoneCurrentSpecialFunction(MyPyllantEnum):
     HOLIDAY = "HOLIDAY"
     SYSTEM_OFF = "SYSTEM_OFF"
     VENTILATION_BOOST = "VENTILATION_BOOST"
+    ONE_DAY_BANK_HOLIDAY = "ONE_DAY_BANK_HOLIDAY"
 
 
 class ZoneHeatingState(MyPyllantEnum):

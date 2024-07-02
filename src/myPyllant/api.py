@@ -9,10 +9,10 @@ from dataclasses import asdict
 from html import unescape
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
+from zoneinfo import ZoneInfo
 
 import aiohttp
 from aiohttp import ClientResponseError
-from dateutil.tz import gettz
 
 from myPyllant.const import (
     API_URL_BASE,
@@ -1084,7 +1084,7 @@ class MyPyllantAPI:
         )
         try:
             tz = (await response.json())["timeZone"]
-            return gettz(tz)
+            return ZoneInfo(key=tz)
         except KeyError:
             logger.warning("Couldn't get timezone from API")
             return None

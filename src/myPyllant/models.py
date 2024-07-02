@@ -1001,6 +1001,16 @@ class System(MyPyllantDataClass):
             return None
 
     @property
+    def outdoor_temperature_average_24h(self) -> float | None:
+        try:
+            return self.state["system"]["outdoor_temperature_average_24h"]
+        except KeyError:
+            logger.debug(
+                "Could not get outdoor temperature average 24h from system control state",
+            )
+            return None
+
+    @property
     def water_pressure(self) -> float | None:
         try:
             return self.state["system"]["system_water_pressure"]

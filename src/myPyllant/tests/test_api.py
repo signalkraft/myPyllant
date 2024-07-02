@@ -80,6 +80,7 @@ async def test_systems(
         assert isinstance(system.brand, str)
         assert isinstance(system.brand_name, str)
         assert isinstance(system.outdoor_temperature, (float | None))
+        assert isinstance(system.outdoor_temperature_average_24h, (float | None))
         assert isinstance(system.water_pressure, float)
         await mocked_api.aiohttp_session.close()
 
