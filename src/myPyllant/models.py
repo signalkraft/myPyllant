@@ -373,6 +373,7 @@ class Zone(MyPyllantDataClass):
     is_active: bool | None = None
     heating_state: ZoneHeatingState | None = None
     is_cooling_allowed: bool | None = None
+    is_manual_cooling_active: bool | None = None
     cooling: ZoneCooling | None = None
     current_room_temperature: float | None = None
     desired_room_temperature_setpoint_heating: float | None = None
