@@ -308,6 +308,25 @@ async def main(user, password, brand, country=None, write_results=True):
         except Exception as e:
             logger.error(f"Error fetching {rooms_url}: {e}", exc_info=e)
 
+        repeaters_url = (
+            f"{get_api_base()}/api/v1/ambisense/facilities/{real_system_id}/repeaters"
+        )
+        try:
+            async with api.aiohttp_session.get(
+                repeaters_url, headers=api.get_authorized_headers()
+            ) as repeaters_resp:
+                repeaters = await repeaters_resp.json()
+                anonymized_repeaters = _recursive_data_anonymize(
+                    copy.deepcopy(repeaters), SALT
+                )
+                create_result(
+                    anonymized_repeaters,
+                    "repeaters",
+                    anonymized_system_id,
+                )
+        except Exception as e:
+            logger.error(f"Error fetching {repeaters_url}: {e}", exc_info=e)
+
     if write_results:
         print(f"Wrote test data to {json_dir}")
         print()
