@@ -24,7 +24,18 @@ async def on_request_start(session, context, params: aiohttp.TraceRequestStartPa
     """
     See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_start
     """
-    logger.debug("Starting request %s", params)
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Starting request %s", params)
+
+
+async def on_request_chunk_sent(
+    session, context, params: aiohttp.TraceRequestChunkSentParams
+):
+    """
+    See https://docs.aiohttp.org/en/stable/tracing_reference.html#aiohttp.TraceConfig.on_request_chunk_sent
+    """
+    if logger.isEnabledFor(logging.DEBUG) and params.chunk:
+        logger.debug("Sent chunk %s", params)
 
 
 async def on_request_end(session, context, params: aiohttp.TraceRequestEndParams):
@@ -54,6 +65,7 @@ def get_http_client(**kwargs) -> aiohttp.ClientSession:
     trace_config = aiohttp.TraceConfig()
     trace_config.on_request_start.append(on_request_start)
     trace_config.on_request_end.append(on_request_end)
+    trace_config.on_request_chunk_sent.append(on_request_chunk_sent)
 
     defaults = dict(
         cookie_jar=aiohttp.CookieJar(),

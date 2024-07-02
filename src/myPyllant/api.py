@@ -467,11 +467,9 @@ class MyPyllantAPI:
             )
         if zone.control_identifier.is_vrc700:
             url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/operation-mode"
-            key = "operationMode"
             mode_enum = ZoneHeatingOperatingModeVRC700  # type: ignore
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/{operating_type}-operation-mode"
-            key = f"{operating_type}OperationMode"
             mode_enum = ZoneHeatingOperatingMode  # type: ignore
 
         if mode not in mode_enum:
@@ -481,7 +479,7 @@ class MyPyllantAPI:
 
         await self.aiohttp_session.patch(
             url,
-            json={key: str(mode)},
+            json={"operationMode": str(mode)},
             headers=self.get_authorized_headers(),
         )
 
