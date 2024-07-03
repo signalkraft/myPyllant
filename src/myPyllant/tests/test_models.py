@@ -16,7 +16,7 @@ from ..models import (
     RoomTimeProgram,
     AmbisenseDevice,
 )
-from ..enums import ZoneHeatingOperatingMode, ControlIdentifier
+from ..enums import ZoneOperatingMode, ControlIdentifier
 from .utils import list_test_data, load_test_data
 
 
@@ -38,7 +38,7 @@ async def test_type_validation() -> None:
         ZoneHeating.from_api(
             control_identifier=ControlIdentifier.TLI,
             manual_mode_setpoint_heating="shouldbenumber",
-            operation_mode_heating=ZoneHeatingOperatingMode.MANUAL,
+            operation_mode_heating=ZoneOperatingMode.MANUAL,
             time_program_heating={},
             set_back_temperature=15.0,
         )

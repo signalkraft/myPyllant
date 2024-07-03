@@ -46,13 +46,13 @@ class DeviceDataBucketResolution(MyPyllantEnum):
     MONTH = "MONTH"
 
 
-class ZoneHeatingOperatingMode(MyPyllantEnum):
+class ZoneOperatingMode(MyPyllantEnum):
     MANUAL = "MANUAL"
     TIME_CONTROLLED = "TIME_CONTROLLED"
     OFF = "OFF"
 
 
-class ZoneHeatingOperatingModeVRC700(MyPyllantEnum):
+class ZoneOperatingModeVRC700(MyPyllantEnum):
     DAY = "DAY"
     AUTO = "AUTO"
     SET_BACK = "SET_BACK"

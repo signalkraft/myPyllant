@@ -12,14 +12,14 @@ from myPyllant.const import BRANDS
 from myPyllant.enums import (
     CircuitState,
     DeviceDataBucketResolution,
-    ZoneHeatingOperatingMode,
+    ZoneOperatingMode,
     ZoneCurrentSpecialFunction,
     ZoneHeatingState,
     DHWCurrentSpecialFunction,
     DHWOperationMode,
     VentilationOperationMode,
     ControlIdentifier,
-    ZoneHeatingOperatingModeVRC700,
+    ZoneOperatingModeVRC700,
     DHWCurrentSpecialFunctionVRC700,
     DHWOperationModeVRC700,
     AmbisenseRoomOperationMode,
@@ -279,7 +279,7 @@ class ZoneTimeProgram(BaseTimeProgram):
 @dataclass(config=MyPyllantConfig)
 class ZoneHeating(MyPyllantDataClass):
     control_identifier: ControlIdentifier
-    operation_mode_heating: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700
+    operation_mode_heating: ZoneOperatingMode | ZoneOperatingModeVRC700
     set_back_temperature: float
     time_program_heating: ZoneTimeProgram | None = None
     manual_mode_setpoint_heating: float | None = None
@@ -293,11 +293,11 @@ class ZoneHeating(MyPyllantDataClass):
             )
         control_identifier: ControlIdentifier = data["control_identifier"]
         if control_identifier.is_vrc700:
-            data["operation_mode_heating"] = ZoneHeatingOperatingModeVRC700(
+            data["operation_mode_heating"] = ZoneOperatingModeVRC700(
                 data["operation_mode_heating"]
             )
         else:
-            data["operation_mode_heating"] = ZoneHeatingOperatingMode(
+            data["operation_mode_heating"] = ZoneOperatingMode(
                 data["operation_mode_heating"]
             )
 
@@ -306,8 +306,9 @@ class ZoneHeating(MyPyllantDataClass):
 
 @dataclass(config=MyPyllantConfig)
 class ZoneCooling(MyPyllantDataClass):
+    control_identifier: ControlIdentifier
     setpoint_cooling: float
-    operation_mode_cooling: str  # TODO: Need all values
+    operation_mode_cooling: ZoneOperatingMode | ZoneOperatingModeVRC700
     time_program_cooling: ZoneTimeProgram
     manual_mode_setpoint_cooling: float | None = None
 
@@ -316,6 +317,16 @@ class ZoneCooling(MyPyllantDataClass):
         data["time_program_cooling"] = ZoneTimeProgram.from_api(
             **data["time_program_cooling"]
         )
+        control_identifier: ControlIdentifier = data["control_identifier"]
+        if control_identifier.is_vrc700:
+            data["operation_mode_cooling"] = ZoneOperatingModeVRC700(
+                data["operation_mode_cooling"]
+            )
+        else:
+            data["operation_mode_cooling"] = ZoneOperatingMode(
+                data["operation_mode_cooling"]
+            )
+
         return super().from_api(**data)
 
 
@@ -389,9 +400,10 @@ class Zone(MyPyllantDataClass):
         data["heating"] = ZoneHeating.from_api(
             control_identifier=data["control_identifier"], **data["heating"]
         )
-        data["cooling"] = (
-            ZoneCooling.from_api(**data["cooling"]) if "cooling" in data else None
-        )
+        if "cooling" in data:
+            data["cooling"] = ZoneCooling.from_api(
+                control_identifier=data["control_identifier"], **data["cooling"]
+            )
         data["general"] = ZoneGeneral.from_api(
             timezone=data["timezone"], **data["general"]
         )
@@ -437,8 +449,8 @@ class Zone(MyPyllantDataClass):
     @property
     def is_auto_heating_mode(self) -> bool:
         return self.heating.operation_mode_heating in [
-            ZoneHeatingOperatingMode.TIME_CONTROLLED,
-            ZoneHeatingOperatingModeVRC700.AUTO,
+            ZoneOperatingMode.TIME_CONTROLLED,
+            ZoneOperatingModeVRC700.AUTO,
         ]
 
 
@@ -1060,6 +1072,34 @@ class System(MyPyllantDataClass):
             return None
 
     @property
+    def is_cooling_allowed(self) -> bool:
+        return any([z.is_cooling_allowed for z in self.zones])
+
+    @property
+    def manual_cooling_start_date(self) -> datetime.datetime | None:
+        manual_cooling_start_date = self.configuration.get("system", {}).get(
+            "manual_cooling_start_date"
+        )
+        if manual_cooling_start_date:
+            return datetime_parse(
+                manual_cooling_start_date,
+                self.timezone,
+            )
+        return None
+
+    @property
+    def manual_cooling_end_date(self) -> datetime.datetime | None:
+        manual_cooling_end_date = self.configuration.get("system", {}).get(
+            "manual_cooling_end_date"
+        )
+        if manual_cooling_end_date:
+            return datetime_parse(
+                manual_cooling_end_date,
+                self.timezone,
+            )
+        return None
+
+    @property
     def system_name(self) -> str:
         if self.primary_heat_generator:
             return self.primary_heat_generator.product_name_display
@@ -1104,6 +1144,39 @@ class System(MyPyllantDataClass):
             return None
         mpc = [m for m in self.mpc.get("devices", []) if m["device_id"] == device_uuid]
         return mpc[0] if mpc else None
+
+    @property
+    def manual_cooling_planned(self) -> bool:
+        return (
+            self.manual_cooling_start_date is not None
+            and self.manual_cooling_end_date is not None
+            and self.manual_cooling_end_date > datetime.datetime.now(self.timezone)
+        )
+
+    @property
+    def manual_cooling_start_in_future(self) -> bool:
+        return (
+            self.manual_cooling_start_date is not None
+            and self.manual_cooling_start_date > datetime.datetime.now(self.timezone)
+        )
+
+    @property
+    def manual_cooling_ongoing(self) -> bool:
+        return (
+            self.manual_cooling_start_date is not None
+            and self.manual_cooling_end_date is not None
+            and self.manual_cooling_start_date
+            < datetime.datetime.now(self.timezone)
+            < self.manual_cooling_end_date
+        )
+
+    @property
+    def manual_cooling_remaining(self) -> datetime.timedelta | None:
+        return (
+            self.manual_cooling_end_date - datetime.datetime.now(self.timezone)
+            if self.manual_cooling_end_date and self.manual_cooling_ongoing
+            else None
+        )
 
 
 @dataclass(config=MyPyllantConfig)

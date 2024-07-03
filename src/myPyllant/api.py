@@ -29,8 +29,8 @@ from myPyllant.const import (
 from myPyllant.enums import (
     ControlIdentifier,
     DeviceDataBucketResolution,
-    ZoneHeatingOperatingModeVRC700,
-    ZoneHeatingOperatingMode,
+    ZoneOperatingModeVRC700,
+    ZoneOperatingMode,
     ZoneCurrentSpecialFunction,
     ZoneTimeProgramType,
     DHWOperationMode,
@@ -450,7 +450,7 @@ class MyPyllantAPI:
     async def set_zone_operating_mode(
         self,
         zone: Zone,
-        mode: ZoneHeatingOperatingMode | ZoneHeatingOperatingModeVRC700 | str,
+        mode: ZoneOperatingMode | ZoneOperatingModeVRC700 | str,
         operating_type: str = "heating",
     ):
         """
@@ -461,25 +461,33 @@ class MyPyllantAPI:
             mode: The target operating mode
             operating_type: Either heating or cooling
         """
+        payload = {}
+        operating_type = operating_type.lower()
         if operating_type not in ZONE_OPERATING_TYPES:
             raise ValueError(
                 f"Invalid HVAC mode, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
             )
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/operation-mode"
-            mode_enum = ZoneHeatingOperatingModeVRC700  # type: ignore
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{operating_type}/operation-mode"
+            mode_enum = ZoneOperatingModeVRC700  # type: ignore
         else:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/{operating_type}-operation-mode"
-            mode_enum = ZoneHeatingOperatingMode  # type: ignore
+            if operating_type == "cooling":
+                url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/operation-mode"
+                payload["type"] = operating_type.upper()
+            else:
+                url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/{operating_type}-operation-mode"
+            mode_enum = ZoneOperatingMode  # type: ignore
 
         if mode not in mode_enum:
             raise ValueError(
                 f"Invalid mode, must be one of {', '.join(mode_enum.__members__)}"
             )
 
+        payload["operationMode"] = str(mode)
+
         await self.aiohttp_session.patch(
             url,
-            json={"operationMode": str(mode)},
+            json=payload,
             headers=self.get_authorized_headers(),
         )
 
@@ -624,7 +632,8 @@ class MyPyllantAPI:
             setpoint_type: Either heating or cooling
         """
         logger.debug("Setting manual mode setpoint for %s", zone.name)
-        if setpoint_type.lower() not in ZONE_OPERATING_TYPES:
+        setpoint_type = setpoint_type.lower()
+        if setpoint_type not in ZONE_OPERATING_TYPES:
             raise ValueError(
                 f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
             )
@@ -632,7 +641,7 @@ class MyPyllantAPI:
             "setpoint": temperature,
         }
         if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setpoint_type.lower()}/manual-mode-setpoint"
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setpoint_type}/manual-mode-setpoint"
 
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/manual-mode-setpoint"
@@ -645,9 +654,42 @@ class MyPyllantAPI:
         # zone.heating.manual_mode_setpoint_heating or zone.cooling.manual_mode_setpoint_cooling
         setattr(
             getattr(zone, setpoint_type.lower()),
-            f"manual_mode_setpoint_{setpoint_type.lower()}",
+            f"manual_mode_setpoint_{setpoint_type}",
             temperature,
         )
+
+        if (
+            setpoint_type == "cooling"
+            and zone.cooling
+            and zone.cooling.operation_mode_cooling == ZoneOperatingMode.MANUAL
+        ):
+            zone.desired_room_temperature_setpoint_cooling = temperature
+
+        return zone
+
+    async def set_time_controlled_cooling_setpoint(
+        self,
+        zone: Zone,
+        temperature: float,
+    ):
+        logger.debug("Setting time controlled setpoint for cooling on %s", zone.name)
+        if zone.control_identifier.is_vrc700:
+            raise ValueError(
+                "Time controlled cooling setpoint is not supported on VRC700 controllers"
+            )
+
+        payload: dict[str, Any] = {
+            "setpoint": temperature,
+        }
+        await self.aiohttp_session.patch(
+            f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/setpoint-cooling",
+            json=payload,
+            headers=self.get_authorized_headers(),
+        )
+        if zone.cooling:
+            if zone.cooling.operation_mode_cooling == ZoneOperatingMode.TIME_CONTROLLED:
+                zone.desired_room_temperature_setpoint_cooling = temperature
+            zone.cooling.setpoint_cooling = temperature
         return zone
 
     async def cancel_quick_veto_zone_temperature(
@@ -818,6 +860,83 @@ class MyPyllantAPI:
             zone.current_special_function = ZoneCurrentSpecialFunction.NONE
             zone.general.holiday_start_date_time = None
             zone.general.holiday_end_date_time = None
+        return system
+
+    async def set_cooling_for_days(
+        self,
+        system: System,
+        start: datetime.datetime | None = None,
+        end: datetime.datetime | None = None,
+    ):
+        if system.control_identifier.is_vrc700:
+            raise ValueError("Not supported on VRC700 controllers")
+
+        start, end = get_default_holiday_dates(start, end, system.timezone)
+
+        logger.debug(
+            "Setting cooling for days on system %s to %s - %s", system.id, start, end
+        )
+        if not start <= end:
+            raise ValueError("Start of holiday mode must be before end")
+
+        data = {
+            "startDateTime": datetime_format(start, with_microseconds=True),
+            "endDateTime": datetime_format(end, with_microseconds=True),
+        }
+
+        await self.aiohttp_session.post(
+            f"{await self.get_system_api_base(system.id)}/cooling-for-days",
+            json=data,
+            headers=self.get_authorized_headers(),
+        )
+
+        system.configuration["system"]["manual_cooling_start_date"] = datetime_format(
+            start
+        )
+        system.configuration["system"]["manual_cooling_end_date"] = datetime_format(end)
+        return system
+
+    async def cancel_cooling_for_days(self, system: System):
+        if system.control_identifier.is_vrc700:
+            raise ValueError("Not supported on VRC700 controllers")
+
+        await self.aiohttp_session.delete(
+            f"{await self.get_system_api_base(system.id)}/cooling-for-days",
+            headers=self.get_authorized_headers(),
+        )
+        system.configuration["system"]["manual_cooling_start_date"] = None
+        system.configuration["system"]["manual_cooling_end_date"] = None
+        return system
+
+    async def set_ventilation_boost(
+        self,
+        system: System,
+    ):
+        if system.control_identifier.is_vrc700:
+            raise ValueError("Not supported on VRC700 controllers")
+
+        await self.aiohttp_session.post(
+            f"{await self.get_system_api_base(system.id)}/ventilation-boost",
+            json={},
+            headers=self.get_authorized_headers(),
+        )
+
+        for zone in system.zones:
+            zone.current_special_function = ZoneCurrentSpecialFunction.VENTILATION_BOOST
+        return system
+
+    async def cancel_ventilation_boost(self, system: System):
+        if system.control_identifier.is_vrc700:
+            raise ValueError("Not supported on VRC700 controllers")
+
+        await self.aiohttp_session.delete(
+            f"{await self.get_system_api_base(system.id)}/ventilation-boost",
+            headers=self.get_authorized_headers(),
+        )
+
+        # TODO: Need the switch to the right previous special function
+        for zone in system.zones:
+            zone.current_special_function = ZoneCurrentSpecialFunction.NONE
         return system
 
     async def set_domestic_hot_water_temperature(

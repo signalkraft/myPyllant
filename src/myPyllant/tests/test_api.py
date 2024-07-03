@@ -17,8 +17,8 @@ from ..models import (
 )
 from ..enums import (
     ZoneCurrentSpecialFunction,
-    ZoneHeatingOperatingMode,
-    ZoneHeatingOperatingModeVRC700,
+    ZoneOperatingMode,
+    ZoneOperatingModeVRC700,
     ControlIdentifier,
     AmbisenseRoomOperationMode,
 )
@@ -281,11 +281,11 @@ async def test_vrc700_operating_mode(
         system = await anext(mocked_api.get_systems())
         assert isinstance(
             system.zones[0].heating.operation_mode_heating,
-            ZoneHeatingOperatingModeVRC700,
+            ZoneOperatingModeVRC700,
         )
 
         await mocked_api.set_zone_operating_mode(
-            system.zones[0], ZoneHeatingOperatingModeVRC700.AUTO
+            system.zones[0], ZoneOperatingModeVRC700.AUTO
         )
         request = list(aio.requests.values())[-1][0]
         request_url = list(aio.requests.keys())[-1][1]
@@ -294,7 +294,7 @@ async def test_vrc700_operating_mode(
 
         with pytest.raises(ValueError):
             await mocked_api.set_zone_operating_mode(
-                system.zones[0], ZoneHeatingOperatingMode.MANUAL
+                system.zones[0], ZoneOperatingMode.MANUAL
             )
         await mocked_api.aiohttp_session.close()
 
