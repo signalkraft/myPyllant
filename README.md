@@ -12,7 +12,7 @@ A Python library to interact with the API behind the myVAILLANT app ((and brande
 
 ![myPyllant](https://raw.githubusercontent.com/signalkraft/myPyllant/main/logo.png)
 
-* [Documentation](https://signalkraft.com/mypyllant-component/2-library/)
+* [Documentation](https://signalkraft.com/mypyllant-component/3-library/)
 * [Home Assistant component](https://github.com/signalkraft/mypyllant-component)
 
 ## Install and Test

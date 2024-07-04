@@ -81,6 +81,7 @@ class ZoneTimeProgramType(MyPyllantEnum):
 
 class DHWCurrentSpecialFunction(MyPyllantEnum):
     CYLINDER_BOOST = "CYLINDER_BOOST"
+    HOLIDAY = "HOLIDAY"
     REGULAR = "REGULAR"
 
 

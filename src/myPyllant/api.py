@@ -312,6 +312,8 @@ class MyPyllantAPI:
         include_rts: bool = False,
         include_mpc: bool = False,
         include_ambisense_rooms: bool = False,
+        include_energy_management: bool = False,
+        include_eebus: bool = False,
     ) -> AsyncIterator[System]:
         """
         Returns an async generator of systems under control of the user
@@ -322,6 +324,8 @@ class MyPyllantAPI:
             include_rts: Fetches RTS data for each system, only supported on TLI controllers
             include_mpc: Fetches MPC data for each system, only supported on TLI controllers
             include_ambisense_rooms: Fetches Ambisense room data
+            include_energy_management: Fetches energy management data
+            include_eebus: Fetches eebus information
 
         Returns:
             An Async Iterator with all the `System` objects
@@ -374,6 +378,10 @@ class MyPyllantAPI:
                 ambisense_rooms=await self.get_ambisense_rooms(home.system_id)
                 if include_ambisense_rooms and ambisense_capability
                 else [],
+                energy_management=await self.get_energy_management(home.system_id)
+                if include_energy_management
+                else {},
+                eebus=await self.get_eebus(home.system_id) if include_eebus else {},
                 **dict_to_snake_case(system_json),
             )
             yield system
@@ -395,6 +403,13 @@ class MyPyllantAPI:
             data_to: End datetime
 
         """
+
+        # ISO formatted dates in querystring require timezone information
+        if data_from and not data_from.tzinfo:
+            data_from = data_from.replace(tzinfo=device.timezone)
+        if data_to and not data_to.tzinfo:
+            data_to = data_to.replace(tzinfo=device.timezone)
+
         for data in device.data:
             data_from = data_from or data.data_from
             if not data_from:
@@ -404,14 +419,12 @@ class MyPyllantAPI:
             data_to = data_to or data.data_to
             if not data_to:
                 raise ValueError("No data_to set, and no data_to found in device data")
-            start_date = datetime_format(data_from)
-            end_date = datetime_format(data_to)
             querystring = {
                 "resolution": str(data_resolution),
                 "operationMode": data.operation_mode,
                 "energyType": data.value_type,
-                "startDate": start_date,
-                "endDate": end_date,
+                "startDate": data_from.isoformat(timespec="milliseconds"),
+                "endDate": data_to.isoformat(timespec="milliseconds"),
             }
             device_buckets_url = (
                 f"{await self.get_api_base()}/emf/v2/{device.system_id}/"
@@ -1267,6 +1280,64 @@ class MyPyllantAPI:
             return {"devices": []}
         result = await response.json()
         return dict_to_snake_case(result)
+
+    async def get_energy_management(self, system: System | str) -> dict:
+        """
+        Gets energy management information
+
+        Parameters:
+            system: The System object or system ID string
+        """
+        url = f"{await self.get_api_base()}/eebus/energy-management/{get_system_id(system)}"
+        try:
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+        except ClientResponseError as e:
+            logger.warning("Could not get energy management data", exc_info=e)
+            return {}
+        result = await response.json()
+        return dict_to_snake_case(result)
+
+    async def get_eebus(self, system: System | str) -> dict:
+        """
+        Gets EEBUS information
+
+        Parameters:
+            system: The System object or system ID string
+        """
+        url = f"{await self.get_api_base()}/ship/{get_system_id(system)}/self"
+        try:
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+        except ClientResponseError as e:
+            logger.warning("Could not get eebus information", exc_info=e)
+            return {}
+        result = await response.json()
+        return dict_to_snake_case(result)
+
+    async def toggle_eebus(
+        self, system: System | str, enabled: bool = True
+    ) -> System | None:
+        """
+        Enables EEBUS interface
+
+        Parameters:
+            system: The System object or system ID string
+            enabled: Whether to enable or disable EEBUS
+        """
+        await self.aiohttp_session.put(
+            f"{await self.get_api_base()}/ship/{get_system_id(system)}/self/spine",
+            json={"enabled": enabled},
+            headers=self.get_authorized_headers(),
+        )
+        if isinstance(system, System) and system.eebus:
+            system.eebus["spline_enabled"] = enabled
+            return system
+        return None
 
     async def get_ambisense_capability(self, system: System | str) -> bool:
         """

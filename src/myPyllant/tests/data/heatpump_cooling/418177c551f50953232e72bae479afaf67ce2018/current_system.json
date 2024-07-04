@@ -2,109 +2,109 @@
   "system_type": "HEATPUMP",
   "has_emf_capable_devices": true,
   "primary_heat_generator": {
-    "device_uuid": "6103d9d5b96cea50f9c8b6ca98730a8f58722797",
+    "device_uuid": "bf791814313451d02d0645d266e7eed25ff414bc",
     "ebus_id": "HMU03",
     "spn": 351,
     "bus_coupler_address": 0,
     "article_number": "0010021118",
     "emfValid": true,
-    "device_serial_number": "28b96f682e137c2ceea6e02f3612768fa19708d2",
+    "device_serial_number": "0436b434151e180f45ee2c2fc56972c9d15377ac",
     "device_type": "HEATPUMP",
     "first_data": "2022-10-11T16:16:40Z",
-    "last_data": "2024-07-03T07:07:03.548Z",
+    "last_data": "2024-07-04T07:46:14.454Z",
     "data": [
       {
         "operation_mode": "COOLING",
         "value_type": "CONSUMED_ELECTRICAL_ENERGY",
         "calculated": false,
         "from": "2022-11-30T10:39:02Z",
-        "to": "2024-07-03T07:07:02.719Z"
+        "to": "2024-07-04T07:46:13.813Z"
       },
       {
         "operation_mode": "DOMESTIC_HOT_WATER",
         "value_type": "CONSUMED_ELECTRICAL_ENERGY",
         "calculated": false,
         "from": "2022-10-11T16:16:40Z",
-        "to": "2024-07-03T07:07:02.469Z"
+        "to": "2024-07-04T07:46:13.579Z"
       },
       {
         "operation_mode": "HEATING",
         "value_type": "CONSUMED_ELECTRICAL_ENERGY",
         "calculated": false,
         "from": "2022-10-11T16:16:40Z",
-        "to": "2024-07-03T07:07:02.235Z"
+        "to": "2024-07-04T07:46:13.376Z"
       },
       {
         "operation_mode": "COOLING",
         "value_type": "EARNED_ENVIRONMENT_ENERGY",
         "calculated": false,
         "from": "2022-11-30T10:39:02Z",
-        "to": "2024-07-03T07:07:03.548Z"
+        "to": "2024-07-04T07:46:14.454Z"
       },
       {
         "operation_mode": "DOMESTIC_HOT_WATER",
         "value_type": "EARNED_ENVIRONMENT_ENERGY",
         "calculated": false,
         "from": "2022-10-11T16:16:40Z",
-        "to": "2024-07-03T07:07:03.204Z"
+        "to": "2024-07-04T07:46:14.235Z"
       },
       {
         "operation_mode": "HEATING",
         "value_type": "EARNED_ENVIRONMENT_ENERGY",
         "calculated": false,
         "from": "2022-10-11T16:16:40Z",
-        "to": "2024-07-03T07:07:02.938Z"
+        "to": "2024-07-04T07:46:14.032Z"
       },
       {
         "operation_mode": "HEATING",
         "value_type": "HEAT_GENERATED",
         "calculated": true,
         "from": "2022-10-11T16:16:40Z",
-        "to": "2024-07-03T07:07:02.235Z"
+        "to": "2024-07-04T07:46:13.376Z"
       },
       {
         "operation_mode": "DOMESTIC_HOT_WATER",
         "value_type": "HEAT_GENERATED",
         "calculated": true,
         "from": "2022-10-11T16:16:40Z",
-        "to": "2024-07-03T07:07:02.469Z"
+        "to": "2024-07-04T07:46:13.579Z"
       },
       {
         "operation_mode": "COOLING",
         "value_type": "HEAT_GENERATED",
         "calculated": true,
         "from": "2022-11-30T10:39:02Z",
-        "to": "2024-07-03T07:07:02.719Z"
+        "to": "2024-07-04T07:46:13.813Z"
       }
     ],
     "product_name": "aroTHERM plus"
   },
   "secondary_heat_generators": [],
   "electric_backup_heater": {
-    "device_uuid": "6b50f3829b9b18b15f15554b62836b48841fac85",
+    "device_uuid": "c39b748e01b354c30635964d5218051477c70797",
     "ebus_id": "VWZ02",
     "spn": 351,
     "bus_coupler_address": 0,
     "article_number": "0010023609",
     "emfValid": true,
-    "device_serial_number": "1111af3a19d6df28108c33a68b0fa1777b10a4a5",
+    "device_serial_number": "b21c05fb5036a342a556893799ecc5f02ccfb5db",
     "device_type": "ELECTRIC_AUXILIARY_HEATER",
     "first_data": "2022-10-11T16:16:40Z",
-    "last_data": "2024-07-03T06:56:13.982Z",
+    "last_data": "2024-07-04T06:56:13.348Z",
     "data": [
       {
         "operation_mode": "DOMESTIC_HOT_WATER",
         "value_type": "CONSUMED_ELECTRICAL_ENERGY",
         "calculated": false,
         "from": "2022-10-11T16:16:40Z",
-        "to": "2024-07-03T06:56:13.982Z"
+        "to": "2024-07-04T06:56:13.348Z"
       },
       {
         "operation_mode": "HEATING",
         "value_type": "CONSUMED_ELECTRICAL_ENERGY",
         "calculated": false,
         "from": "2022-10-11T16:16:40Z",
-        "to": "2024-07-03T06:56:13.654Z"
+        "to": "2024-07-04T06:56:13.129Z"
       }
     ],
     "product_name": "hydraulic station"

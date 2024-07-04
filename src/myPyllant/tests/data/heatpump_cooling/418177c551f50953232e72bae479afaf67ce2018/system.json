@@ -1,8 +1,8 @@
 {
   "state": {
     "system": {
-      "outdoorTemperature": 16.867188,
-      "outdoorTemperatureAverage24h": 18.542969,
+      "outdoorTemperature": 19.140625,
+      "outdoorTemperatureAverage24h": 16.734375,
       "systemWaterPressure": 1.8,
       "energyManagerState": "STANDBY",
       "systemOff": false
@@ -10,13 +10,15 @@
     "zones": [
       {
         "index": 0,
-        "desiredRoomTemperatureSetpointHeating": 5.0,
-        "desiredRoomTemperatureSetpointCooling": 23.5,
-        "desiredRoomTemperatureSetpoint": 5.0,
-        "currentRoomTemperature": 22.35,
-        "currentRoomHumidity": 56.0,
-        "currentSpecialFunction": "NONE",
+        "desiredRoomTemperatureSetpointHeating": 0.0,
+        "desiredRoomTemperatureSetpointCooling": 24.0,
+        "desiredRoomTemperatureSetpoint": 0.0,
+        "currentRoomTemperature": 22.725,
+        "currentRoomHumidity": 52.0,
+        "currentSpecialFunction": "QUICK_VETO",
         "heatingState": "IDLE",
+        "quickVetoStartDateTime": "2024-07-04T07:22:30Z",
+        "quickVetoEndDateTime": "2024-07-04T10:22:00Z",
         "isManualCoolingActive": false
       }
     ],
@@ -24,16 +26,16 @@
       {
         "index": 0,
         "circuitState": "STANDBY",
-        "currentCircuitFlowTemperature": 35.5,
+        "currentCircuitFlowTemperature": 49.0,
         "heatingCircuitFlowSetpoint": 0.0,
-        "calculatedEnergyManagerState": "HEATING_STANDBY"
+        "calculatedEnergyManagerState": "COOLING_STANDBY"
       }
     ],
     "dhw": [
       {
         "index": 255,
         "currentSpecialFunction": "REGULAR",
-        "currentDhwTemperature": 48.0
+        "currentDhwTemperature": 53.0
       }
     ]
   },
@@ -87,8 +89,6 @@
       "dhwHysteresis": 5.0,
       "dhwFlowSetpointOffset": 25.0,
       "continuousHeatingRoomSetpoint": 20.0,
-      "manualCoolingStartDate": "2024-07-03T00:00:00Z",
-      "manualCoolingEndDate": "2099-01-01T00:00:00Z",
       "hybridControlStrategy": "BIVALENCE_POINT",
       "maxFlowSetpointHpError": 25.0,
       "dhwMaximumTemperature": 80.0,
@@ -105,7 +105,7 @@
           "holidaySetpoint": 15.0
         },
         "heating": {
-          "operationModeHeating": "OFF",
+          "operationModeHeating": "TIME_CONTROLLED",
           "setBackTemperature": 18.0,
           "manualModeSetpointHeating": 22.0,
           "timeProgramHeating": {
@@ -167,8 +167,8 @@
         },
         "cooling": {
           "operationModeCooling": "TIME_CONTROLLED",
-          "setpointCooling": 23.5,
-          "manualModeSetpointCooling": 23.5,
+          "setpointCooling": 24.0,
+          "manualModeSetpointCooling": 24.0,
           "timeProgramCooling": {
             "metaInfo": {
               "minSlotsPerDay": 0,

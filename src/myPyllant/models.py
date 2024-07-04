@@ -67,7 +67,12 @@ class MyPyllantDataClass:
 
         for k, v in data.items():
             if k in datetime_fields and timezone is not None:
-                data[k] = datetime_parse(v, timezone)
+                if v.endswith("Z"):
+                    # Some dates are returned as "2024-01-01T00:00:00Z" without timezone information
+                    data[k] = datetime_parse(v, timezone)
+                else:
+                    # ... and some are ISO formatted with timezone information
+                    data[k] = datetime.datetime.fromisoformat(v)
 
         if extra_fields:
             data["extra_fields"] = {f: data[f] for f in extra_fields}
@@ -584,7 +589,19 @@ class DeviceData(MyPyllantDataClass):
     energy_type: str | None = None
     value_type: str | None = None
     calculated: bool | None = None
+    total_consumption: float | None = None
     data: list[DeviceDataBucket] = field(default_factory=list)
+
+    @property
+    def total_consumption_rounded(self) -> float | None:
+        """
+        Rounds odd float values from the API to match the app, i.e. 8998.87 -> 9000 and 8499.99 -> 8500
+        """
+        return (
+            round(self.total_consumption / 1000, 1) * 1000
+            if self.total_consumption
+            else 0
+        )
 
     @classmethod
     def from_api(cls, **data):
@@ -863,6 +880,8 @@ class System(MyPyllantDataClass):
     devices: list[Device] = field(default_factory=list)
     mpc: dict | None = None
     rts: dict | None = None
+    energy_management: dict | None = None
+    eebus: dict | None = None
     ambisense_capability: bool = False
     ambisense_rooms: list[AmbisenseRoom] = field(default_factory=list)
 

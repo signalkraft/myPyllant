@@ -5,11 +5,19 @@ import asyncio
 import json
 import logging
 import sys
-from datetime import datetime
+import datetime
 
 from myPyllant.api import MyPyllantAPI
 from myPyllant.enums import DeviceDataBucketResolution
+from myPyllant.models import DeviceData
 from myPyllant.utils import add_default_parser_args
+
+sample_datetime = (
+    datetime.datetime.now(datetime.timezone.utc)
+    .replace(hour=0, minute=0, second=0, microsecond=0)
+    .isoformat()
+)
+sample_date = datetime.date.today().isoformat()
 
 parser = argparse.ArgumentParser(description="Export data from myVaillant API.")
 add_default_parser_args(parser)
@@ -30,18 +38,29 @@ parser.add_argument(
 parser.add_argument(
     "-s",
     "--start",
-    type=datetime.fromisoformat,
-    help="Date where the data should start (ISO format)",
+    type=datetime.datetime.fromisoformat,
+    help=f"Date where the data should start (ISO format, for example {sample_datetime} "
+    f"or {sample_date})",
 )
 parser.add_argument(
     "-e",
     "--end",
-    type=datetime.fromisoformat,
-    help="Date where the data should end (ISO format)",
+    type=datetime.datetime.fromisoformat,
+    help=f"Date where the data should start (ISO format, for example {sample_datetime} "
+    f"or {sample_date})",
 )
 parser.add_argument(
     "-v", "--verbose", help="increase output verbosity", action="store_true"
 )
+
+
+def prepare_data(device_data: DeviceData) -> dict:
+    """
+    Removes device data from DeviceData, since it's not needed in the export
+    """
+    data = device_data.prepare_dict()
+    del data["device"]
+    return data
 
 
 async def main(
@@ -62,17 +81,22 @@ async def main(
             include_rts=True,
             include_mpc=True,
             include_ambisense_rooms=True,
+            include_energy_management=True,
+            include_eebus=True,
         ):
             if data:
                 for device in system.devices:
                     data = [
-                        d.prepare_dict()
+                        prepare_data(d)
                         async for d in api.get_data_by_device(
                             device, resolution, start, end
                         )
                     ]
-                    export_list.append(dict(device=device.prepare_dict(), data=data))
-
+                    device_dict = device.prepare_dict()
+                    # Data in the device doesn't contain any actual data,
+                    # only information on what kind of data is available
+                    del device_dict["data"]
+                    export_list.append(dict(device=device_dict, data=data))
             else:
                 export_list.append(system.prepare_dict())
 

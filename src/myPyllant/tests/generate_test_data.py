@@ -308,6 +308,36 @@ async def main(user, password, brand, country=None, write_results=True):
         except Exception as e:
             logger.error(f"Error fetching {rooms_url}: {e}", exc_info=e)
 
+        energy_management_url = (
+            f"{get_api_base()}/eebus/energy-management/{real_system_id}"
+        )
+        try:
+            async with api.aiohttp_session.get(
+                energy_management_url, headers=api.get_authorized_headers()
+            ) as energy_management_resp:
+                energy_management = await energy_management_resp.json()
+                create_result(
+                    energy_management,
+                    "energy_management",
+                    anonymized_system_id,
+                )
+        except Exception as e:
+            logger.error(f"Error fetching {energy_management_url}: {e}", exc_info=e)
+
+        ship_self_url = f"{get_api_base()}/ship/{real_system_id}/self"
+        try:
+            async with api.aiohttp_session.get(
+                ship_self_url, headers=api.get_authorized_headers()
+            ) as ship_self_resp:
+                ship_self = await ship_self_resp.json()
+                create_result(
+                    ship_self,
+                    "ship_self",
+                    anonymized_system_id,
+                )
+        except Exception as e:
+            logger.error(f"Error fetching {ship_self_url}: {e}", exc_info=e)
+
     if write_results:
         print(f"Wrote test data to {json_dir}")
         print()
