@@ -371,8 +371,8 @@ class MyPyllantAPI:
                 )
                 if include_diagnostic_trouble_codes
                 else None,
-                rts=await self.get_rts(home.system_id) if include_rts else {},
-                mpc=await self.get_mpc(home.system_id) if include_mpc else {},
+                rts=await self.get_rts(home.system_id) if include_rts else None,
+                mpc=await self.get_mpc(home.system_id) if include_mpc else None,
                 current_system=dict_to_snake_case(current_system_json),
                 ambisense_capability=ambisense_capability,
                 ambisense_rooms=await self.get_ambisense_rooms(home.system_id)
@@ -380,8 +380,8 @@ class MyPyllantAPI:
                 else [],
                 energy_management=await self.get_energy_management(home.system_id)
                 if include_energy_management
-                else {},
-                eebus=await self.get_eebus(home.system_id) if include_eebus else {},
+                else None,
+                eebus=await self.get_eebus(home.system_id) if include_eebus else None,
                 **dict_to_snake_case(system_json),
             )
             yield system
@@ -880,22 +880,40 @@ class MyPyllantAPI:
         system: System,
         start: datetime.datetime | None = None,
         end: datetime.datetime | None = None,
+        duration_days: int | None = None,
     ):
-        if system.control_identifier.is_vrc700:
-            raise ValueError("Not supported on VRC700 controllers")
+        """
+        Sets cooling for a number of days
 
-        start, end = get_default_holiday_dates(start, end, system.timezone)
+        Parameters:
+            system: The target system
+            start: Optional, datetime when the system goes into cooling mode. Defaults to now
+            end: Optional, datetime when cooling mode should end. Defaults to one year from now
+            duration_days: Optional, number of days to cool, only supported on VRC700 controllers
+        """
+        data: dict[str, int | str] = {}
+        if system.control_identifier.is_vrc700:
+            if not duration_days:
+                raise ValueError("duration_days is required on VRC700 controllers")
+            if start or end:
+                raise ValueError(
+                    "Start and end dates are not supported on VRC700 controllers, use duration_days instead"
+                )
+            data["value"] = duration_days
+        else:
+            if duration_days:
+                raise ValueError(
+                    "duration_days is not supported on this controller, use start and end dates instead"
+                )
+            start, end = get_default_holiday_dates(start, end, system.timezone)
+            if not start <= end:
+                raise ValueError("Start of holiday mode must be before end")
+            data["startDateTime"] = datetime_format(start, with_microseconds=True)
+            data["endDateTime"] = datetime_format(end, with_microseconds=True)
 
         logger.debug(
-            "Setting cooling for days on system %s to %s - %s", system.id, start, end
+            "Setting cooling for days on system %s with data %s", system.id, data
         )
-        if not start <= end:
-            raise ValueError("Start of holiday mode must be before end")
-
-        data = {
-            "startDateTime": datetime_format(start, with_microseconds=True),
-            "endDateTime": datetime_format(end, with_microseconds=True),
-        }
 
         await self.aiohttp_session.post(
             f"{await self.get_system_api_base(system.id)}/cooling-for-days",
@@ -903,16 +921,16 @@ class MyPyllantAPI:
             headers=self.get_authorized_headers(),
         )
 
-        system.configuration["system"]["manual_cooling_start_date"] = datetime_format(
-            start
-        )
-        system.configuration["system"]["manual_cooling_end_date"] = datetime_format(end)
+        if start and end:
+            system.configuration["system"][
+                "manual_cooling_start_date"
+            ] = datetime_format(start)
+            system.configuration["system"]["manual_cooling_end_date"] = datetime_format(
+                end
+            )
         return system
 
     async def cancel_cooling_for_days(self, system: System):
-        if system.control_identifier.is_vrc700:
-            raise ValueError("Not supported on VRC700 controllers")
-
         await self.aiohttp_session.delete(
             f"{await self.get_system_api_base(system.id)}/cooling-for-days",
             headers=self.get_authorized_headers(),

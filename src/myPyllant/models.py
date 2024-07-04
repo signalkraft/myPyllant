@@ -593,14 +593,14 @@ class DeviceData(MyPyllantDataClass):
     data: list[DeviceDataBucket] = field(default_factory=list)
 
     @property
-    def total_consumption_rounded(self) -> float | None:
+    def total_consumption_rounded(self) -> float:
         """
         Rounds odd float values from the API to match the app, i.e. 8998.87 -> 9000 and 8499.99 -> 8500
         """
         return (
             round(self.total_consumption / 1000, 1) * 1000
             if self.total_consumption
-            else 0
+            else 0.0
         )
 
     @classmethod
