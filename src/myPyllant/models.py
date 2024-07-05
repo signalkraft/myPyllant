@@ -1162,7 +1162,14 @@ class System(MyPyllantDataClass):
 
     @property
     def manual_cooling_days(self) -> int | None:
-        return self.configuration.get("system", {}).get("cooling_for_x_days")
+        if self.control_identifier.is_vrc700:
+            return self.configuration.get("system", {}).get("cooling_for_x_days")
+        elif self.manual_cooling_end_date:
+            return (
+                self.manual_cooling_end_date - datetime.datetime.now(self.timezone)
+            ).days
+        else:
+            return None
 
     @property
     def system_name(self) -> str:

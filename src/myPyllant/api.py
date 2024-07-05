@@ -880,7 +880,7 @@ class MyPyllantAPI:
             system: The target system
             start: Optional, datetime when the system goes into cooling mode. Defaults to now
             end: Optional, datetime when cooling mode should end. Defaults to one year from now
-            duration_days: Optional, number of days to cool, only supported on VRC700 controllers
+            duration_days: Optional, number of days to cool
         """
         data: dict[str, int | str] = {}
         if system.control_identifier.is_vrc700:
@@ -893,10 +893,14 @@ class MyPyllantAPI:
             data["value"] = duration_days
         else:
             if duration_days:
-                raise ValueError(
-                    "duration_days is not supported on this controller, use start and end dates instead"
-                )
-            start, end = get_default_holiday_dates(start, end, system.timezone)
+                if start or end:
+                    raise ValueError(
+                        "Start and end dates can't be used together with duration_days"
+                    )
+                start = datetime.datetime.now(system.timezone)
+                end = start + datetime.timedelta(days=duration_days)
+            else:
+                start, end = get_default_holiday_dates(start, end, system.timezone)
             if not start <= end:
                 raise ValueError("Start of holiday mode must be before end")
             data["startDateTime"] = datetime_format(start, with_microseconds=True)
@@ -919,6 +923,8 @@ class MyPyllantAPI:
             system.configuration["system"]["manual_cooling_end_date"] = datetime_format(
                 end
             )
+        if system.control_identifier.is_vrc700:
+            system.configuration["system"]["cooling_for_x_days"] = duration_days
         return system
 
     async def cancel_cooling_for_days(self, system: System):
