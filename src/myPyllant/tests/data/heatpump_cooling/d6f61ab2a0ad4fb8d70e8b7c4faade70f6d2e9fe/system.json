@@ -1,9 +1,9 @@
 {
   "state": {
     "system": {
-      "outdoorTemperature": 19.140625,
-      "outdoorTemperatureAverage24h": 16.734375,
-      "systemWaterPressure": 1.8,
+      "outdoorTemperature": 23.796875,
+      "outdoorTemperatureAverage24h": 20.566406,
+      "systemWaterPressure": 1.7,
       "energyManagerState": "STANDBY",
       "systemOff": false
     },
@@ -12,13 +12,11 @@
         "index": 0,
         "desiredRoomTemperatureSetpointHeating": 0.0,
         "desiredRoomTemperatureSetpointCooling": 24.0,
-        "desiredRoomTemperatureSetpoint": 0.0,
-        "currentRoomTemperature": 22.725,
-        "currentRoomHumidity": 52.0,
-        "currentSpecialFunction": "QUICK_VETO",
+        "desiredRoomTemperatureSetpoint": 24.0,
+        "currentRoomTemperature": 21.725,
+        "currentRoomHumidity": 57.0,
+        "currentSpecialFunction": "NONE",
         "heatingState": "IDLE",
-        "quickVetoStartDateTime": "2024-07-04T07:22:30Z",
-        "quickVetoEndDateTime": "2024-07-04T10:22:00Z",
         "isManualCoolingActive": false
       }
     ],
@@ -26,7 +24,7 @@
       {
         "index": 0,
         "circuitState": "STANDBY",
-        "currentCircuitFlowTemperature": 49.0,
+        "currentCircuitFlowTemperature": 36.5,
         "heatingCircuitFlowSetpoint": 0.0,
         "calculatedEnergyManagerState": "COOLING_STANDBY"
       }
@@ -35,7 +33,7 @@
       {
         "index": 255,
         "currentSpecialFunction": "REGULAR",
-        "currentDhwTemperature": 53.0
+        "currentDhwTemperature": 47.0
       }
     ]
   },
@@ -100,8 +98,8 @@
         "index": 0,
         "general": {
           "name": "Zone 1",
-          "holidayStartDateTime": "2024-05-23T17:51:22+00:00",
-          "holidayEndDateTime": "2024-05-28T17:51:22+00:00",
+          "holidayStartDateTime": "2015-01-01T00:00:00+00:00",
+          "holidayEndDateTime": "2015-01-01T00:00:00+00:00",
           "holidaySetpoint": 15.0
         },
         "heating": {
@@ -118,49 +116,49 @@
               {
                 "startTime": 360,
                 "endTime": 1230,
-                "setpoint": 22.0
+                "setpoint": 21.0
               }
             ],
             "tuesday": [
               {
                 "startTime": 360,
                 "endTime": 1230,
-                "setpoint": 22.0
+                "setpoint": 21.0
               }
             ],
             "wednesday": [
               {
                 "startTime": 360,
                 "endTime": 1230,
-                "setpoint": 22.0
+                "setpoint": 21.0
               }
             ],
             "thursday": [
               {
                 "startTime": 360,
                 "endTime": 1230,
-                "setpoint": 22.0
+                "setpoint": 21.0
               }
             ],
             "friday": [
               {
                 "startTime": 360,
                 "endTime": 1230,
-                "setpoint": 22.0
+                "setpoint": 21.0
               }
             ],
             "saturday": [
               {
                 "startTime": 450,
                 "endTime": 1350,
-                "setpoint": 22.0
+                "setpoint": 21.0
               }
             ],
             "sunday": [
               {
                 "startTime": 450,
                 "endTime": 1350,
-                "setpoint": 22.0
+                "setpoint": 21.0
               }
             ]
           }

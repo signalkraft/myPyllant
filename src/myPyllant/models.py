@@ -24,6 +24,7 @@ from myPyllant.enums import (
     DHWOperationModeVRC700,
     AmbisenseRoomOperationMode,
     VentilationOperationModeVRC700,
+    ZoneOperatingType,
 )
 from myPyllant.utils import datetime_parse, prepare_field_value_for_dict
 
@@ -477,10 +478,41 @@ class Zone(MyPyllantDataClass):
 
     @property
     def is_auto_heating_mode(self) -> bool:
+        """
+        Whether the zone is in time-controlled heating mode
+        """
         return self.heating.operation_mode_heating in [
             ZoneOperatingMode.TIME_CONTROLLED,
             ZoneOperatingModeVRC700.AUTO,
         ]
+
+    @property
+    def active_operating_type(self) -> str:
+        """
+        Whether the system is cooling or heating, based on the desired temperature
+        """
+        if (
+            self.desired_room_temperature_setpoint
+            == self.desired_room_temperature_setpoint_cooling
+        ):
+            return ZoneOperatingType.COOLING
+        else:
+            return ZoneOperatingType.HEATING
+
+    @property
+    def active_operation_mode(
+        self,
+    ) -> ZoneOperatingMode | ZoneOperatingModeVRC700 | None:
+        """
+        Returns the active operation mode, of the active operating type
+        """
+        operation: ZoneHeating | ZoneCooling | None = getattr(
+            self, self.active_operating_type
+        )
+        if operation:
+            return getattr(operation, f"operation_mode_{self.active_operating_type}")
+        else:
+            return None
 
 
 @dataclass(config=MyPyllantConfig)
@@ -1127,6 +1159,10 @@ class System(MyPyllantDataClass):
                 self.timezone,
             )
         return None
+
+    @property
+    def manual_cooling_days(self) -> int | None:
+        return self.configuration.get("system", {}).get("cooling_for_x_days")
 
     @property
     def system_name(self) -> str:

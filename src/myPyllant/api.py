@@ -24,7 +24,6 @@ from myPyllant.const import (
     DEFAULT_QUICK_VETO_DURATION,
     LOGIN_URL,
     TOKEN_URL,
-    ZONE_OPERATING_TYPES,
 )
 from myPyllant.enums import (
     ControlIdentifier,
@@ -32,7 +31,7 @@ from myPyllant.enums import (
     ZoneOperatingModeVRC700,
     ZoneOperatingMode,
     ZoneCurrentSpecialFunction,
-    ZoneTimeProgramType,
+    ZoneOperatingType,
     DHWOperationMode,
     VentilationOperationMode,
     VentilationFanStageType,
@@ -476,9 +475,9 @@ class MyPyllantAPI:
         """
         payload = {}
         operating_type = operating_type.lower()
-        if operating_type not in ZONE_OPERATING_TYPES:
+        if operating_type not in ZoneOperatingType:
             raise ValueError(
-                f"Invalid HVAC mode, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                f"Invalid HVAC mode, must be one of {', '.join(ZoneOperatingType)}"
             )
         if zone.control_identifier.is_vrc700:
             url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{operating_type}/operation-mode"
@@ -533,9 +532,9 @@ class MyPyllantAPI:
         if not default_duration:
             default_duration = DEFAULT_QUICK_VETO_DURATION
         if zone.control_identifier.is_vrc700:
-            if veto_type not in ZONE_OPERATING_TYPES:
+            if veto_type not in ZoneOperatingType:
                 raise ValueError(
-                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                    f"Invalid veto type, must be one of {', '.join(ZoneOperatingType)}"
                 )
             url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{veto_type}/quick-veto"
         else:
@@ -588,9 +587,9 @@ class MyPyllantAPI:
             veto_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if zone.control_identifier.is_vrc700:
-            if veto_type not in ZONE_OPERATING_TYPES:
+            if veto_type not in ZoneOperatingType:
                 raise ValueError(
-                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                    f"Invalid veto type, must be one of {', '.join(ZoneOperatingType)}"
                 )
             url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{veto_type}/quick-veto"
         else:
@@ -615,7 +614,7 @@ class MyPyllantAPI:
     ):
         logger.debug(f"Setting time program temp {zone.name}")
 
-        if program_type not in ZoneTimeProgramType:
+        if program_type not in ZoneOperatingType:
             raise ValueError(
                 "Type must be either heating or cooling, not %s", program_type
             )
@@ -634,7 +633,7 @@ class MyPyllantAPI:
         self,
         zone: Zone,
         temperature: float,
-        setpoint_type: str = "heating",
+        setpoint_type: str | ZoneOperatingType = "heating",
     ):
         """
         Sets the desired temperature when in manual mode
@@ -645,17 +644,16 @@ class MyPyllantAPI:
             setpoint_type: Either heating or cooling
         """
         logger.debug("Setting manual mode setpoint for %s", zone.name)
-        setpoint_type = setpoint_type.lower()
-        if setpoint_type not in ZONE_OPERATING_TYPES:
+        if setpoint_type not in ZoneOperatingType:
             raise ValueError(
-                f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                f"Invalid veto type, must be one of {', '.join(ZoneOperatingType)}"
             )
+        setpoint_type = str(setpoint_type).lower()
         payload: dict[str, Any] = {
             "setpoint": temperature,
         }
         if zone.control_identifier.is_vrc700:
             url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setpoint_type}/manual-mode-setpoint"
-
         else:
             url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/manual-mode-setpoint"
             payload["type"] = setpoint_type.upper()
@@ -716,9 +714,9 @@ class MyPyllantAPI:
             veto_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if zone.control_identifier.is_vrc700:
-            if veto_type not in ZONE_OPERATING_TYPES:
+            if veto_type not in ZoneOperatingType:
                 raise ValueError(
-                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                    f"Invalid veto type, must be one of {', '.join(ZoneOperatingType)}"
                 )
             url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{veto_type}/quick-veto"
         else:
@@ -742,9 +740,9 @@ class MyPyllantAPI:
             setback_type: Only supported on VRC700 controllers, either heating or cooling
         """
         if zone.control_identifier.is_vrc700:
-            if setback_type not in ZONE_OPERATING_TYPES:
+            if setback_type not in ZoneOperatingType:
                 raise ValueError(
-                    f"Invalid setback type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                    f"Invalid setback type, must be one of {', '.join(ZoneOperatingType)}"
                 )
             url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setback_type}/set-back-temperature"
         else:
@@ -775,14 +773,14 @@ class MyPyllantAPI:
             time_program: The time schedule
             setback_type: Only supported on VRC700 controllers, either heating or cooling
         """
-        if program_type not in ZoneTimeProgramType:
+        if program_type not in ZoneOperatingType:
             raise ValueError(
                 "Type must be either heating or cooling, not %s", program_type
             )
         if zone.control_identifier.is_vrc700:
-            if setback_type not in ZONE_OPERATING_TYPES:
+            if setback_type not in ZoneOperatingType:
                 raise ValueError(
-                    f"Invalid veto type, must be one of {', '.join(ZONE_OPERATING_TYPES)}"
+                    f"Invalid veto type, must be one of {', '.join(ZoneOperatingType)}"
                 )
             url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setback_type}/time-windows"
         else:
@@ -861,14 +859,7 @@ class MyPyllantAPI:
         else:
             url = f"{await self.get_system_api_base(system.id)}/away-mode"
 
-        if system.zones and system.zones[0].general.holiday_start_in_future:
-            # For some reason cancelling holidays in the future doesn't work, but setting a past value does
-            default_holiday = datetime.datetime(2019, 1, 1, 0, 0, 0)
-            await self.set_holiday(system, start=default_holiday, end=default_holiday)
-        else:
-            await self.aiohttp_session.delete(
-                url, headers=self.get_authorized_headers()
-            )
+        await self.aiohttp_session.delete(url, headers=self.get_authorized_headers())
         for zone in system.zones:
             zone.current_special_function = ZoneCurrentSpecialFunction.NONE
             zone.general.holiday_start_date_time = None

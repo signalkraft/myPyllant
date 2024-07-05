@@ -120,7 +120,7 @@ def _mypyllant_aioresponses():
             )
             self.post(
                 re.compile(
-                    r".*zones?/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode|heating/operation-mode)$"
+                    r".*zones?/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode|operation-mode)$"
                 ),
                 status=200,
                 payload={},
@@ -128,7 +128,7 @@ def _mypyllant_aioresponses():
             )
             self.patch(
                 re.compile(
-                    r".*zones?/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode|heating/operation-mode)$"
+                    r".*zones?/.*/(quick-veto|manual-mode-setpoint|heating-operation-mode|operation-mode)$"
                 ),
                 status=200,
                 payload={},

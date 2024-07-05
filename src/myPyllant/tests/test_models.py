@@ -17,7 +17,7 @@ from ..models import (
     AmbisenseDevice,
     Circuit,
 )
-from ..enums import ZoneOperatingMode, ControlIdentifier
+from ..enums import ZoneOperatingMode, ControlIdentifier, ZoneOperatingType
 from .utils import list_test_data, load_test_data
 
 
@@ -87,6 +87,23 @@ async def test_circuit_association(
         )
         for zone in system.zones:
             assert isinstance(zone.associated_circuit, Circuit)
+    await mocked_api.aiohttp_session.close()
+
+
+async def test_operating_type(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
+    test_data = load_test_data(DATA_DIR / "ventilation")
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(
+            mocked_api.get_systems(include_diagnostic_trouble_codes=True)
+        )
+        assert system.zones[0].active_operating_type == ZoneOperatingType.HEATING
+        assert system.zones[0].active_operation_mode == ZoneOperatingMode.MANUAL
+    test_data = load_test_data(DATA_DIR / "heatpump_cooling")
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(
+            mocked_api.get_systems(include_diagnostic_trouble_codes=True)
+        )
+        assert system.zones[0].active_operating_type == ZoneOperatingType.COOLING
     await mocked_api.aiohttp_session.close()
 
 

@@ -97,7 +97,8 @@
       "maxFlowSetpointHpError": 25.0,
       "dhwMaximumTemperature": 80.0,
       "maximumPreheatingTime": 0,
-      "paralellTankLoadingAllowed": false
+      "paralellTankLoadingAllowed": false,
+      "coolingForXDays": 0
     },
     "zones": [
       {

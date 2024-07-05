@@ -74,7 +74,7 @@ class ZoneHeatingState(MyPyllantEnum):
     COOLING_DOWN = "COOLING_DOWN"
 
 
-class ZoneTimeProgramType(MyPyllantEnum):
+class ZoneOperatingType(MyPyllantEnum):
     HEATING = "heating"
     COOLING = "cooling"
 
