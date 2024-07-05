@@ -1268,8 +1268,9 @@ class MyPyllantAPI:
         Parameters:
             system: The System object or system ID string
         """
-        url = f"{await self.get_api_base(system)}/rts/{get_system_id(system)}/devices"
+        url = f"{await self.get_api_base()}/rts/{get_system_id(system)}/devices"
         try:
+            logger.debug("Getting RTS data")
             response = await self.aiohttp_session.get(
                 url,
                 headers=self.get_authorized_headers(),
@@ -1287,8 +1288,9 @@ class MyPyllantAPI:
         Parameters:
             system: The System object or system ID string
         """
-        url = f"{await self.get_api_base(system)}/hem/{get_system_id(system)}/mpc"
+        url = f"{await self.get_api_base()}/hem/{get_system_id(system)}/mpc"
         try:
+            logger.debug("Getting MPC data")
             response = await self.aiohttp_session.get(
                 url,
                 headers=self.get_authorized_headers(),
