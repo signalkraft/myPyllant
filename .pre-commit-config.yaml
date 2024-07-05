@@ -40,6 +40,7 @@ repos:
         language: script
         pass_filenames: true
         files: ^src/.+\.py$
+        exclude: ^src/myPyllant/tests/
       - id: pytest
         name: pytest
         entry: run_venv.sh

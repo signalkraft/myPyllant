@@ -377,6 +377,23 @@ class ZoneGeneral(MyPyllantDataClass):
 
 
 @dataclass(config=MyPyllantConfig)
+class Circuit(MyPyllantDataClass):
+    system_id: str
+    index: int
+    circuit_state: CircuitState
+    mixer_circuit_type_external: str | None = None
+    set_back_mode_enabled: bool | None = None
+    zones: list = field(default_factory=list)
+    is_cooling_allowed: bool | None = None
+    current_circuit_flow_temperature: float | None = None
+    heating_curve: float | None = None
+    heating_flow_temperature_minimum_setpoint: float | None = None
+    heating_flow_temperature_maximum_setpoint: float | None = None
+    min_flow_temperature_setpoint: float | None = None
+    calculated_energy_manager_state: str | None = None
+
+
+@dataclass(config=MyPyllantConfig)
 class Zone(MyPyllantDataClass):
     system_id: str
     general: ZoneGeneral
@@ -396,12 +413,13 @@ class Zone(MyPyllantDataClass):
     desired_room_temperature_setpoint_cooling: float | None = None
     desired_room_temperature_setpoint: float | None = None
     current_room_humidity: float | None = None
+    associated_circuit: Circuit | None = None
     associated_circuit_index: int | None = None
     quick_veto_start_date_time: datetime.datetime | None = None
     quick_veto_end_date_time: datetime.datetime | None = None
 
     @classmethod
-    def from_api(cls, **data):
+    def from_api(cls, circuits: list[Circuit] | None = None, **data):
         data["heating"] = ZoneHeating.from_api(
             control_identifier=data["control_identifier"], **data["heating"]
         )
@@ -412,14 +430,20 @@ class Zone(MyPyllantDataClass):
         data["general"] = ZoneGeneral.from_api(
             timezone=data["timezone"], **data["general"]
         )
+        if circuits:
+            data["associated_circuit"] = next(
+                c for c in circuits if c.index == data["associated_circuit_index"]
+            )
         return super().from_api(**data)
 
-    def get_associated_circuit(self, system: System):
-        if self.associated_circuit_index in [c.index for c in system.circuits]:
-            return next(
-                c for c in system.circuits if c.index == self.associated_circuit_index
-            )
-        return None
+    @property
+    def is_cooling_allowed_circuit(self):
+        """
+        On VRC700, is_cooling_allowed is only set on the circuit
+        """
+        return self.is_cooling_allowed or (
+            self.associated_circuit and self.associated_circuit.is_cooling_allowed
+        )
 
     @property
     def name(self):
@@ -457,23 +481,6 @@ class Zone(MyPyllantDataClass):
             ZoneOperatingMode.TIME_CONTROLLED,
             ZoneOperatingModeVRC700.AUTO,
         ]
-
-
-@dataclass(config=MyPyllantConfig)
-class Circuit(MyPyllantDataClass):
-    system_id: str
-    index: int
-    circuit_state: CircuitState
-    mixer_circuit_type_external: str | None = None
-    set_back_mode_enabled: bool | None = None
-    zones: list = field(default_factory=list)
-    is_cooling_allowed: bool | None = None
-    current_circuit_flow_temperature: float | None = None
-    heating_curve: float | None = None
-    heating_flow_temperature_minimum_setpoint: float | None = None
-    heating_flow_temperature_maximum_setpoint: float | None = None
-    min_flow_temperature_setpoint: float | None = None
-    calculated_energy_manager_state: str | None = None
 
 
 @dataclass(config=MyPyllantConfig)
@@ -893,18 +900,19 @@ class System(MyPyllantDataClass):
         system: System = super().from_api(**data)
         logger.debug(f"Creating related models from state: {data}")
         system.extra_fields = system.merge_extra_fields()
+        system.circuits = [
+            Circuit.from_api(system_id=system.id, timezone=system.timezone, **c)
+            for c in system.merge_object("circuits")
+        ]
         system.zones = [
             Zone.from_api(
                 system_id=system.id,
                 timezone=system.timezone,
                 control_identifier=system.control_identifier,
+                circuits=system.circuits,
                 **z,
             )
             for z in system.merge_object("zones")
-        ]
-        system.circuits = [
-            Circuit.from_api(system_id=system.id, timezone=system.timezone, **c)
-            for c in system.merge_object("circuits")
         ]
         system.domestic_hot_water = [
             DomesticHotWater.from_api(
@@ -1092,7 +1100,9 @@ class System(MyPyllantDataClass):
 
     @property
     def is_cooling_allowed(self) -> bool:
-        return any([z.is_cooling_allowed for z in self.zones])
+        return any([z.is_cooling_allowed for z in self.zones]) or any(
+            [c.is_cooling_allowed for c in self.circuits]
+        )
 
     @property
     def manual_cooling_start_date(self) -> datetime.datetime | None:
