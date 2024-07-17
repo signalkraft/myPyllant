@@ -355,8 +355,6 @@ class MyPyllantAPI:
             ) as current_system_resp:
                 current_system_json = await current_system_resp.json()
 
-            ambisense_capability = await self.get_ambisense_capability(home.system_id)
-
             system = System.from_api(
                 brand=self.brand,
                 home=home,
@@ -373,9 +371,11 @@ class MyPyllantAPI:
                 rts=await self.get_rts(home.system_id) if include_rts else None,
                 mpc=await self.get_mpc(home.system_id) if include_mpc else None,
                 current_system=dict_to_snake_case(current_system_json),
-                ambisense_capability=ambisense_capability,
+                ambisense_capability=await self.get_ambisense_capability(
+                    home.system_id
+                ),
                 ambisense_rooms=await self.get_ambisense_rooms(home.system_id)
-                if include_ambisense_rooms and ambisense_capability
+                if include_ambisense_rooms
                 else [],
                 energy_management=await self.get_energy_management(home.system_id)
                 if include_energy_management
