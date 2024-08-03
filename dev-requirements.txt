@@ -7,7 +7,7 @@ pytest-mock~=3.14.0
 pytest-xdist>=3.3.0
 pre-commit~=3.6.2
 build~=1.2.1
-freezegun~=1.4.0
+freezegun~=1.5.1
 country_list~=1.1.0
 requests~=2.31.0
 pydantic<1.11.0
