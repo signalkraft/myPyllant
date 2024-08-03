@@ -57,7 +57,9 @@ class MyPyllantDataClass:
         dataclass_fields = fields(cls)
         extra_fields = set(data.keys()) - {f.name for f in dataclass_fields}
         datetime_fields = set(
-            f.name for f in dataclass_fields if f.type == "datetime.datetime"
+            f.name
+            for f in dataclass_fields
+            if "datetime.datetime" in str(f.type)  # TODO: Use typing.get_origin()
         )
         timezone: datetime.tzinfo | None = data.get("timezone")
 
@@ -67,7 +69,7 @@ class MyPyllantDataClass:
             )
 
         for k, v in data.items():
-            if k in datetime_fields and timezone is not None:
+            if v is not None and k in datetime_fields and timezone is not None:
                 if v.endswith("Z"):
                     # Some dates are returned as "2024-01-01T00:00:00Z" without timezone information
                     data[k] = datetime_parse(v, timezone)
@@ -860,6 +862,7 @@ class AmbisenseDevice(MyPyllantDataClass):
 @dataclass(config=MyPyllantConfig)
 class AmbisenseRoomConfiguration(MyPyllantDataClass):
     name: str
+    timezone: datetime.tzinfo
     operation_mode: AmbisenseRoomOperationMode | None = None
     current_temperature: float | None = None
     temperature_setpoint: float | None = None
@@ -892,9 +895,10 @@ class AmbisenseRoom(MyPyllantDataClass):
 
     @classmethod
     def from_api(cls, **data):
+        timezone = data.pop("timezone")
         data["time_program"] = RoomTimeProgram.from_api(**data["time_program"])
         data["room_configuration"] = AmbisenseRoomConfiguration.from_api(
-            **data["room_configuration"]
+            timezone=timezone, **data["room_configuration"]
         )
         return super().from_api(**data)
 
@@ -980,7 +984,8 @@ class System(MyPyllantDataClass):
             for k, v in system.raw_devices
         ]
         system.ambisense_rooms = [
-            AmbisenseRoom.from_api(system_id=system.id, **r) for r in ambisense_rooms
+            AmbisenseRoom.from_api(system_id=system.id, timezone=system.timezone, **r)
+            for r in ambisense_rooms
         ]
         return system
 
