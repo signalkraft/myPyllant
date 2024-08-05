@@ -11,6 +11,6 @@ freezegun~=1.5.1
 country_list~=1.1.0
 requests~=2.31.0
 pydantic<1.11.0
-mypy~=1.8.0
+mypy~=1.11.1
 types-requests~=2.32.0.20240712
 types-PyYAML~=6.0.12.12
