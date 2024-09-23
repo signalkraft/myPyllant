@@ -13,4 +13,4 @@ requests~=2.31.0
 pydantic<1.11.0
 mypy~=1.8.0
 types-requests~=2.32.0.20240712
-types-PyYAML~=6.0.12.12
+types-PyYAML~=6.0.12.20240917
