@@ -853,7 +853,7 @@ class AmbisenseDevice(MyPyllantDataClass):
     device_type: str
     name: str
     sgtin: str
-    unreach: bool
+    unreach: bool | None = None
     low_bat: bool | None = None
     rssi: int | None = None
     rssi_peer: int | None = None
