@@ -1,0 +1,408 @@
+homes:
+  - homeName: 0d0b3100662269abeb8d2d7a37ffb27b4921ca77
+    serialNumber: b32259a79c4ff1c0ea2de15e2ffe3e2e055e0f1e
+    systemId: f773cad88b6c600acb2ea77cac182707c6168638
+    productMetadata:
+      productType: VR921
+      productionYear: '23'
+      productionWeek: '34'
+      articleNumber: 0020260963
+    state: CLAIMED
+    migrationState: FINISHED
+    migrationFinishedAt: '2023-12-11T15:40:20.076678811Z'
+    onlineState: ONLINE
+    firmware:
+      version: 0357.40.35
+      connectedToOldIoTPlatform: null
+      updateEnabled: true
+      updateRequired: false
+    nomenclature: VR 921
+    cag: false
+    countryCode: GB
+    productInformation: VR921
+    firmwareVersion: 0357.40.35
+f773cad88b6c600acb2ea77cac182707c6168638:
+  control_identifier:
+    controlIdentifier: tli
+  time_zone:
+    timeZone: Europe/London
+  diagnostic_trouble_codes:
+    - serialNumber: ab68ee91797a0eaf675650d967008e8a180dbdb6
+      articleNumber: 0020262148
+      codes: [ ]
+    - serialNumber: 3765b64fc91ddca1e6e2fd953a67ea016dc72511
+      articleNumber: 0010047381
+      codes: [ ]
+    - serialNumber: b32259a79c4ff1c0ea2de15e2ffe3e2e055e0f1e
+      articleNumber: 0020260963
+      codes: [ ]
+    - serialNumber: 0425058b59bf758a83fe2f2fec8f81a769ec74cb
+      articleNumber: '0010031644'
+      codes: [ ]
+  connection_status:
+    connected: true
+  system:
+    state:
+      system:
+        outdoorTemperature: 7.5664062
+        outdoorTemperatureAverage24h: 10.386719
+        energyManagerState: STANDBY
+        systemOff: false
+      zones:
+        - index: 0
+          desiredRoomTemperatureSetpointHeating: 16.5
+          desiredRoomTemperatureSetpoint: 16.5
+          currentRoomTemperature: 20.1875
+          currentRoomHumidity: 64
+          currentSpecialFunction: NONE
+          heatingState: IDLE
+          quickVetoStartDateTime: '1970-01-01T00:00:00Z'
+          quickVetoEndDateTime: '1970-01-01T00:00:00Z'
+      circuits:
+        - index: 0
+          circuitState: STANDBY
+          currentCircuitFlowTemperature: 22
+          heatingCircuitFlowSetpoint: 0
+          calculatedEnergyManagerState: HEATING_STANDBY
+      dhw:
+        - index: 255
+          currentSpecialFunction: REGULAR
+          currentDhwTemperature: 44
+      ventilation: [ ]
+    properties:
+      system:
+        controllerType: VRC720
+        isLegionallaProtectionActivated: MONDAY
+        systemScheme: 10
+        backupHeaterType: CONDENSING
+        backupHeaterAllowedFor: DISABLED
+        temporaryAllowBackupHeater: DISABLED
+        moduleConfigurationVR71: 3
+        energyProvidePowerCutBehavior: DISABLE_COOLING
+        smartPhotovoltaicBufferOffset: 10
+        externalEnergyManagementActivation: false
+      zones:
+        - index: 0
+          isActive: true
+          zoneBinding: CENTRAL_CONTROL
+          isCoolingAllowed: false
+          associatedCircuitIndex: 0
+      circuits:
+        - index: 0
+          mixerCircuitTypeExternal: HEATING
+          heatingCircuitType: DIRECT_HEATING_CIRCUIT
+      dhw:
+        - index: 255
+          minSetpoint: 35
+          maxSetpoint: 70
+      ventilation: [ ]
+    configuration:
+      system:
+        continuousHeatingStartSetpoint: -26
+        alternativePoint: -21
+        heatingCircuitBivalencePoint: -20
+        dhwBivalencePoint: -20
+        adaptiveHeatingCurve: false
+        dhwMaximumLoadingTime: 60
+        dhwHysteresis: 5
+        dhwFlowSetpointOffset: 15
+        continuousHeatingRoomSetpoint: 20
+        manualCoolingStartDate: '2019-01-01T00:00:00Z'
+        manualCoolingEndDate: '2019-01-01T00:00:00Z'
+        hybridControlStrategy: BIVALENCE_POINT
+        maxFlowSetpointHpError: 25
+        dhwMaximumTemperature: 80
+        maximumPreheatingTime: 0
+      zones:
+        - index: 0
+          general:
+            name: Zone 1
+            holidayStartDateTime: '2015-01-01T00:00:00Z'
+            holidayEndDateTime: '2015-01-01T00:00:00Z'
+            holidaySetpoint: 15
+          heating:
+            operationModeHeating: TIME_CONTROLLED
+            setBackTemperature: 16.5
+            manualModeSetpointHeating: 19.5
+            timeProgramHeating:
+              metaInfo:
+                minSlotsPerDay: 0
+                maxSlotsPerDay: 12
+                setpointRequiredPerSlot: true
+              monday:
+                - startTime: 450
+                  endTime: 1140
+                  setpoint: 19
+                - startTime: 1140
+                  endTime: 1320
+                  setpoint: 19
+              tuesday:
+                - startTime: 450
+                  endTime: 1140
+                  setpoint: 19
+                - startTime: 1140
+                  endTime: 1320
+                  setpoint: 19
+              wednesday:
+                - startTime: 450
+                  endTime: 1140
+                  setpoint: 19
+                - startTime: 1140
+                  endTime: 1320
+                  setpoint: 19
+              thursday:
+                - startTime: 450
+                  endTime: 1140
+                  setpoint: 19
+                - startTime: 1140
+                  endTime: 1320
+                  setpoint: 19
+              friday:
+                - startTime: 450
+                  endTime: 1140
+                  setpoint: 19
+                - startTime: 1140
+                  endTime: 1320
+                  setpoint: 19
+              saturday:
+                - startTime: 450
+                  endTime: 1140
+                  setpoint: 19
+                - startTime: 1140
+                  endTime: 1320
+                  setpoint: 19
+              sunday:
+                - startTime: 450
+                  endTime: 1140
+                  setpoint: 19
+                - startTime: 1140
+                  endTime: 1320
+                  setpoint: 19
+          cooling: { }
+      circuits:
+        - index: 0
+          heatingCurve: 1
+          heatingFlowTemperatureMinimumSetpoint: 15
+          heatingFlowTemperatureMaximumSetpoint: 47
+          heatDemandLimitedByOutsideTemperature: 30
+          heatingCircuitFlowSetpointExcessOffset: 0
+          setBackModeEnabled: true
+          roomTemperatureControlMode: THERMOSTAT_FUNCTION
+          epsilon: 2
+      dhw:
+        - index: 255
+          operationModeDhw: TIME_CONTROLLED
+          tappingSetpoint: 45
+          holidayStartDateTime: '2015-01-01T00:00:00Z'
+          holidayEndDateTime: '2015-01-01T00:00:00Z'
+          timeProgramDhw:
+            metaInfo:
+              minSlotsPerDay: 0
+              maxSlotsPerDay: 3
+              setpointRequiredPerSlot: false
+            monday:
+              - startTime: 370
+                endTime: 1320
+            tuesday:
+              - startTime: 370
+                endTime: 1320
+            wednesday:
+              - startTime: 370
+                endTime: 1320
+            thursday:
+              - startTime: 370
+                endTime: 1320
+            friday:
+              - startTime: 370
+                endTime: 1320
+            saturday:
+              - startTime: 370
+                endTime: 1320
+            sunday:
+              - startTime: 370
+                endTime: 1320
+          timeProgramCirculationPump:
+            metaInfo:
+              minSlotsPerDay: 0
+              maxSlotsPerDay: 3
+              setpointRequiredPerSlot: false
+            monday:
+              - startTime: 360
+                endTime: 1320
+            tuesday:
+              - startTime: 360
+                endTime: 1320
+            wednesday:
+              - startTime: 360
+                endTime: 1320
+            thursday:
+              - startTime: 360
+                endTime: 1320
+            friday:
+              - startTime: 360
+                endTime: 1320
+            saturday:
+              - startTime: 450
+                endTime: 1410
+            sunday:
+              - startTime: 450
+                endTime: 1320
+      ventilation: [ ]
+  current_system:
+    system_type: HEATPUMP
+    has_emf_capable_devices: true
+    primary_heat_generator:
+      device_uuid: c05c70a5629b9cdaeb79e49fe09c306ab3a2a172
+      ebus_id: HMU03
+      spn: 351
+      bus_coupler_address: 0
+      article_number: 0010047381
+      emfValid: true
+      device_serial_number: 3765b64fc91ddca1e6e2fd953a67ea016dc72511
+      device_type: HEATPUMP
+      first_data: '2023-11-10T16:21:46Z'
+      last_data: '2024-10-09T20:53:08.205Z'
+      data:
+        - operation_mode: DOMESTIC_HOT_WATER
+          value_type: CONSUMED_ELECTRICAL_ENERGY
+          calculated: false
+          from: '2023-11-10T16:21:46Z'
+          to: '2024-10-09T20:53:07.314Z'
+        - operation_mode: HEATING
+          value_type: CONSUMED_ELECTRICAL_ENERGY
+          calculated: false
+          from: '2023-11-10T16:21:46Z'
+          to: '2024-10-09T20:53:07.08Z'
+        - operation_mode: DOMESTIC_HOT_WATER
+          value_type: EARNED_ENVIRONMENT_ENERGY
+          calculated: false
+          from: '2023-11-10T16:21:46Z'
+          to: '2024-10-09T20:53:08.001Z'
+        - operation_mode: HEATING
+          value_type: EARNED_ENVIRONMENT_ENERGY
+          calculated: false
+          from: '2023-11-10T16:21:46Z'
+          to: '2024-10-09T20:53:07.751Z'
+        - operation_mode: HEATING
+          value_type: HEAT_GENERATED
+          calculated: true
+          from: '2023-11-10T16:21:46Z'
+          to: '2024-10-09T20:53:07.08Z'
+        - operation_mode: DOMESTIC_HOT_WATER
+          value_type: HEAT_GENERATED
+          calculated: true
+          from: '2023-11-10T16:21:46Z'
+          to: '2024-10-09T20:53:07.314Z'
+      product_name: aroTHERM plus
+    secondary_heat_generators: [ ]
+    electric_backup_heater: null
+    solar_station: null
+    ventilation: null
+    gateway: null
+  mpc:
+    devices: [ ]
+  rts:
+    statistics: [ ]
+  device_buckets:
+    startDate: '2024-10-08T00:00:00Z'
+    endDate: '2024-10-09T00:00:00Z'
+    resolution: HOUR
+    operationMode: DOMESTIC_HOT_WATER
+    energyType: CONSUMED_ELECTRICAL_ENERGY
+    totalConsumption: 999.7183098591549
+    data:
+      - startDate: '2024-10-08T00:00:00Z'
+        endDate: '2024-10-08T01:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T01:00:00Z'
+        endDate: '2024-10-08T02:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T02:00:00Z'
+        endDate: '2024-10-08T03:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T03:00:00Z'
+        endDate: '2024-10-08T04:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T04:00:00Z'
+        endDate: '2024-10-08T05:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T05:00:00Z'
+        endDate: '2024-10-08T06:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T06:00:00Z'
+        endDate: '2024-10-08T07:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T07:00:00Z'
+        endDate: '2024-10-08T08:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T08:00:00Z'
+        endDate: '2024-10-08T09:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T09:00:00Z'
+        endDate: '2024-10-08T10:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T10:00:00Z'
+        endDate: '2024-10-08T11:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T11:00:00Z'
+        endDate: '2024-10-08T12:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T12:00:00Z'
+        endDate: '2024-10-08T13:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T13:00:00Z'
+        endDate: '2024-10-08T14:00:00Z'
+        value: 679.7183098591549
+      - startDate: '2024-10-08T14:00:00Z'
+        endDate: '2024-10-08T15:00:00Z'
+        value: 320
+      - startDate: '2024-10-08T15:00:00Z'
+        endDate: '2024-10-08T16:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T16:00:00Z'
+        endDate: '2024-10-08T17:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T17:00:00Z'
+        endDate: '2024-10-08T18:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T18:00:00Z'
+        endDate: '2024-10-08T19:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T19:00:00Z'
+        endDate: '2024-10-08T20:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T20:00:00Z'
+        endDate: '2024-10-08T21:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T21:00:00Z'
+        endDate: '2024-10-08T22:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T22:00:00Z'
+        endDate: '2024-10-08T23:00:00Z'
+        value: 0
+      - startDate: '2024-10-08T23:00:00Z'
+        endDate: '2024-10-09T00:00:00Z'
+        value: 0
+  rbr:
+    rbrCapable: true
+  rooms: [ ]
+  energy_management:
+    energyManager:
+      available: false
+      compatible: false
+    energyManagementStatus:
+      thermalStorage:
+        domesticHotWater:
+          available: false
+          selected: false
+        heatingBufferCylinder:
+          available: false
+          selected: true
+  ship_self:
+    ski: 5b89e12c6ad57775e302e1ae55ad9fa625255470
+    brand: Vaillant
+    type: Gateway
+    model: VR921
+    spineEnabled: false
+    spineEnabledStatus: DETERMINED
+    spineCapable: true

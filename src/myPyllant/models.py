@@ -426,11 +426,14 @@ class Zone(MyPyllantDataClass):
         data["heating"] = ZoneHeating.from_api(
             control_identifier=data["control_identifier"], **data["heating"]
         )
-        # cooling might not be set, or might be empty dict
-        if "cooling" in data and data["cooling"]:
-            data["cooling"] = ZoneCooling.from_api(
-                control_identifier=data["control_identifier"], **data["cooling"]
-            )
+        if "cooling" in data:
+            if not data["cooling"]:
+                # cooling might be set as an empty dict
+                data["cooling"] = None
+            else:
+                data["cooling"] = ZoneCooling.from_api(
+                    control_identifier=data["control_identifier"], **data["cooling"]
+                )
         data["general"] = ZoneGeneral.from_api(
             timezone=data["timezone"], **data["general"]
         )
