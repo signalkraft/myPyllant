@@ -392,6 +392,7 @@ class Circuit(MyPyllantDataClass):
     heating_curve: float | None = None
     heating_flow_temperature_minimum_setpoint: float | None = None
     heating_flow_temperature_maximum_setpoint: float | None = None
+    heat_demand_limited_by_outside_temperature: float | None = None
     min_flow_temperature_setpoint: float | None = None
     calculated_energy_manager_state: str | None = None
 

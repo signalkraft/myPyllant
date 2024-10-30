@@ -110,6 +110,24 @@ async def main(user, password, brand, country):
                     dhw.time_program_circulation_pump,
                 )
 
+            if system.circuits:
+                circuit = system.circuits[0]
+                await print_changes(
+                    api.set_circuit_heating_curve,
+                    circuit,
+                    circuit.heating_curve,
+                )
+                await print_changes(
+                    api.set_circuit_heat_demand_limited_by_outside_temperature,
+                    circuit,
+                    circuit.heat_demand_limited_by_outside_temperature,
+                )
+                await print_changes(
+                    api.set_circuit_min_flow_temperature_setpoint,
+                    circuit,
+                    circuit.heating_flow_temperature_minimum_setpoint,
+                )
+
 
 if __name__ == "__main__":
     args = parser.parse_args()

@@ -59,6 +59,7 @@ from myPyllant.models import (
     ZoneTimeProgram,
     AmbisenseRoom,
     RoomTimeProgram,
+    Circuit,
 )
 from myPyllant.utils import (
     datetime_format,
@@ -1532,3 +1533,75 @@ class MyPyllantAPI:
         )
         room.time_program = time_program
         return room
+
+    async def set_circuit_heating_curve(
+        self,
+        circuit: Circuit,
+        heating_curve: float,
+    ) -> Circuit:
+        """
+        Set heating curve value for a circuit
+
+        :param circuit:
+        :param heating_curve:
+        :return:
+        """
+        url = f"{await self.get_system_api_base(circuit.system_id)}/circuit/{circuit.index}/heating-curve"
+
+        await self.aiohttp_session.patch(
+            url,
+            json={"heatingCurve": heating_curve},
+            headers=self.get_authorized_headers(),
+        )
+        circuit.heating_curve = heating_curve
+        return circuit
+
+    async def set_circuit_heat_demand_limited_by_outside_temperature(
+        self,
+        circuit: Circuit,
+        heat_demand_limited_by_outside_temperature: float,
+    ) -> Circuit:
+        """
+        Set heating curve value for a circuit
+
+        :param circuit:
+        :param heat_demand_limited_by_outside_temperature:
+        :return:
+        """
+        url = f"{await self.get_system_api_base(circuit.system_id)}/circuit/{circuit.index}/heat-demand-limited-by-outside-temperature"
+
+        await self.aiohttp_session.post(
+            url,
+            json={
+                "heatDemandLimitedByOutsideTemperature": heat_demand_limited_by_outside_temperature
+            },
+            headers=self.get_authorized_headers(),
+        )
+        circuit.heat_demand_limited_by_outside_temperature = (
+            heat_demand_limited_by_outside_temperature
+        )
+        return circuit
+
+    async def set_circuit_min_flow_temperature_setpoint(
+        self,
+        circuit: Circuit,
+        min_flow_temperature_setpoint: float,
+    ) -> Circuit:
+        """
+        Set heating curve value for a circuit
+
+        :param circuit:
+        :param min_flow_temperature_setpoint:
+        :return:
+        """
+        url = f"{await self.get_system_api_base(circuit.system_id)}/circuit/{circuit.index}/min-flow-temperature-setpoint"
+
+        await self.aiohttp_session.patch(
+            url,
+            json={"minFlowTemperatureSetpoint": min_flow_temperature_setpoint},
+            headers=self.get_authorized_headers(),
+        )
+        circuit.heating_flow_temperature_minimum_setpoint = (
+            min_flow_temperature_setpoint
+        )
+        return circuit
