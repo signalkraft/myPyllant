@@ -317,14 +317,15 @@ class ZoneCooling(MyPyllantDataClass):
     control_identifier: ControlIdentifier
     setpoint_cooling: float
     operation_mode_cooling: ZoneOperatingMode | ZoneOperatingModeVRC700
-    time_program_cooling: ZoneTimeProgram
+    time_program_cooling: ZoneTimeProgram | None = None
     manual_mode_setpoint_cooling: float | None = None
 
     @classmethod
     def from_api(cls, **data):
-        data["time_program_cooling"] = ZoneTimeProgram.from_api(
-            **data["time_program_cooling"]
-        )
+        if "time_program_cooling" in data:
+            data["time_program_cooling"] = ZoneTimeProgram.from_api(
+                **data["time_program_cooling"]
+            )
         control_identifier: ControlIdentifier = data["control_identifier"]
         if control_identifier.is_vrc700:
             data["operation_mode_cooling"] = ZoneOperatingModeVRC700(
