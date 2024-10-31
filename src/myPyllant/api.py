@@ -11,7 +11,6 @@ from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
 from zoneinfo import ZoneInfo
 
-import aiohttp
 from aiohttp import ClientResponseError
 
 from myPyllant.const import (
@@ -45,6 +44,7 @@ from myPyllant.http_client import (
     LoginEndpointInvalid,
     RealmInvalid,
     get_http_client,
+    CountingClientSession,
 )
 from myPyllant.models import (
     Device,
@@ -97,7 +97,7 @@ def get_system_api_base(
 class MyPyllantAPI:
     username: str
     password: str
-    aiohttp_session: aiohttp.ClientSession
+    aiohttp_session: CountingClientSession
     oauth_session: dict = {}
     oauth_session_expires: datetime.datetime | None = None
     control_identifiers: dict[str, str] = {}
