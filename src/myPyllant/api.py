@@ -392,7 +392,7 @@ class MyPyllantAPI:
         data_resolution: DeviceDataBucketResolution = DeviceDataBucketResolution.DAY,
         data_from: datetime.datetime | None = None,
         data_to: datetime.datetime | None = None,
-    ) -> AsyncIterator[DeviceData | None]:
+    ) -> AsyncIterator[DeviceData]:
         """
         Gets all energy data for a device
 
