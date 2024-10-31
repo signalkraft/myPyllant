@@ -392,7 +392,7 @@ class MyPyllantAPI:
         data_resolution: DeviceDataBucketResolution = DeviceDataBucketResolution.DAY,
         data_from: datetime.datetime | None = None,
         data_to: datetime.datetime | None = None,
-    ) -> AsyncIterator[DeviceData]:
+    ) -> AsyncIterator[DeviceData | None]:
         """
         Gets all energy data for a device
 
@@ -410,7 +410,17 @@ class MyPyllantAPI:
         if data_to and not data_to.tzinfo:
             data_to = data_to.replace(tzinfo=device.timezone)
 
+        apis_hit = 0
+
         for data in device.data:
+            if data.skip_data_update:
+                logger.debug(
+                    "Skipping data update for %s on %s",
+                    data.operation_mode,
+                    device.name_display,
+                )
+                yield data
+                continue
             data_from = data_from or data.data_from
             if not data_from:
                 raise ValueError(
@@ -439,6 +449,8 @@ class MyPyllantAPI:
                     device=device,
                     **dict_to_snake_case(device_buckets_json),
                 )
+                apis_hit += 1
+        logger.debug(f"Queried {apis_hit} API endpoints for device data")
 
     async def get_yearly_reports(
         self,

@@ -626,6 +626,7 @@ class DeviceDataBucket(MyPyllantDataClass):
 @dataclass(config=MyPyllantConfig)
 class DeviceData(MyPyllantDataClass):
     operation_mode: str
+    skip_data_update: bool = False
     device: Any = None
     data_from: datetime.datetime | None = None
     data_to: datetime.datetime | None = None
