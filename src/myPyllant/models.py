@@ -383,7 +383,7 @@ class ZoneGeneral(MyPyllantDataClass):
 class Circuit(MyPyllantDataClass):
     system_id: str
     index: int
-    circuit_state: CircuitState
+    circuit_state: CircuitState | None = None
     mixer_circuit_type_external: str | None = None
     set_back_mode_enabled: bool | None = None
     zones: list = field(default_factory=list)
