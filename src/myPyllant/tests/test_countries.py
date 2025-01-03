@@ -28,6 +28,9 @@ async def test_find_countries(mocker) -> None:
     )
     with mock.patch("requests.head") as patched_head:
         patched_head.return_value.status_code = 200
-        assert list(countries_with_realm("vaillant")) == [("germany", "Germany")]
+        assert list(countries_with_realm("vaillant")) == [
+            ("germany", "Germany"),
+            ("kosovo", "Kosovo"),
+        ]
         patched_head.return_value.status_code = 404
         assert list(countries_with_realm("vaillant")) == []

@@ -8,7 +8,12 @@ from myPyllant.const import BRANDS
 
 
 def countries_with_realm(brand):
-    for code, country in country_list.countries_for_language("en"):
+    country_codes = country_list.countries_for_language("en") + [
+        ("XK", "Kosovo"),
+    ]
+    country_codes.sort(key=lambda x: x[1])
+
+    for code, country in country_codes:
         if code == "CZ":
             country_name = "czechrepublic"
         elif code == "TR":

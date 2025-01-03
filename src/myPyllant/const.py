@@ -32,6 +32,7 @@ COUNTRIES = {
         "hungary": "Hungary",
         "ireland": "Ireland",
         "italy": "Italy",
+        "kosovo": "Kosovo",
         "latvia": "Latvia",
         "lithuania": "Lithuania",
         "luxembourg": "Luxembourg",
