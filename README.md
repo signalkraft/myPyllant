@@ -28,7 +28,7 @@ pip install myPyllant
 ..or use Docker, if you just want to use it as a CLI tool:
 
 ```shell
-docker run -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.export user password brand --country country
+docker run -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.export 'user' 'password' brand --country country
 ```
 
 ## Usage
@@ -167,7 +167,7 @@ python3 -m myPyllant.tests.generate_test_data username password brand --country 
 ..or use Docker:
 
 ```shell
-docker run -v $(pwd)/test_data:/build/src/myPyllant/tests/json -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.tests.generate_test_data username password brand --country country
+docker run -v $(pwd)/test_data:/build/src/myPyllant/tests/data -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.tests.generate_test_data 'username' 'password' brand --country country
 ```
 
 With docker, the results will be put into `test_data/`.
