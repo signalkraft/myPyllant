@@ -6,6 +6,8 @@ import logging
 from collections.abc import Iterator
 from dataclasses import asdict, fields, field
 from typing import TypeVar, Any, Iterable
+
+from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
 from myPyllant.const import BRANDS
@@ -33,15 +35,10 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound="MyPyllantDataClass")
 
 
-class MyPyllantConfig:
-    """
-    Necessary for timezone field
-    """
-
-    arbitrary_types_allowed = True
+config = ConfigDict(arbitrary_types_allowed=True)
 
 
-@dataclass(kw_only=True, config=MyPyllantConfig)
+@dataclass(kw_only=True, config=config)
 class MyPyllantDataClass:
     """
     Base class that runs type validation in __init__ and can create an instance from API values
@@ -87,7 +84,7 @@ class MyPyllantDataClass:
         return prepare_field_value_for_dict(data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class Home(MyPyllantDataClass):
     country_code: str
     timezone: datetime.tzinfo
@@ -109,7 +106,7 @@ class Home(MyPyllantDataClass):
         return f"{self.home_name} {self.nomenclature}"
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class BaseTimeProgramDay(MyPyllantDataClass):
     index: int
     weekday_name: str
@@ -152,7 +149,7 @@ class BaseTimeProgramDay(MyPyllantDataClass):
         ) + datetime.timedelta(days=days)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class BaseTimeProgram(MyPyllantDataClass):
     monday: list
     tuesday: list
@@ -233,7 +230,7 @@ class BaseTimeProgram(MyPyllantDataClass):
         return super().from_api(**data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class ZoneTimeProgramDay(BaseTimeProgramDay):
     setpoint: float | None = None
 
@@ -250,7 +247,7 @@ class ZoneTimeProgramDay(BaseTimeProgramDay):
         )
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class ZoneTimeProgram(BaseTimeProgram):
     monday: list[ZoneTimeProgramDay]
     tuesday: list[ZoneTimeProgramDay]
@@ -284,7 +281,7 @@ class ZoneTimeProgram(BaseTimeProgram):
                 d.setpoint = temperature
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class ZoneHeating(MyPyllantDataClass):
     control_identifier: ControlIdentifier
     operation_mode_heating: ZoneOperatingMode | ZoneOperatingModeVRC700
@@ -312,7 +309,7 @@ class ZoneHeating(MyPyllantDataClass):
         return super().from_api(**data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class ZoneCooling(MyPyllantDataClass):
     control_identifier: ControlIdentifier
     setpoint_cooling: float
@@ -339,7 +336,7 @@ class ZoneCooling(MyPyllantDataClass):
         return super().from_api(**data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class ZoneGeneral(MyPyllantDataClass):
     name: str
     timezone: datetime.tzinfo
@@ -380,7 +377,7 @@ class ZoneGeneral(MyPyllantDataClass):
         )
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class Circuit(MyPyllantDataClass):
     system_id: str
     index: int
@@ -398,7 +395,7 @@ class Circuit(MyPyllantDataClass):
     calculated_energy_manager_state: str | None = None
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class Zone(MyPyllantDataClass):
     system_id: str
     general: ZoneGeneral
@@ -523,7 +520,7 @@ class Zone(MyPyllantDataClass):
             return None
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class DHWTimeProgramDay(BaseTimeProgramDay):
     def __eq__(self, other):
         """
@@ -534,7 +531,7 @@ class DHWTimeProgramDay(BaseTimeProgramDay):
         return self.start_time == other.start_time and self.end_time == other.end_time
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class DHWTimeProgram(BaseTimeProgram):
     monday: list[DHWTimeProgramDay]
     tuesday: list[DHWTimeProgramDay]
@@ -549,7 +546,7 @@ class DHWTimeProgram(BaseTimeProgram):
         return DHWTimeProgramDay(**kwargs)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class DomesticHotWater(MyPyllantDataClass):
     system_id: str
     index: int
@@ -592,7 +589,7 @@ class DomesticHotWater(MyPyllantDataClass):
         return super().from_api(**data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class Ventilation(MyPyllantDataClass):
     system_id: str
     index: int
@@ -617,14 +614,14 @@ class Ventilation(MyPyllantDataClass):
         return super().from_api(**data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class DeviceDataBucket(MyPyllantDataClass):
     start_date: datetime.datetime
     end_date: datetime.datetime
     value: float | None = None
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class DeviceData(MyPyllantDataClass):
     operation_mode: str
     skip_data_update: bool = False
@@ -662,7 +659,7 @@ class DeviceData(MyPyllantDataClass):
         return super().from_api(**data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class Device(MyPyllantDataClass):
     system_id: str
     timezone: datetime.tzinfo
@@ -738,7 +735,7 @@ class Device(MyPyllantDataClass):
         return super().from_api(**data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class RoomTimeProgramDay(BaseTimeProgramDay):
     temperature_setpoint: float | None = None
 
@@ -766,7 +763,7 @@ class RoomTimeProgramDay(BaseTimeProgramDay):
         )
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class RoomTimeProgram(BaseTimeProgram):
     monday: list[RoomTimeProgramDay]
     tuesday: list[RoomTimeProgramDay]
@@ -855,7 +852,7 @@ class RoomTimeProgram(BaseTimeProgram):
         return RoomTimeProgramDay(**kwargs)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class AmbisenseDevice(MyPyllantDataClass):
     device_type: str
     name: str
@@ -866,7 +863,7 @@ class AmbisenseDevice(MyPyllantDataClass):
     rssi_peer: int | None = None
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class AmbisenseRoomConfiguration(MyPyllantDataClass):
     name: str
     timezone: datetime.tzinfo
@@ -889,7 +886,7 @@ class AmbisenseRoomConfiguration(MyPyllantDataClass):
         return super().from_api(**data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class AmbisenseRoom(MyPyllantDataClass):
     system_id: str
     room_index: int
@@ -910,7 +907,7 @@ class AmbisenseRoom(MyPyllantDataClass):
         return super().from_api(**data)
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class System(MyPyllantDataClass):
     id: str
     state: dict
@@ -1263,7 +1260,7 @@ class System(MyPyllantDataClass):
         )
 
 
-@dataclass(config=MyPyllantConfig)
+@dataclass(config=config)
 class SystemReport(MyPyllantDataClass):
     file_name: str
     file_content: str
