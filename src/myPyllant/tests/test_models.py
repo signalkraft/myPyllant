@@ -1,7 +1,7 @@
 import datetime
 
 import pytest
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 
 from myPyllant.api import MyPyllantAPI
 from .generate_test_data import DATA_DIR

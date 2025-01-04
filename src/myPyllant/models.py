@@ -6,7 +6,7 @@ import logging
 from collections.abc import Iterator
 from dataclasses import asdict, fields, field
 from typing import TypeVar, Any, Iterable
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 
 from myPyllant.const import BRANDS
 from myPyllant.enums import (
