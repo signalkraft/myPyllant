@@ -38,6 +38,7 @@ asyncio_default_fixture_loop_scope = "function"
 testpaths = [
     "src/myPyllant/tests",
 ]
+filterwarnings = ["ignore:Inheritance class CountingClientSession from ClientSession is discouraged:DeprecationWarning"]
 
 [tool.coverage.run]
 omit = ["*/tests/*"]
