@@ -1140,6 +1140,16 @@ class System(MyPyllantDataClass):
             return None
 
     @property
+    def system_flow_temperature(self) -> float | None:
+        try:
+            return self.state["system"]["system_flow_temperature"]
+        except KeyError:
+            logger.debug(
+                "Could not get system flow temperature from system control state"
+            )
+            return None
+
+    @property
     def is_cooling_allowed(self) -> bool:
         return any([z.is_cooling_allowed for z in self.zones]) or any(
             [c.is_cooling_allowed for c in self.circuits]
