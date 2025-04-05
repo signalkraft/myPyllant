@@ -1,0 +1,96 @@
+{
+  "system_type": "HYBRID",
+  "has_emf_capable_devices": true,
+  "primary_heat_generator": {
+    "device_uuid": "40f450aeeee14302bf9e13e01b9d6a0c",
+    "ebus_id": "HMU03",
+    "spn": 351,
+    "bus_coupler_address": 0,
+    "article_number": "0010021122",
+    "emfValid": true,
+    "device_serial_number": "18f34e048e8f49309cb175459642e894",
+    "device_type": "HEATPUMP",
+    "first_data": "2025-03-07T10:07:08.286Z",
+    "last_data": "2025-04-05T21:33:38.372Z",
+    "data": [
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2025-03-07T10:07:08.63Z",
+        "to": "2025-04-05T21:33:36.965Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2025-03-07T10:07:08.286Z",
+        "to": "2025-04-05T21:33:36.606Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2025-03-07T10:07:09.473Z",
+        "to": "2025-04-05T21:33:37.997Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2025-03-07T10:07:09.301Z",
+        "to": "2025-04-05T21:33:37.715Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "HEAT_GENERATED",
+        "calculated": true,
+        "from": "2025-03-07T10:07:09.301Z",
+        "to": "2025-04-05T21:33:36.606Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "HEAT_GENERATED",
+        "calculated": true,
+        "from": "2025-03-07T10:07:09.473Z",
+        "to": "2025-04-05T21:33:36.965Z"
+      }
+    ],
+    "product_name": "aroTHERM plus"
+  },
+  "secondary_heat_generators": [
+    {
+      "device_uuid": "b0855086cd0145eb96f35d9d9d038b20",
+      "ebus_id": "BAI00",
+      "spn": 375,
+      "bus_coupler_address": 24,
+      "article_number": "0010023697",
+      "emfValid": true,
+      "device_serial_number": "529ea1aefc90483f906fc0f844966902",
+      "device_type": "BOILER",
+      "first_data": "2025-03-07T10:07:10.739Z",
+      "last_data": "2025-04-05T21:33:42.044Z",
+      "data": [
+        {
+          "operation_mode": "DOMESTIC_HOT_WATER",
+          "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+          "calculated": false,
+          "from": "2025-03-07T10:07:11.801Z",
+          "to": "2025-04-05T21:33:42.044Z"
+        },
+        {
+          "operation_mode": "HEATING",
+          "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+          "calculated": false,
+          "from": "2025-03-07T10:07:11.426Z",
+          "to": "2025-04-05T21:33:41.403Z"
+        }
+      ],
+      "product_name": "eloBLOCK VE 28 / 14 EU I"
+    }
+  ],
+  "electric_backup_heater": null,
+  "solar_station": null,
+  "ventilation": null,
+  "gateway": null
+}
