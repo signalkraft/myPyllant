@@ -80,6 +80,7 @@ class ZoneOperatingType(MyPyllantEnum):
 
 
 class DHWCurrentSpecialFunction(MyPyllantEnum):
+    SYSTEM_OFF = "SYSTEM_OFF"
     CYLINDER_BOOST = "CYLINDER_BOOST"
     HOLIDAY = "HOLIDAY"
     REGULAR = "REGULAR"

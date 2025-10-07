@@ -9,6 +9,8 @@ from myPyllant.const import BRANDS
 
 def countries_with_realm(brand):
     country_codes = country_list.countries_for_language("en") + [
+        ("BA", "Bosnia and Herzegovina"),
+        ("MK", "North Macedonia"),
         ("XK", "Kosovo"),
     ]
     country_codes.sort(key=lambda x: x[1])
