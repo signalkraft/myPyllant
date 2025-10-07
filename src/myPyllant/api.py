@@ -201,7 +201,7 @@ class MyPyllantAPI:
                 if "Location" not in resp.headers:
                     raise AuthenticationFailed("Login failed")
                 logger.debug(
-                    f'Got location from authorize endpoint: {resp.headers["Location"]}'
+                    f"Got location from authorize endpoint: {resp.headers['Location']}"
                 )
                 parsed_url = urlparse(resp.headers["Location"])
                 code = parse_qs(parsed_url.query)["code"]
@@ -930,9 +930,9 @@ class MyPyllantAPI:
         )
 
         if start and end:
-            system.configuration["system"][
-                "manual_cooling_start_date"
-            ] = datetime_format(start)
+            system.configuration["system"]["manual_cooling_start_date"] = (
+                datetime_format(start)
+            )
             system.configuration["system"]["manual_cooling_end_date"] = datetime_format(
                 end
             )

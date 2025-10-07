@@ -552,7 +552,9 @@ class DomesticHotWater(MyPyllantDataClass):
     system_id: str
     index: int
     control_identifier: ControlIdentifier
-    current_special_function: DHWCurrentSpecialFunction | DHWCurrentSpecialFunctionVRC700
+    current_special_function: (
+        DHWCurrentSpecialFunction | DHWCurrentSpecialFunctionVRC700
+    )
     max_setpoint: float
     min_setpoint: float
     operation_mode_dhw: DHWOperationMode | DHWOperationModeVRC700
@@ -597,7 +599,9 @@ class Ventilation(MyPyllantDataClass):
     control_identifier: ControlIdentifier
     maximum_day_fan_stage: int
     maximum_night_fan_stage: int
-    operation_mode_ventilation: VentilationOperationMode | VentilationOperationModeVRC700
+    operation_mode_ventilation: (
+        VentilationOperationMode | VentilationOperationModeVRC700
+    )
     time_program_ventilation: dict
 
     @classmethod

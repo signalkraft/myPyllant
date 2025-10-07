@@ -5,13 +5,13 @@ repos:
     hooks:
       - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.9
+    rev: v0.13.3
     hooks:
       - id: ruff
         args: [ --fix ]
       - id: ruff-format
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.2
+    rev: v2.4.1
     hooks:
       - id: codespell
         args:
@@ -20,7 +20,7 @@ repos:
           - --quiet-level=2
         exclude_types: [ csv, json ]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: check-executables-have-shebangs
       - id: check-json
