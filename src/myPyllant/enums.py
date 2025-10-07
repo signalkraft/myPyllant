@@ -135,3 +135,9 @@ class AmbisenseRoomOperationMode(MyPyllantEnum):
     MANUAL = "MANUAL"
     OFF = "OFF"
     AUTO = "AUTO"
+
+
+class EnergyManagerState(MyPyllantEnum):
+    STANDBY = "STANDBY"
+    DHW = "DHW"
+    HEATING = "HEATING"

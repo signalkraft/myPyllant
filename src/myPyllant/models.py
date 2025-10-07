@@ -27,6 +27,7 @@ from myPyllant.enums import (
     AmbisenseRoomOperationMode,
     VentilationOperationModeVRC700,
     ZoneOperatingType,
+    EnergyManagerState,
 )
 from myPyllant.utils import datetime_parse, prepare_field_value_for_dict
 
@@ -1136,6 +1137,27 @@ class System(MyPyllantDataClass):
         except KeyError:
             logger.debug(
                 "Could not get bottom CH cylinder temperature from system control state"
+            )
+            return None
+
+    @property
+    def system_flow_temperature(self) -> float | None:
+        try:
+            return self.state["system"]["system_flow_temperature"]
+        except KeyError:
+            logger.debug(
+                "Could not get system flow temperature from system control state"
+            )
+            return None
+
+    @property
+    def energy_manager_state(self) -> EnergyManagerState | None:
+        try:
+            return EnergyManagerState(self.state["system"]["energy_manager_state"])
+        except (KeyError, ValueError) as e:
+            logger.debug(
+                "Could not get energy manager state from system control state",
+                exc_info=e,
             )
             return None
 
