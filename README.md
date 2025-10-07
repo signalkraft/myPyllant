@@ -28,7 +28,7 @@ pip install myPyllant
 ..or use Docker, if you just want to use it as a CLI tool:
 
 ```shell
-docker run -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.export user password brand --country country
+docker run -ti ghcr.io/signalkraft/mypyllant:latest uv run -m myPyllant.export user password brand --country country
 ```
 
 ## Usage
@@ -127,21 +127,17 @@ See https://github.com/signalkraft/mypyllant-component/blob/main/README.md#teste
 
 ## Contributing
 
-> **Warning**
+> [!WARNING]
 > 
-> You need at least Python 3.10
+> You need at least Python 3.10 and [uv installed](https://docs.astral.sh/uv/getting-started/installation/)
 
 I'm happy to accept PRs, if you run the pre-commit checks and test your changes:
 
 ```shell
 git clone https://github.com/signalkraft/myPyllant.git
 cd myPyllant
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r dev-requirements.txt
-pip install -e .
-pre-commit install
-pytest
+uv run pre-commit install
+uv run pytest
 ```
 
 ### Supporting new Countries
@@ -150,7 +146,7 @@ The myVAILLANT app uses Keycloak and OIDC for authentication, with a realm for e
 There is a script to check which countries are supported:
 
 ```shell
-python3 -m myPyllant.tests.find_countries
+uv run -m myPyllant.tests.find_countries
 ```
 
 Copy the resulting dictionary into [src/myPyllant/const.py](src/myPyllant/const.py)
@@ -160,14 +156,14 @@ Copy the resulting dictionary into [src/myPyllant/const.py](src/myPyllant/const.
 Because the myVAILLANT API isn't documented, you can help the development of this library by contributing test data:
 
 ```shell
-python3 -m myPyllant.tests.generate_test_data -h
-python3 -m myPyllant.tests.generate_test_data username password brand --country country
+uv run -m myPyllant.tests.generate_test_data -h
+uv run -m myPyllant.tests.generate_test_data username password brand --country country
 ```
 
 ..or use Docker:
 
 ```shell
-docker run -v $(pwd)/test_data:/build/src/myPyllant/tests/json -ti ghcr.io/signalkraft/mypyllant:latest python3 -m myPyllant.tests.generate_test_data username password brand --country country
+docker run -v $(pwd)/test_data:/build/src/myPyllant/tests/json -ti ghcr.io/signalkraft/mypyllant:latest uv run -m myPyllant.tests.generate_test_data username password brand --country country
 ```
 
 With docker, the results will be put into `test_data/`.

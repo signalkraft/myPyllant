@@ -1,4 +1,9 @@
 repos:
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.8.24
+    hooks:
+      - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.9
     hooks:
@@ -30,24 +35,22 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: run_venv.sh
+        entry: uv run mypy
         args:
-          - mypy
           - --pretty
           - --show-error-codes
           - --show-error-context
           - --check-untyped-defs
-        language: script
+        language: system
         pass_filenames: true
         files: ^src/.+\.py$
         exclude: ^src/myPyllant/tests/
       - id: pytest
         name: pytest
-        entry: run_venv.sh
+        entry: uv run pytest
         args:
-          - pytest
           - --no-cov
           - -n4
-        language: script
+        language: system
         pass_filenames: false
         files: ^src/.+\.(py|json|yaml)$
