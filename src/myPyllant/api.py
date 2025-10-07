@@ -1243,7 +1243,7 @@ class MyPyllantAPI:
         try:
             tz = (await response.json())["timeZone"]
             return ZoneInfo(key=tz)
-        except KeyError:
+        except (KeyError, TypeError):
             logger.warning("Couldn't get timezone from API")
             return None
 
