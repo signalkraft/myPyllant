@@ -25,9 +25,9 @@ class CountingClientSession(aiohttp.ClientSession):
         super().__init__(*args, **kwargs)
         self.request_count = 0
 
-    async def _request(self, method, url, **kwargs):
+    async def _request(self, method, str_or_url, **kwargs):
         self.request_count += 1
-        return await super()._request(method, url, **kwargs)
+        return await super()._request(method, str_or_url, **kwargs)
 
 
 async def on_request_start(session, context, params: aiohttp.TraceRequestStartParams):
