@@ -23,6 +23,9 @@ A Python library to interact with the API behind the myVAILLANT app ((and brande
 
 ```shell
 pip install myPyllant
+
+# Only on Windows, and other systems without a timezone database:
+pip install tzdata
 ```
 
 ..or use Docker, if you just want to use it as a CLI tool:
@@ -136,7 +139,8 @@ I'm happy to accept PRs, if you run the pre-commit checks and test your changes:
 ```shell
 git clone https://github.com/signalkraft/myPyllant.git
 cd myPyllant
-uv run pre-commit install
+uv tool install pre-commit --with pre-commit-uv
+pre-commit install
 uv run pytest
 ```
 
