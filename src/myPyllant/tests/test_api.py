@@ -50,6 +50,17 @@ async def test_login_bulex(mypyllant_aioresponses) -> None:
             assert "Authorization" in mocked_api.get_authorized_headers()
 
 
+async def test_login_glow_worm(mypyllant_aioresponses) -> None:
+    with mypyllant_aioresponses() as _:
+        async with MyPyllantAPI(
+            "test@example.com", "test", "glow-worm", None
+        ) as mocked_api:
+            assert isinstance(mocked_api.oauth_session_expires, datetime)
+            assert mocked_api.oauth_session_expires > datetime.now(timezone.utc)
+            assert mocked_api.access_token == "access_token"
+            assert "Authorization" in mocked_api.get_authorized_headers()
+
+
 async def test_login_invalid_country(mypyllant_aioresponses) -> None:
     with pytest.raises(RealmInvalid):
         MyPyllantAPI("test@example.com", "test", "sdbg", "germany")

@@ -4,7 +4,7 @@ import re
 import country_list  # type: ignore
 import requests
 
-from myPyllant.const import BRANDS
+from myPyllant.const import BRANDS, COUNTRIES
 
 
 def countries_with_realm(brand):
@@ -41,8 +41,8 @@ def countries_with_realm(brand):
 def main():
     print("COUNTRIES = {")
     for brand in BRANDS.keys():
-        if brand == "bulex":
-            # Bulex has no country-specific realms
+        if brand not in COUNTRIES.keys():
+            # Some brands have no country-specific realms
             continue
         print(f'    "{brand}": {{')
         for country_name, country in countries_with_realm(brand):
