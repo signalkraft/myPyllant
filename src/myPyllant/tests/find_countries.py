@@ -9,25 +9,33 @@ from myPyllant.const import BRANDS
 
 def countries_with_realm(brand):
     country_codes = country_list.countries_for_language("en") + [
-        ("BA", "Bosnia and Herzegovina"),
-        ("MK", "North Macedonia"),
         ("XK", "Kosovo"),
     ]
     country_codes.sort(key=lambda x: x[1])
 
     for code, country in country_codes:
-        if code == "CZ":
+        if code == "BA":
+            country_name = "bosnia"
+        elif code == "CZ":
             country_name = "czechrepublic"
         elif code == "TR":
             country_name = "turkiye"
         else:
-            country_name = re.sub(r"\W+", "", country.lower())
+            country_name = re.sub(r"\W+", "-", country.lower())
         r = requests.head(
             f"https://identity.vaillant-group.com/auth/realms/"
             f"{brand}-{country_name}-b2c/.well-known/openid-configuration"
         )
         if r.status_code == 200:
             yield country_name, country
+        elif "-" in country_name:
+            country_name = country_name.replace("-", "")
+            r = requests.head(
+                f"https://identity.vaillant-group.com/auth/realms/"
+                f"{brand}-{country_name}-b2c/.well-known/openid-configuration"
+            )
+            if r.status_code == 200:
+                yield country_name, country
 
 
 def main():
