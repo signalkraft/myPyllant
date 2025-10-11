@@ -68,12 +68,7 @@ class MyPyllantDataClass:
 
         for k, v in data.items():
             if v is not None and k in datetime_fields and timezone is not None:
-                if v.endswith("Z"):
-                    # Some dates are returned as "2024-01-01T00:00:00Z" without timezone information
-                    data[k] = datetime_parse(v, timezone)
-                else:
-                    # ... and some are ISO formatted with timezone information
-                    data[k] = datetime.datetime.fromisoformat(v)
+                data[k] = datetime_parse(v, timezone)
 
         if extra_fields:
             data["extra_fields"] = {f: data[f] for f in extra_fields}

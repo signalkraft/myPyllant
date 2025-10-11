@@ -4,7 +4,7 @@ import hashlib
 import random
 import re
 import string
-from datetime import datetime, tzinfo, timedelta
+from datetime import datetime, tzinfo, timezone, timedelta
 from enum import Enum
 
 from myPyllant.const import BRANDS, COUNTRIES, DEFAULT_BRAND, DEFAULT_HOLIDAY_DURATION
@@ -78,15 +78,37 @@ def datetime_format(date: datetime, with_microseconds=False) -> str:
         return date.strftime("%Y-%m-%dT%H:%M:%S") + "Z"
 
 
-def datetime_parse(date_string: str, timezone: tzinfo) -> datetime:
-    if "." in date_string:
-        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S.%fZ").replace(
-            tzinfo=timezone
-        )
+def datetime_parse(date_string: str, tz: tzinfo) -> datetime:
+    """
+    Parses a date string and returns a timezone-aware datetime object.
+    This function handles two types of ISO 8601 formatted date strings:
+    1. Dates ending with "Z", which are treated as UTC and optionally include fractional seconds.
+    2. ISO 8601 formatted dates with explicit timezone information.
+    Args:
+        date_string (str): The ISO 8601 formatted date string to parse. It can either end with "Z" or include explicit timezone information.
+        tz (tzinfo): The timezone to apply when converting "Z" (UTC) dates to a timezone-aware datetime.
+    Returns:
+        datetime: A timezone-aware datetime object.
+    Raises:
+        ValueError: If the date string does not match the expected formats.
+    """
+    # Some dates are returned as "2024-01-01T00:00:00Z" without timezone information
+    if date_string.endswith("Z"):
+        if "." in date_string:
+            return (
+                datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S.%fZ")
+                .replace(tzinfo=timezone.utc)
+                .astimezone(tz)
+            )
+        else:
+            return (
+                datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
+                .replace(tzinfo=timezone.utc)
+                .astimezone(tz)
+            )
+    # ... and some are ISO formatted with timezone information
     else:
-        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ").replace(
-            tzinfo=timezone
-        )
+        return datetime.fromisoformat(date_string)
 
 
 def get_realm(brand: str, country: str | None = None) -> str:
