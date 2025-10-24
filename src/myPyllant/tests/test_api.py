@@ -108,6 +108,21 @@ async def test_homes(
         await mocked_api.aiohttp_session.close()
 
 
+async def test_timezone_caching(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, caplog
+) -> None:
+    test_data = load_test_data(DATA_DIR / "vrc700")
+    with caplog.at_level(logging.DEBUG):
+        with mypyllant_aioresponses(test_data) as _:
+            home = await anext(mocked_api.get_homes())
+            await anext(mocked_api.get_homes())
+            await mocked_api.aiohttp_session.close()
+        assert caplog.text.count(f"Fetching timezone for system {home.system_id}") == 1
+        assert (
+            caplog.text.count(f"Using cached timezone for system {home.system_id}") == 1
+        )
+
+
 @pytest.mark.parametrize("test_data", list_test_data())
 async def test_meta_info(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data

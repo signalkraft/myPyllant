@@ -101,6 +101,7 @@ class MyPyllantAPI:
     oauth_session: dict = {}
     oauth_session_expires: datetime.datetime | None = None
     control_identifiers: dict[str, str] = {}
+    time_zones: dict[str, str] = {}
 
     def __init__(
         self, username: str, password: str, brand: str, country: str | None = None
@@ -1232,20 +1233,28 @@ class MyPyllantAPI:
         Parameters:
             system: The System object or system ID string
         """
-        url = (
-            f"{await self.get_api_base()}/systems/"
-            f"{get_system_id(system)}/meta-info/time-zone"
-        )
-        response = await self.aiohttp_session.get(
-            url,
-            headers=self.get_authorized_headers(),
-        )
-        try:
-            tz = (await response.json())["timeZone"]
-            return ZoneInfo(key=tz)
-        except (KeyError, TypeError):
-            logger.warning("Couldn't get timezone from API")
-            return None
+        system_id = get_system_id(system)
+        if system_id in self.time_zones:
+            # We already have the tz cached
+            logger.debug("Using cached timezone for system %s", system_id)
+            return ZoneInfo(key=self.time_zones[system_id])
+        else:
+            logger.debug("Fetching timezone for system %s", system_id)
+            url = (
+                f"{await self.get_api_base()}/systems/"
+                f"{get_system_id(system)}/meta-info/time-zone"
+            )
+            response = await self.aiohttp_session.get(
+                url,
+                headers=self.get_authorized_headers(),
+            )
+            try:
+                tz_key = (await response.json())["timeZone"]
+                self.time_zones[system_id] = tz_key
+                return ZoneInfo(key=tz_key)
+            except (KeyError, TypeError):
+                logger.warning("Couldn't get timezone from API")
+                return None
 
     async def get_diagnostic_trouble_codes(
         self, system: System | str

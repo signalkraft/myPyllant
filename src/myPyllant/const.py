@@ -77,3 +77,4 @@ ALL_COUNTRIES = {c: n for d in COUNTRIES.values() for c, n in d.items()}
 DEFAULT_HOLIDAY_DURATION = 365  # in days
 DEFAULT_QUICK_VETO_DURATION = 3.0  # in hours
 DEFAULT_CONTROL_IDENTIFIER = "tli"
+CACHE_TTL = 60 * 60 * 12  # in seconds
