@@ -73,7 +73,7 @@ async def on_raise_for_status(response: ClientResponse):
     """
     Add the response text to the exception message of a 400 response
     """
-    if response.status == 400:
+    if 500 > response.status >= 400:
         text = await response.text()
         try:
             response.raise_for_status()
