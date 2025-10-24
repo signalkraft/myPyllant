@@ -315,6 +315,7 @@ class MyPyllantAPI:
         include_ambisense_rooms: bool = False,
         include_energy_management: bool = False,
         include_eebus: bool = False,
+        homes: list[Home] | None = None,
     ) -> AsyncIterator[System]:
         """
         Returns an async generator of systems under control of the user
@@ -327,6 +328,7 @@ class MyPyllantAPI:
             include_ambisense_rooms: Fetches Ambisense room data
             include_energy_management: Fetches energy management data
             include_eebus: Fetches eebus information
+            homes: Use this list of Home objects instead of fetching them
 
         Returns:
             An Async Iterator with all the `System` objects
@@ -335,8 +337,9 @@ class MyPyllantAPI:
             >>> async for system in MyPyllantAPI(**kwargs).get_systems():
             >>>    print(system.water_pressure)
         """
-        homes = self.get_homes()
-        async for home in homes:
+        if not homes:
+            homes = [home async for home in self.get_homes()]
+        for home in homes:
             control_identifier = await self.get_control_identifier(home.system_id)
             system_url = await self.get_system_api_base(home.system_id)
             current_system_url = (
