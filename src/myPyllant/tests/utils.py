@@ -1,12 +1,14 @@
 import json
+import logging
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
+from typing import Any, Tuple, Union
 
 import yaml
+from aiohttp import ClientSession, ClientResponse
 from aioresponses import CallbackResult, aioresponses
-
+from aioresponses.compat import URL
 from myPyllant.api import MyPyllantAPI
 from myPyllant.const import API_URL_BASE, LOGIN_URL
 from myPyllant.tests.generate_test_data import DATA_DIR
@@ -273,6 +275,17 @@ def _mypyllant_aioresponses():
                 repeat=True,
             )
             return self
+
+        async def _request_mock(
+            self,
+            orig_self: ClientSession,
+            method: str,
+            url: "Union[URL, str]",
+            *args: Tuple,
+            **kwargs: Any,
+        ) -> "ClientResponse":
+            logging.debug(f"Request mock {method} {url} {args} {kwargs}")
+            return await super()._request_mock(orig_self, method, url, *args, **kwargs)
 
     return _mypyllant_aioresponses
 
