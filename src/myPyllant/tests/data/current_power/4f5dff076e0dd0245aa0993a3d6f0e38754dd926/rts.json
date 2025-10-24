@@ -1,0 +1,16 @@
+{
+  "statistics": [
+    {
+      "deviceId": "3c3eaad9bccc3fa36de288360b99f93520ad1d0c",
+      "operationTime": 258950,
+      "onOffCycles": 2148,
+      "currentPowerConsumption": 15
+    },
+    {
+      "deviceId": "adaf28b5c41be9e92675d7b1f73883deb2d739f5",
+      "operationTime": 0,
+      "onOffCycles": 0,
+      "currentPowerConsumption": 3
+    }
+  ]
+}

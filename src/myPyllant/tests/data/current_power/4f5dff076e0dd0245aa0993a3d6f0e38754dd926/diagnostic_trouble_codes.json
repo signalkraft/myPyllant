@@ -1,0 +1,43 @@
+[
+  {
+    "serialNumber": "3d7bde33ac6b947cba0b33c49549a24d83f5da00",
+    "articleNumber": "0010045478",
+    "codes": [
+      {
+        "code": "3",
+        "type": "MAINTENANCE",
+        "title": "Maintenance required",
+        "description": "The maintenance time has been reached.",
+        "occurrenceTimestamp": "2025-09-30T22:01:02Z"
+      }
+    ]
+  },
+  {
+    "serialNumber": "88ac56a2bb491e3404d839fe99bd148ef1e885f2",
+    "articleNumber": "0010021117",
+    "codes": []
+  },
+  {
+    "serialNumber": "52eeeb41bd8527f5a04c0e4c86350996416b0fa9",
+    "articleNumber": "8000015501",
+    "codes": []
+  },
+  {
+    "serialNumber": "14efdd9385fdc8581df0027a0ed388b588db5eba",
+    "articleNumber": "0010022066",
+    "codes": []
+  },
+  {
+    "serialNumber": "b8253479e26412f7cec6c779c54f77b411be5f3c",
+    "articleNumber": "0010016040",
+    "codes": [
+      {
+        "code": "801",
+        "type": "MAINTENANCE",
+        "title": "Maintenance of equipment",
+        "description": "Maintenance days exceeded -> Sensors, fan, heat exchanger",
+        "occurrenceTimestamp": "2025-10-14T19:17:13Z"
+      }
+    ]
+  }
+]
