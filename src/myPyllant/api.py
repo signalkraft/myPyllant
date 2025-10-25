@@ -315,6 +315,7 @@ class MyPyllantAPI:
         include_ambisense_rooms: bool = False,
         include_energy_management: bool = False,
         include_eebus: bool = False,
+        include_ambisense_capability: bool = False,
         homes: list[Home] | None = None,
     ) -> AsyncIterator[System]:
         """
@@ -328,6 +329,7 @@ class MyPyllantAPI:
             include_ambisense_rooms: Fetches Ambisense room data
             include_energy_management: Fetches energy management data
             include_eebus: Fetches eebus information
+            include_ambisense_capability: Fetches eebus information
             homes: Use this list of Home objects instead of fetching them
 
         Returns:
@@ -376,9 +378,9 @@ class MyPyllantAPI:
                 rts=await self.get_rts(home.system_id) if include_rts else None,
                 mpc=await self.get_mpc(home.system_id) if include_mpc else None,
                 current_system=dict_to_snake_case(current_system_json),
-                ambisense_capability=await self.get_ambisense_capability(
-                    home.system_id
-                ),
+                ambisense_capability=await self.get_ambisense_capability(home.system_id)
+                if include_ambisense_capability
+                else False,
                 ambisense_rooms=await self.get_ambisense_rooms(home.system_id)
                 if include_ambisense_rooms
                 else [],
