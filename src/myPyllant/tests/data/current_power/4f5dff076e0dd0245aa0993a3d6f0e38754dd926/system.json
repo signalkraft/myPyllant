@@ -1,0 +1,361 @@
+{
+  "state": {
+    "system": {
+      "outdoorTemperature": 8.019531,
+      "outdoorTemperatureAverage24h": 11.300781,
+      "systemWaterPressure": 1.3,
+      "energyManagerState": "HEATING",
+      "systemOff": false
+    },
+    "zones": [
+      {
+        "index": 0,
+        "desiredRoomTemperatureSetpointHeating": 20.0,
+        "desiredRoomTemperatureSetpoint": 20.0,
+        "currentRoomTemperature": 23.2875,
+        "currentRoomHumidity": 42.0,
+        "currentSpecialFunction": "NONE",
+        "quickVetoStartDateTime": "1970-01-01T00:00:00Z",
+        "quickVetoEndDateTime": "1970-01-01T00:00:00Z"
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "circuitState": "HEATING",
+        "currentCircuitFlowTemperature": 26.0,
+        "heatingCircuitFlowSetpoint": 27.00972,
+        "calculatedEnergyManagerState": "HEATING_ACTIVE"
+      }
+    ],
+    "dhw": [
+      {
+        "index": 255,
+        "currentSpecialFunction": "REGULAR",
+        "currentDhwTemperature": 43.0
+      }
+    ],
+    "ventilation": [
+      {
+        "index": 0,
+        "currentSpecialFunction": "REGULAR"
+      }
+    ]
+  },
+  "properties": {
+    "system": {
+      "controllerType": "VRC720",
+      "isLegionallaProtectionActivated": "OFF",
+      "systemScheme": 8,
+      "backupHeaterType": "CONDENSING",
+      "backupHeaterAllowedFor": "DHW_AND_HEATING",
+      "temporaryAllowBackupHeater": "DISABLED",
+      "moduleConfigurationVR71": 3,
+      "energyProvidePowerCutBehavior": "DISABLE_HEATPUMP_AND_BACKUP_HEATER",
+      "smartPhotovoltaicBufferOffset": 10.0,
+      "externalEnergyManagementActivation": false,
+      "dhwHysteresisMinimum": 1.0,
+      "dhwHysteresisMaximum": 20.0
+    },
+    "zones": [
+      {
+        "index": 0,
+        "isActive": true,
+        "zoneBinding": "CENTRAL_CONTROL",
+        "isCoolingAllowed": false,
+        "associatedCircuitIndex": 0
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "mixerCircuitTypeExternal": "HEATING",
+        "heatingCircuitType": "DIRECT_HEATING_CIRCUIT"
+      }
+    ],
+    "dhw": [
+      {
+        "index": 255,
+        "minSetpoint": 35.0,
+        "maxSetpoint": 70.0
+      }
+    ],
+    "ventilation": [
+      {
+        "index": 0
+      }
+    ]
+  },
+  "configuration": {
+    "system": {
+      "continuousHeatingStartSetpoint": -26.0,
+      "alternativePoint": -21.0,
+      "heatingCircuitBivalencePoint": -5.0,
+      "dhwBivalencePoint": -7.0,
+      "adaptiveHeatingCurve": false,
+      "dhwMaximumLoadingTime": 90,
+      "dhwHysteresis": 6.0,
+      "dhwFlowSetpointOffset": 8.0,
+      "continuousHeatingRoomSetpoint": 20.0,
+      "manualCoolingStartDate": "2018-12-31T23:00:00Z",
+      "manualCoolingEndDate": "2018-12-31T23:00:00Z",
+      "hybridControlStrategy": "BIVALENCE_POINT",
+      "maxFlowSetpointHpError": 20.0,
+      "dhwMaximumTemperature": 80.0,
+      "maximumPreheatingTime": 0,
+      "paralellTankLoadingAllowed": false
+    },
+    "zones": [
+      {
+        "index": 0,
+        "general": {
+          "name": "Zone 1",
+          "holidayStartDateTime": "2018-12-31T23:00:00Z",
+          "holidayEndDateTime": "2018-12-31T23:00:00Z",
+          "holidaySetpoint": 15.0
+        },
+        "heating": {
+          "operationModeHeating": "TIME_CONTROLLED",
+          "setBackTemperature": 20.0,
+          "manualModeSetpointHeating": 21.0,
+          "timeProgramHeating": {
+            "metaInfo": {
+              "minSlotsPerDay": 0,
+              "maxSlotsPerDay": 12,
+              "setpointRequiredPerSlot": true
+            },
+            "monday": [
+              {
+                "startTime": 240,
+                "endTime": 1320,
+                "setpoint": 22.0
+              }
+            ],
+            "tuesday": [
+              {
+                "startTime": 240,
+                "endTime": 1320,
+                "setpoint": 22.0
+              }
+            ],
+            "wednesday": [
+              {
+                "startTime": 240,
+                "endTime": 1320,
+                "setpoint": 22.0
+              }
+            ],
+            "thursday": [
+              {
+                "startTime": 240,
+                "endTime": 1320,
+                "setpoint": 22.0
+              }
+            ],
+            "friday": [
+              {
+                "startTime": 240,
+                "endTime": 1320,
+                "setpoint": 22.0
+              }
+            ],
+            "saturday": [
+              {
+                "startTime": 240,
+                "endTime": 1320,
+                "setpoint": 22.0
+              }
+            ],
+            "sunday": [
+              {
+                "startTime": 240,
+                "endTime": 1320,
+                "setpoint": 22.0
+              }
+            ]
+          }
+        },
+        "cooling": {}
+      }
+    ],
+    "circuits": [
+      {
+        "index": 0,
+        "heatingCurve": 0.3,
+        "heatingFlowTemperatureMinimumSetpoint": 15.0,
+        "heatingFlowTemperatureMaximumSetpoint": 40.0,
+        "heatDemandLimitedByOutsideTemperature": 19.0,
+        "heatingCircuitFlowSetpointExcessOffset": 0.0,
+        "setBackModeEnabled": true,
+        "roomTemperatureControlMode": "NON",
+        "epsilon": 2.0
+      }
+    ],
+    "dhw": [
+      {
+        "index": 255,
+        "operationModeDhw": "TIME_CONTROLLED",
+        "tappingSetpoint": 48.0,
+        "holidayStartDateTime": "2018-12-31T23:00:00Z",
+        "holidayEndDateTime": "2018-12-31T23:00:00Z",
+        "timeProgramDhw": {
+          "metaInfo": {
+            "minSlotsPerDay": 0,
+            "maxSlotsPerDay": 3,
+            "setpointRequiredPerSlot": false
+          },
+          "monday": [
+            {
+              "startTime": 360,
+              "endTime": 1440
+            }
+          ],
+          "tuesday": [
+            {
+              "startTime": 360,
+              "endTime": 1440
+            }
+          ],
+          "wednesday": [
+            {
+              "startTime": 360,
+              "endTime": 1440
+            }
+          ],
+          "thursday": [
+            {
+              "startTime": 360,
+              "endTime": 1440
+            }
+          ],
+          "friday": [
+            {
+              "startTime": 360,
+              "endTime": 1440
+            }
+          ],
+          "saturday": [
+            {
+              "startTime": 360,
+              "endTime": 1440
+            }
+          ],
+          "sunday": [
+            {
+              "startTime": 360,
+              "endTime": 1440
+            }
+          ]
+        },
+        "timeProgramCirculationPump": {
+          "metaInfo": {
+            "minSlotsPerDay": 0,
+            "maxSlotsPerDay": 3,
+            "setpointRequiredPerSlot": false
+          },
+          "monday": [
+            {
+              "startTime": 420,
+              "endTime": 1380
+            }
+          ],
+          "tuesday": [
+            {
+              "startTime": 420,
+              "endTime": 1380
+            }
+          ],
+          "wednesday": [
+            {
+              "startTime": 420,
+              "endTime": 1380
+            }
+          ],
+          "thursday": [
+            {
+              "startTime": 420,
+              "endTime": 1380
+            }
+          ],
+          "friday": [
+            {
+              "startTime": 420,
+              "endTime": 1380
+            }
+          ],
+          "saturday": [
+            {
+              "startTime": 420,
+              "endTime": 1380
+            }
+          ],
+          "sunday": [
+            {
+              "startTime": 420,
+              "endTime": 1380
+            }
+          ]
+        }
+      }
+    ],
+    "ventilation": [
+      {
+        "index": 0,
+        "maximumDayFanStage": 4,
+        "maximumNightFanStage": 1,
+        "holidayStartDateTime": "2018-12-31T23:00:00Z",
+        "holidayEndDateTime": "2018-12-31T23:00:00Z",
+        "operationModeVentilation": "TIME_CONTROLLED",
+        "timeProgramVentilation": {
+          "metaInfo": {
+            "minSlotsPerDay": 0,
+            "maxSlotsPerDay": 12,
+            "setpointRequiredPerSlot": false
+          },
+          "monday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "tuesday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "wednesday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "thursday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "friday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "saturday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ],
+          "sunday": [
+            {
+              "startTime": 360,
+              "endTime": 1320
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

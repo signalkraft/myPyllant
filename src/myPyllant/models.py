@@ -721,7 +721,15 @@ class Device(MyPyllantDataClass):
 
     @property
     def current_power(self) -> int | None:
-        return self.mpc.get("current_power") if self.mpc else None
+        if (
+            self.mpc
+            and "current_power" in self.mpc
+            and self.mpc["current_power"] is not None
+        ):
+            return self.mpc["current_power"]
+        if self.rts_statistics and "current_power_consumption" in self.rts_statistics:
+            return self.rts_statistics["current_power_consumption"]
+        return None
 
     @classmethod
     def from_api(cls, **data):

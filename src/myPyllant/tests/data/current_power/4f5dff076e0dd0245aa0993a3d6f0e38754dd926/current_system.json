@@ -1,0 +1,122 @@
+{
+  "system_type": "HEATPUMP",
+  "has_emf_capable_devices": true,
+  "primary_heat_generator": {
+    "device_uuid": "3c3eaad9bccc3fa36de288360b99f93520ad1d0c",
+    "ebus_id": "HMU03",
+    "spn": 351,
+    "bus_coupler_address": 0,
+    "article_number": "0010021117",
+    "emfValid": true,
+    "device_serial_number": "88ac56a2bb491e3404d839fe99bd148ef1e885f2",
+    "device_type": "HEATPUMP",
+    "first_data": "2024-12-09T17:39:11.06Z",
+    "last_data": "2025-10-24T20:47:49.681Z",
+    "data": [
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2024-12-09T17:39:11.295Z",
+        "to": "2025-10-24T20:47:47.792Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2024-12-09T17:39:11.06Z",
+        "to": "2025-10-24T20:47:47.445Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2024-12-09T17:39:11.935Z",
+        "to": "2025-10-24T20:47:48.83Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2024-12-09T17:39:11.717Z",
+        "to": "2025-10-24T20:47:48.481Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2024-12-09T17:39:12.638Z",
+        "to": "2025-10-24T20:47:49.47Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2024-12-09T17:39:12.373Z",
+        "to": "2025-10-24T20:47:49.256Z"
+      }
+    ],
+    "product_name": "aroTHERM plus"
+  },
+  "secondary_heat_generators": [],
+  "electric_backup_heater": {
+    "device_uuid": "adaf28b5c41be9e92675d7b1f73883deb2d739f5",
+    "ebus_id": "VWZ02",
+    "spn": 351,
+    "bus_coupler_address": 0,
+    "article_number": "0010022066",
+    "emfValid": true,
+    "device_serial_number": "14efdd9385fdc8581df0027a0ed388b588db5eba",
+    "device_type": "ELECTRIC_AUXILIARY_HEATER",
+    "first_data": "2024-12-09T17:40:03.47Z",
+    "last_data": "2025-10-24T21:02:01.82Z",
+    "data": [
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2024-12-09T17:40:03.673Z",
+        "to": "2025-10-24T21:02:01.159Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2024-12-09T17:40:03.47Z",
+        "to": "2025-10-24T21:02:00.921Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2025-05-06T10:12:06.754Z",
+        "to": "2025-10-24T21:02:01.488Z"
+      }
+    ],
+    "product_name": "uniTOWER"
+  },
+  "solar_station": null,
+  "ventilation": {
+    "device_uuid": "662679279722974fe095b08c743db5b1dc23819d",
+    "ebus_id": "recoV",
+    "spn": 302,
+    "bus_coupler_address": 56,
+    "article_number": "0010016040",
+    "emfValid": false,
+    "device_serial_number": "b8253479e26412f7cec6c779c54f77b411be5f3c",
+    "device_type": "VENTILATION",
+    "first_data": "2024-12-09T17:39:13.951Z",
+    "last_data": "2025-10-24T20:47:50.872Z",
+    "data": [
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2024-12-09T17:39:13.951Z",
+        "to": "2025-10-24T20:47:50.872Z"
+      }
+    ],
+    "product_name": "recoVAIR"
+  },
+  "gateway": null
+}

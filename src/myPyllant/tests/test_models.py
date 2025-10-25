@@ -188,6 +188,19 @@ async def test_mpc(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
     await mocked_api.aiohttp_session.close()
 
 
+async def test_tli_current_power_from_rts(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "current_power")
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(mocked_api.get_systems(include_rts=True))
+        assert system.control_identifier == ControlIdentifier.TLI
+        rts_device_id = system.rts["statistics"][0]["device_id"]
+        d: Device = [d for d in system.devices if d.device_uuid == rts_device_id][0]
+        assert d.current_power == 15
+    await mocked_api.aiohttp_session.close()
+
+
 async def test_extra_system_state_properties(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI
 ) -> None:

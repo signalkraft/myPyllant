@@ -1,0 +1,28 @@
+[
+  {
+    "homeName": "809b3e46c5e2b284d68f490e7e2dacec98a2f1ba",
+    "serialNumber": "52eeeb41bd8527f5a04c0e4c86350996416b0fa9",
+    "systemId": "4f5dff076e0dd0245aa0993a3d6f0e38754dd926",
+    "productMetadata": {
+      "productType": "VR940F",
+      "productionYear": "24",
+      "productionWeek": "44",
+      "articleNumber": "8000015501"
+    },
+    "state": "CLAIMED",
+    "migrationState": null,
+    "migrationFinishedAt": null,
+    "onlineState": "ONLINE",
+    "firmware": {
+      "version": "404.1.27",
+      "connectedToOldIoTPlatform": null,
+      "updateEnabled": true,
+      "updateRequired": false
+    },
+    "countryCode": "DE",
+    "firmwareVersion": "404.1.27",
+    "nomenclature": "VR 940f",
+    "cag": true,
+    "productInformation": "VR940F"
+  }
+]
