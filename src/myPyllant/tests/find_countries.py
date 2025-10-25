@@ -14,14 +14,17 @@ def countries_with_realm(brand):
     country_codes.sort(key=lambda x: x[1])
 
     for code, country in country_codes:
-        if code == "BA":
-            country_name = "bosnia"
-        elif code == "CZ":
-            country_name = "czechrepublic"
-        elif code == "TR":
-            country_name = "turkiye"
-        else:
-            country_name = re.sub(r"\W+", "-", country.lower())
+        match code:
+            case "BA":
+                country_name = "bosnia"
+            case "CZ":
+                country_name = "czechrepublic"
+            case "MD":
+                country_name = "moldavia"
+            case "TR":
+                country_name = "turkiye"
+            case _:
+                country_name = re.sub(r"\W+", "-", country.lower())
         r = requests.head(
             f"https://identity.vaillant-group.com/auth/realms/"
             f"{brand}-{country_name}-b2c/.well-known/openid-configuration"

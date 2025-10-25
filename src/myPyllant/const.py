@@ -38,6 +38,7 @@ COUNTRIES = {
         "latvia": "Latvia",
         "lithuania": "Lithuania",
         "luxembourg": "Luxembourg",
+        "moldavia": "Moldova",
         "netherlands": "Netherlands",
         "new-zealand": "New Zealand",
         "north-macedonia": "North Macedonia",
@@ -73,6 +74,7 @@ COUNTRIES = {
         "spain": "Spain",
     },
 }
+
 ALL_COUNTRIES = {c: n for d in COUNTRIES.values() for c, n in d.items()}
 DEFAULT_HOLIDAY_DURATION = 365  # in days
 DEFAULT_QUICK_VETO_DURATION = 3.0  # in hours
