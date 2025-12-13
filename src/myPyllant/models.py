@@ -383,6 +383,7 @@ class Circuit(MyPyllantDataClass):
     zones: list = field(default_factory=list)
     is_cooling_allowed: bool | None = None
     current_circuit_flow_temperature: float | None = None
+    heating_circuit_flow_setpoint: float | None = None
     heating_curve: float | None = None
     heating_flow_temperature_minimum_setpoint: float | None = None
     heating_flow_temperature_maximum_setpoint: float | None = None
