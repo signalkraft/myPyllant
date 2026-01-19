@@ -113,10 +113,11 @@ def datetime_parse(date_string: str, tz: tzinfo) -> datetime:
 
 def get_realm(brand: str, country: str | None = None) -> str:
     """
-    Vaillant and SDBG use `brand-country-b2c` as the realm, Bulex & Glow-worm don't use a country
+    Vaillant and SDBG use `brand-country-b2c` as the realm.
+    Bulex, Glow-worm and Demirdokum don't use a country.
     """
     match brand:
-        case "bulex" | "glow-worm":
+        case "bulex" | "glow-worm" | "demirdokum":
             return f"{brand}-b2c"
         case _ if not country:
             return f"{brand}-b2c"
