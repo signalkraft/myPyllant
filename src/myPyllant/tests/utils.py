@@ -64,6 +64,12 @@ def _mypyllant_aioresponses():
                 status=200,
                 repeat=True,
             )
+            self.get(
+                re.compile(r".*demirdokum-b2c/protocol/openid-connect/auth\?"),
+                body=f"{LOGIN_URL.format(realm=get_realm('demirdokum'))}?test=test",
+                status=200,
+                repeat=True,
+            )
             self.post(
                 re.compile(r".*login-actions/authenticate\?"),
                 status=200,

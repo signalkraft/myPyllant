@@ -12,6 +12,7 @@ BRANDS = {
     "sdbg": "Saunier Duval",
     "bulex": "Bulex",
     "glow-worm": "Glow-worm",
+    "demirdokum": "DemirDöküm",
 }
 DEFAULT_BRAND = "vaillant"
 COUNTRIES = {
