@@ -97,6 +97,7 @@ def get_system_api_base(
 class MyPyllantAPI:
     username: str
     password: str
+    proxy: str
     aiohttp_session: CountingClientSession
     oauth_session: dict = {}
     oauth_session_expires: datetime.datetime | None = None
@@ -104,7 +105,7 @@ class MyPyllantAPI:
     time_zones: dict[str, str] = {}
 
     def __init__(
-        self, username: str, password: str, brand: str, country: str | None = None
+        self, username: str, password: str, brand: str, country: str | None = None, proxy: str | None = None
     ) -> None:
         if brand not in BRANDS.keys():
             raise ValueError(
@@ -123,8 +124,9 @@ class MyPyllantAPI:
         self.password = password
         self.country = country
         self.brand = brand
+        self.proxy = proxy
 
-        self.aiohttp_session = get_http_client()
+        self.aiohttp_session = get_http_client(proxy=self.proxy)
 
     async def __aenter__(self) -> MyPyllantAPI:
         try:
