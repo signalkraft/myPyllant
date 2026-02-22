@@ -1,0 +1,18 @@
+{
+  "energyManager": {
+    "available": false,
+    "compatible": true
+  },
+  "energyManagementStatus": {
+    "thermalStorage": {
+      "domesticHotWater": {
+        "available": true,
+        "selected": false
+      },
+      "heatingBufferCylinder": {
+        "available": true,
+        "selected": false
+      }
+    }
+  }
+}

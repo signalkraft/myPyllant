@@ -35,7 +35,6 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="MyPyllantDataClass")
 
-
 config = ConfigDict(arbitrary_types_allowed=True)
 
 
@@ -953,10 +952,6 @@ class System(MyPyllantDataClass):
             Circuit.from_api(system_id=system.id, timezone=system.timezone, **c)
             for c in system.merge_object("circuits")
         ]
-        z_filtered = []
-        for z in system.merge_object("zones"):
-            if z["is_active"]:
-                z_filtered.append(z)
         system.zones = [
             Zone.from_api(
                 system_id=system.id,
@@ -965,7 +960,8 @@ class System(MyPyllantDataClass):
                 circuits=system.circuits,
                 **z,
             )
-            for z in z_filtered
+            for z in system.merge_object("zones")
+            if z["is_active"]
         ]
         system.domestic_hot_water = [
             DomesticHotWater.from_api(

@@ -213,6 +213,8 @@ async def test_quick_veto(
 ) -> None:
     with mypyllant_aioresponses(test_data) as aio:
         system = await anext(mocked_api.get_systems())
+        if not system.zones:
+            pytest.skip("Skipping test, because there are no zones in the system")
         zone: Zone = system.zones[0]
         # Activating quick veto
         zone.current_special_function = ZoneCurrentSpecialFunction.NONE
