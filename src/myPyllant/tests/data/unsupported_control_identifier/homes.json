@@ -1,0 +1,20 @@
+[
+  {
+    "homeName": "RnB",
+    "serialNumber": "a9842b23da429861d40b1c3c9fc81ae601a9f36b",
+    "systemId": "1835c08766437e41a9c69bdf454e0ec8bfb0e82f",
+    "productMetadata": {
+      "productType": "SR921",
+      "productionYear": "22",
+      "productionWeek": "35",
+      "articleNumber": "0020261008"
+    },
+    "state": "CLAIMED",
+    "migrationState": "FINISHED",
+    "firmwareVersion": "0357.40.30",
+    "nomenclature": "SR 921",
+    "cag": false,
+    "countryCode": "BE",
+    "productInformation": "SR921"
+  }
+]

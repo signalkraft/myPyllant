@@ -18,7 +18,7 @@ from ..models import (
     Circuit,
 )
 from ..enums import ZoneOperatingMode, ControlIdentifier, ZoneOperatingType
-from .utils import list_test_data, load_test_data
+from .utils import list_test_data, load_test_data, get_system_or_skip
 
 
 @pytest.mark.parametrize("test_data", list_test_data())
@@ -26,7 +26,7 @@ async def test_systems(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
 
         assert isinstance(system, System), "Expected System return type"
         assert isinstance(system.home, Home)
@@ -58,8 +58,8 @@ async def test_trouble_codes(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(
-            mocked_api.get_systems(include_diagnostic_trouble_codes=True)
+        system = await get_system_or_skip(
+            mocked_api, include_diagnostic_trouble_codes=True
         )
         assert isinstance(system.diagnostic_trouble_codes, list)
         if not system.diagnostic_trouble_codes:
@@ -82,8 +82,8 @@ async def test_circuit_association(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(
-            mocked_api.get_systems(include_diagnostic_trouble_codes=True)
+        system = await get_system_or_skip(
+            mocked_api, include_diagnostic_trouble_codes=True
         )
         for zone in system.zones:
             assert isinstance(zone.associated_circuit, Circuit)

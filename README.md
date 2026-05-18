@@ -3,11 +3,9 @@
 [![PyPI](https://img.shields.io/pypi/v/myPyllant)](https://pypi.org/project/myPyllant/)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/signalkraft/myPyllant/build-test.yaml)
 
-A Python library to interact with the API behind the myVAILLANT app ((and branded versions of it, such as the MiGo app from Saunier Duval). Needs at least Python 3.10.
+A Python library to interact with the API behind the myVAILLANT app (and branded versions of it, such as the MiGo app from Saunier Duval and Glow-worm). Needs at least Python 3.10.
 
 > [!WARNING]  
-> If you're using sensoAPP or the multiMATIC app, this library won't work for you. Try the [pymultiMATIC](https://github.com/thomasgermain/pymultiMATIC) library instead and check [Vaillant's website](https://www.vaillant.de/heizung/produkte/mobile-apps/myvaillant-app/) for more information.
-> 
 > This integration is not affiliated with Vaillant, the developers take no responsibility for anything that happens to your devices because of this library.
 
 ![myPyllant](https://raw.githubusercontent.com/signalkraft/myPyllant/main/logo.png)
@@ -146,17 +144,6 @@ uv tool install pre-commit --with pre-commit-uv
 pre-commit install
 uv run pytest
 ```
-
-### Supporting new Countries
-
-The myVAILLANT app uses Keycloak and OIDC for authentication, with a realm for each country and brand.
-There is a script to check which countries are supported:
-
-```shell
-uv run -m myPyllant.tests.find_countries
-```
-
-Copy the resulting dictionary into [src/myPyllant/const.py](src/myPyllant/const.py)
 
 ### Contributing Test Data
 

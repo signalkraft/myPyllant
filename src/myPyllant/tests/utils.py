@@ -5,6 +5,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Tuple, Union
 
+import pytest
 import yaml
 from aiohttp import ClientSession, ClientResponse
 from aioresponses import CallbackResult, aioresponses
@@ -294,6 +295,14 @@ def _mypyllant_aioresponses():
             return await super()._request_mock(orig_self, method, url, *args, **kwargs)
 
     return _mypyllant_aioresponses
+
+
+async def get_system_or_skip(api: MyPyllantAPI, **kwargs):
+    """Get the first system from get_systems(), or skip the test if none are available."""
+    system = await anext(api.get_systems(**kwargs), None)
+    if system is None:
+        pytest.skip("No supported system in test data")
+    return system
 
 
 async def _mocked_api(*args, **kwargs) -> MyPyllantAPI:

@@ -23,7 +23,7 @@ from ..enums import (
     AmbisenseRoomOperationMode,
 )
 from .generate_test_data import DATA_DIR
-from .utils import list_test_data, load_test_data
+from .utils import list_test_data, load_test_data, get_system_or_skip
 from ..const import DEFAULT_QUICK_VETO_DURATION
 from ..utils import datetime_format
 
@@ -96,7 +96,7 @@ async def test_systems(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
 
         assert isinstance(system, System), "Expected System return type"
         assert isinstance(system.brand, str)
@@ -139,7 +139,7 @@ async def test_meta_info(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
         status = await mocked_api.get_connection_status(system)
         assert isinstance(status, bool)
         time_zone = await mocked_api.get_time_zone(system)
@@ -152,7 +152,7 @@ async def test_meta_info_system_id(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
         control_identifier = await mocked_api.get_control_identifier(system.id)
         assert isinstance(control_identifier, ControlIdentifier)
         status = await mocked_api.get_connection_status(system.id)
@@ -167,7 +167,7 @@ async def test_devices(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
 
         expected = 0
         for test_key, item in test_data.items():
@@ -198,7 +198,7 @@ async def test_device_data(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
         if len(system.devices) > 0:
             device = system.devices[0]
             device_data = await anext(mocked_api.get_data_by_device(device))
@@ -212,7 +212,7 @@ async def test_quick_veto(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as aio:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
         if not system.zones:
             pytest.skip("Skipping test, because there are no zones in the system")
         zone: Zone = system.zones[0]
@@ -237,7 +237,7 @@ async def test_holiday_without_dates(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as aio:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
         now = datetime.now(system.timezone)
         with freeze_time(now):
             setpoint = None
@@ -256,7 +256,7 @@ async def test_holiday_with_dates(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as aio:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
         now = datetime.now(system.timezone)
         with freeze_time(now):
             start = now + timedelta(days=1)
@@ -280,7 +280,7 @@ async def test_holiday_wrong_dates(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as _:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
         start = datetime.now(system.timezone) + timedelta(days=1)
         end = start - timedelta(days=7)
         with pytest.raises(ValueError):
@@ -293,7 +293,7 @@ async def test_dhw_setpoint(
     mypyllant_aioresponses, mocked_api: MyPyllantAPI, test_data
 ) -> None:
     with mypyllant_aioresponses(test_data) as aio:
-        system = await anext(mocked_api.get_systems())
+        system = await get_system_or_skip(mocked_api)
         if not system.domestic_hot_water:
             return
         await mocked_api.set_domestic_hot_water_temperature(

@@ -73,6 +73,10 @@ from myPyllant.utils import (
 logger = logging.getLogger(__name__)
 
 
+class AmbisenseNoFacilityError(Exception):
+    """Raised when the API returns NO_FACILITY_FOR_SYSTEM_ID for an ambisense endpoint."""
+
+
 def get_system_id(system: System | str) -> str:
     if isinstance(system, System):
         return system.id
@@ -80,18 +84,25 @@ def get_system_id(system: System | str) -> str:
         return system
 
 
-def get_api_base(control_identifier: ControlIdentifier | str | None = None) -> str:
-    key = str(control_identifier) if control_identifier else DEFAULT_CONTROL_IDENTIFIER
-    return API_URL_BASE[key]
+def get_api_base(
+    control_identifier: ControlIdentifier | str | None = None,
+) -> str | None:
+    effective = control_identifier or DEFAULT_CONTROL_IDENTIFIER
+    if ControlIdentifier(effective) == ControlIdentifier.UNSUPPORTED:
+        return None
+    return API_URL_BASE[str(effective)]
 
 
 def get_system_api_base(
     system: str | System, control_identifier: ControlIdentifier | str
-) -> str:
-    suffix = ""
-    if ControlIdentifier(control_identifier) == ControlIdentifier.TLI:
-        suffix = "/tli"
-    return f"{get_api_base(control_identifier)}/systems/{get_system_id(system)}{suffix}"
+) -> str | None:
+    match ControlIdentifier(control_identifier):
+        case ControlIdentifier.UNSUPPORTED:
+            return None
+        case ControlIdentifier.TLI:
+            return f"{get_api_base(control_identifier)}/systems/{get_system_id(system)}/tli"
+        case _:
+            return f"{get_api_base(control_identifier)}/systems/{get_system_id(system)}"
 
 
 class MyPyllantAPI:
@@ -100,8 +111,6 @@ class MyPyllantAPI:
     aiohttp_session: CountingClientSession
     oauth_session: dict = {}
     oauth_session_expires: datetime.datetime | None = None
-    control_identifiers: dict[str, str] = {}
-    time_zones: dict[str, str] = {}
 
     def __init__(
         self, username: str, password: str, brand: str, country: str | None = None
@@ -123,6 +132,8 @@ class MyPyllantAPI:
         self.password = password
         self.country = country
         self.brand = brand
+        self.control_identifiers: dict[str, str] = {}
+        self.time_zones: dict[str, str] = {}
 
         self.aiohttp_session = get_http_client()
 
@@ -272,7 +283,7 @@ class MyPyllantAPI:
         self,
         system: str | System | None = None,
         control_identifier: ControlIdentifier | str | None = None,
-    ) -> str:
+    ) -> str | None:
         if system and not control_identifier:
             control_identifier = await self.get_control_identifier(system)
         return get_api_base(control_identifier)
@@ -281,7 +292,7 @@ class MyPyllantAPI:
         self,
         system: str | System,
         control_identifier: ControlIdentifier | str | None = None,
-    ) -> str:
+    ) -> str | None:
         if not control_identifier:
             control_identifier = await self.get_control_identifier(system)
         return get_system_api_base(system, control_identifier)
@@ -341,9 +352,15 @@ class MyPyllantAPI:
         """
         if not homes:
             homes = [home async for home in self.get_homes()]
+        no_facility_error: AmbisenseNoFacilityError | None = None
         for home in homes:
             control_identifier = await self.get_control_identifier(home.system_id)
+            if control_identifier.is_unsupported:
+                continue
             system_url = await self.get_system_api_base(home.system_id)
+            assert (
+                system_url is not None
+            )  # guaranteed: unsupported systems are skipped above
             current_system_url = (
                 f"{await self.get_api_base()}/emf/v2/{home.system_id}/currentSystem"
             )
@@ -361,6 +378,13 @@ class MyPyllantAPI:
                 current_system_url, headers=self.get_authorized_headers()
             ) as current_system_resp:
                 current_system_json = await current_system_resp.json()
+
+            ambisense_rooms = []
+            if include_ambisense_rooms:
+                try:
+                    ambisense_rooms = await self.get_ambisense_rooms(home.system_id)
+                except AmbisenseNoFacilityError as e:
+                    no_facility_error = e
 
             system = System.from_api(
                 brand=self.brand,
@@ -381,9 +405,7 @@ class MyPyllantAPI:
                 ambisense_capability=await self.get_ambisense_capability(home.system_id)
                 if include_ambisense_capability
                 else False,
-                ambisense_rooms=await self.get_ambisense_rooms(home.system_id)
-                if include_ambisense_rooms
-                else [],
+                ambisense_rooms=ambisense_rooms,
                 energy_management=await self.get_energy_management(home.system_id)
                 if include_energy_management
                 else None,
@@ -391,6 +413,9 @@ class MyPyllantAPI:
                 **dict_to_snake_case(system_json),
             )
             yield system
+
+        if no_facility_error:
+            raise no_facility_error
 
     async def get_data_by_device(
         self,
@@ -1416,6 +1441,12 @@ class MyPyllantAPI:
                 headers=self.get_authorized_headers(),
             )
         except ClientResponseError as e:
+            if "NO_FACILITY_FOR_SYSTEM_ID" in e.message:
+                logger.debug(
+                    "Ambisense rooms not available for system %s",
+                    get_system_id(system),
+                )
+                raise AmbisenseNoFacilityError(get_system_id(system)) from e
             logger.warning("Could not get rooms data", exc_info=e)
             return []
         result = dict_to_snake_case(await response.json())
