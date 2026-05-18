@@ -243,7 +243,9 @@ async def main(user, password, brand, country=None, write_results=True):
             except Exception as e:
                 logger.error(f"Error fetching {rts_url}: {e}", exc_info=e)
 
-            device = current_system["primary_heat_generator"]
+            device = (
+                current_system["primary_heat_generator"] if current_system else None
+            )
             start = datetime.now().replace(
                 microsecond=0, second=0, minute=0, hour=0
             ) - timedelta(days=1)
