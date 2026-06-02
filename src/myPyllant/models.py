@@ -1258,6 +1258,13 @@ class System(MyPyllantDataClass):
 
     @property
     def manual_cooling_planned(self) -> bool:
+        if self.control_identifier.is_vrc700:
+            # VRC700 uses coolingForXDays instead of start/end dates
+            system_config = self.configuration.get("system", {})
+            return (
+                not system_config.get("automatic_cooling_on_off", True)
+                and (system_config.get("cooling_for_x_days") or 0) > 0
+            )
         return (
             self.manual_cooling_start_date is not None
             and self.manual_cooling_end_date is not None
