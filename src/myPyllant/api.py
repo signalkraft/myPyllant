@@ -726,30 +726,41 @@ class MyPyllantAPI:
 
         return zone
 
+    async def set_cooling_setpoint(
+        self,
+        zone: Zone,
+        temperature: float,
+    ):
+        """
+        Sets the cooling setpoint temperature for a zone.
+
+        Parameters:
+            zone: The target zone
+            temperature: The target cooling temperature
+        """
+        logger.debug("Setting cooling setpoint for %s to %s", zone.name, temperature)
+        payload: dict[str, Any] = {"setpoint": temperature}
+        if zone.control_identifier.is_vrc700:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/cooling/setpoint"
+        else:
+            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/setpoint-cooling"
+        await self.aiohttp_session.patch(
+            url,
+            json=payload,
+            headers=self.get_authorized_headers(),
+        )
+        if zone.cooling:
+            zone.desired_room_temperature_setpoint_cooling = temperature
+            zone.cooling.setpoint_cooling = temperature
+        return zone
+
     async def set_time_controlled_cooling_setpoint(
         self,
         zone: Zone,
         temperature: float,
     ):
         logger.debug("Setting time controlled setpoint for cooling on %s", zone.name)
-        if zone.control_identifier.is_vrc700:
-            raise ValueError(
-                "Time controlled cooling setpoint is not supported on VRC700 controllers"
-            )
-
-        payload: dict[str, Any] = {
-            "setpoint": temperature,
-        }
-        await self.aiohttp_session.patch(
-            f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/setpoint-cooling",
-            json=payload,
-            headers=self.get_authorized_headers(),
-        )
-        if zone.cooling:
-            if zone.cooling.operation_mode_cooling == ZoneOperatingMode.TIME_CONTROLLED:
-                zone.desired_room_temperature_setpoint_cooling = temperature
-            zone.cooling.setpoint_cooling = temperature
-        return zone
+        return await self.set_cooling_setpoint(zone, temperature)
 
     async def cancel_quick_veto_zone_temperature(
         self, zone: Zone, veto_type: str = "heating"
