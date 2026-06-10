@@ -697,14 +697,34 @@ class MyPyllantAPI:
                 f"Invalid veto type, must be one of {', '.join(ZoneOperatingType)}"
             )
         setpoint_type = str(setpoint_type).lower()
+
+        if zone.control_identifier.is_vrc700:
+            if setpoint_type == "cooling":
+                # VRC700 cooling DAY mode (the equivalent of manual mode) uses the
+                # same endpoint as the regular cooling setpoint
+                return await self.set_cooling_setpoint(zone, temperature)
+
+            # VRC700 heating DAY mode (the equivalent of manual mode) doesn't support
+            # PATCH .../zone/{index}/heating/manual-mode-setpoint (404). The real app
+            # uses comfort-room-temperature instead.
+            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/heating/comfort-room-temperature"
+            await self.aiohttp_session.patch(
+                url,
+                json={"comfortRoomTemperature": temperature},
+                headers=self.get_authorized_headers(),
+            )
+            zone.heating.day_temperature_heating = temperature
+            zone.heating.manual_mode_setpoint_heating = temperature
+            zone.desired_room_temperature_setpoint_heating = temperature
+            if zone.heating.operation_mode_heating == ZoneOperatingModeVRC700.DAY:
+                zone.desired_room_temperature_setpoint = temperature
+            return zone
+
         payload: dict[str, Any] = {
             "setpoint": temperature,
+            "type": setpoint_type.upper(),
         }
-        if zone.control_identifier.is_vrc700:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zone/{zone.index}/{setpoint_type}/manual-mode-setpoint"
-        else:
-            url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/manual-mode-setpoint"
-            payload["type"] = setpoint_type.upper()
+        url = f"{await self.get_system_api_base(zone.system_id)}/zones/{zone.index}/manual-mode-setpoint"
         await self.aiohttp_session.patch(
             url,
             json=payload,
