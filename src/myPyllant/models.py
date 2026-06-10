@@ -1280,6 +1280,10 @@ class System(MyPyllantDataClass):
 
     @property
     def manual_cooling_ongoing(self) -> bool:
+        if self.control_identifier.is_vrc700:
+            # VRC700 has no start/end dates, just an on/off flag + remaining days,
+            # so "planned" and "ongoing" are equivalent
+            return self.manual_cooling_planned
         return (
             self.manual_cooling_start_date is not None
             and self.manual_cooling_end_date is not None
