@@ -381,6 +381,36 @@ async def test_vrc700_heat_demand_limited_by_outside_temperature(
         await mocked_api.aiohttp_session.close()
 
 
+async def test_vrc700_manual_cooling_ongoing(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    """
+    VRC700 systems don't have manual_cooling_start_date / manual_cooling_end_date,
+    so manual_cooling_ongoing must fall back to manual_cooling_planned (which is
+    based on automatic_cooling_on_off + cooling_for_x_days) instead of always
+    returning False.
+    """
+    test_data = load_test_data(DATA_DIR / "vrc700")
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(mocked_api.get_systems())
+        assert system.control_identifier.is_vrc700
+        assert system.manual_cooling_start_date is None
+        assert system.manual_cooling_end_date is None
+
+        system.configuration.setdefault("system", {})["automatic_cooling_on_off"] = (
+            False
+        )
+        system.configuration["system"]["cooling_for_x_days"] = 10
+        assert system.manual_cooling_planned is True
+        assert system.manual_cooling_ongoing is True
+
+        system.configuration["system"]["automatic_cooling_on_off"] = True
+        assert system.manual_cooling_planned is False
+        assert system.manual_cooling_ongoing is False
+
+        await mocked_api.aiohttp_session.close()
+
+
 async def test_vrc700_holiday(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
     test_data = load_test_data(DATA_DIR / "vrc700")
     with mypyllant_aioresponses(test_data) as aio:

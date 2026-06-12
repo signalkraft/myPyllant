@@ -146,3 +146,4 @@ class EnergyManagerState(MyPyllantEnum):
     STANDBY = "STANDBY"
     DHW = "DHW"
     HEATING = "HEATING"
+    COOLING = "COOLING"
