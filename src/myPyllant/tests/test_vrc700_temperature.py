@@ -8,13 +8,18 @@ PATCH .../zone/{index}/heating/comfort-room-temperature with
 PATCH .../zone/{index}/cooling/setpoint (the same endpoint as set_cooling_setpoint)
 for the cooling DAY mode setpoint.
 """
+
 import pytest
 
 from ..api import MyPyllantAPI
 from ..enums import ZoneOperatingModeVRC700
 from ..models import Zone
-from .utils import _mocked_api, _mypyllant_aioresponses, load_test_data, get_system_or_skip
-from pathlib import Path
+from .utils import (
+    _mocked_api,
+    _mypyllant_aioresponses,
+    load_test_data,
+    get_system_or_skip,
+)
 from .generate_test_data import DATA_DIR
 
 
@@ -142,9 +147,7 @@ async def test_vrc700_cooling_manual_mode_setpoint_uses_cooling_setpoint_endpoin
         if not zone.cooling:
             pytest.skip("No cooling in VRC700 test data")
 
-        await mocked_api.set_manual_mode_setpoint(
-            zone, 22.0, setpoint_type="cooling"
-        )
+        await mocked_api.set_manual_mode_setpoint(zone, 22.0, setpoint_type="cooling")
 
         method, url = list(aio.requests.keys())[-1]
         url = str(url)
