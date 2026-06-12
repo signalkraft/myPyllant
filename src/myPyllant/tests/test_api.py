@@ -329,13 +329,55 @@ async def test_vrc700_operating_mode(
         )
         request = list(aio.requests.values())[-1][0]
         request_url = list(aio.requests.keys())[-1][1]
-        assert str(request_url).endswith("heating/operation-mode")
+        assert str(request_url).endswith("zones/0/heating-operation-mode")
+        assert "system-control/v1" in str(request_url)
         assert request.kwargs["json"]["operationMode"] == "AUTO"
 
         with pytest.raises(ValueError):
             await mocked_api.set_zone_operating_mode(
                 system.zones[0], ZoneOperatingMode.MANUAL
             )
+        await mocked_api.aiohttp_session.close()
+
+
+async def test_vrc700_heating_curve(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "vrc700")
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems())
+        circuit = system.circuits[0]
+
+        await mocked_api.set_circuit_heating_curve(circuit, 1.5)
+        request = list(aio.requests.values())[-1][0]
+        request_url = list(aio.requests.keys())[-1][1]
+        assert str(request_url).endswith(f"circuit/{circuit.index}/heating-curve")
+        assert request.kwargs["json"] == {"setPoint": 1.5}
+        assert circuit.heating_curve == 1.5
+
+        await mocked_api.aiohttp_session.close()
+
+
+async def test_vrc700_heat_demand_limited_by_outside_temperature(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    test_data = load_test_data(DATA_DIR / "vrc700")
+    with mypyllant_aioresponses(test_data) as aio:
+        system = await anext(mocked_api.get_systems())
+        circuit = system.circuits[0]
+
+        await mocked_api.set_circuit_heat_demand_limited_by_outside_temperature(
+            circuit, 18.0
+        )
+        request = list(aio.requests.values())[-1][0]
+        request_url = list(aio.requests.keys())[-1][1]
+        assert "system-control/v1" in str(request_url)
+        assert str(request_url).endswith(
+            f"circuits/{circuit.index}/heat-demand-limited-by-outside-temperature"
+        )
+        assert request.kwargs["json"] == {"setpoint": 18.0}
+        assert circuit.heat_demand_limited_by_outside_temperature == 18.0
+
         await mocked_api.aiohttp_session.close()
 
 
