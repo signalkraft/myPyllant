@@ -89,7 +89,7 @@ def _mypyllant_aioresponses():
             )
             # API endpoints
             actions = re.compile(
-                r".*(away-mode|setBackTemperature|temperature|holiday|cooling-for-days|ventilation-boost)$"
+                r".*(away-mode|setBackTemperature|temperature|tapping-setpoint|holiday|cooling-for-days|ventilation-boost)$"
             )
             self.post(
                 actions,

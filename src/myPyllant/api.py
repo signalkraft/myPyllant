@@ -22,6 +22,7 @@ from myPyllant.const import (
     DEFAULT_CONTROL_IDENTIFIER,
     DEFAULT_QUICK_VETO_DURATION,
     LOGIN_URL,
+    SYSTEM_CONTROL_API_URL_BASE,
     TOKEN_URL,
 )
 from myPyllant.enums import (
@@ -1030,15 +1031,22 @@ class MyPyllantAPI:
 
         Parameters:
             domestic_hot_water: The water heater
-            temperature: The desired temperature, only whole numbers are supported by the API, floats get rounded
+            temperature: The desired temperature. VRC700 controllers support 0.5 degree
+                steps, other controllers only support whole numbers and floats get rounded
         """
-        if isinstance(temperature, float):
-            logger.warning("Domestic hot water can only be set to whole numbers")
-            temperature = int(round(temperature, 0))
-        url = (
-            f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
-            f"/domestic-hot-water/{domestic_hot_water.index}/temperature"
-        )
+        if domestic_hot_water.control_identifier.is_vrc700:
+            url = (
+                f"{SYSTEM_CONTROL_API_URL_BASE}/systems/{domestic_hot_water.system_id}"
+                f"/domestic-hot-water/{domestic_hot_water.index}/tapping-setpoint"
+            )
+        else:
+            if isinstance(temperature, float):
+                logger.warning("Domestic hot water can only be set to whole numbers")
+                temperature = int(round(temperature, 0))
+            url = (
+                f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
+                f"/domestic-hot-water/{domestic_hot_water.index}/temperature"
+            )
         await self.aiohttp_session.patch(
             url, json={"setpoint": temperature}, headers=self.get_authorized_headers()
         )
