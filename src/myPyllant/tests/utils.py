@@ -316,7 +316,71 @@ async def _mocked_api(*args, **kwargs) -> MyPyllantAPI:
     return api
 
 
-def list_test_data():
+def _yields_systems(test_data) -> bool:
+    """Return True if the fixture produces at least one System.
+
+    Mirrors api.get_systems: a home whose control identifier is UNSUPPORTED is
+    skipped by the API, so such homes never yield a System object.  A fixture
+    yields systems iff at least one home has a non-unsupported control identifier
+    (or the identifier is missing/unknown, in which we assume a supported system).
+    """
+    from myPyllant.enums import ControlIdentifier
+
+    for home in test_data.get("homes", []):
+        control_identifier = (
+            test_data.get(home.get("systemId"), {})
+            .get("control_identifier", {})
+            .get("controlIdentifier")
+        )
+        try:
+            if (
+                control_identifier is None
+                or not ControlIdentifier(control_identifier).is_unsupported
+            ):
+                return True
+        except ValueError:
+            # Unknown identifier — assume supported
+            return True
+    return False
+
+
+def _has_domestic_hot_water(test_data) -> bool:
+    """Return True if the first yielded system has at least one DHW unit."""
+    for home in test_data.get("homes", []):
+        sid = home.get("systemId")
+        sys_data = test_data.get(sid, {}).get("system", {})
+        if not isinstance(sys_data, dict):
+            continue
+        cfg = sys_data.get("configuration", {})
+        if cfg.get("domesticHotWater") or cfg.get("dhw"):
+            return True
+    return False
+
+
+def _has_active_zones(test_data) -> bool:
+    """Return True if the first yielded system has at least one active zone."""
+    for home in test_data.get("homes", []):
+        sid = home.get("systemId")
+        sys_data = test_data.get(sid, {}).get("system", {})
+        if not isinstance(sys_data, dict):
+            continue
+        zones = sys_data.get("properties", {}).get("zones", [])
+        if any(z.get("isActive", True) for z in zones):
+            return True
+    return False
+
+
+def _apply_filter(data, flag, pred):
+    if flag is None:
+        return data
+    return [d for d in data if pred(d) == flag]
+
+
+def list_test_data(
+    only_with_systems: bool | None = None,
+    only_with_dhw: bool | None = None,
+    only_with_active_zones: bool | None = None,
+):
     test_data = []
     for d in [d for d in DATA_DIR.iterdir() if d.is_dir()]:
         # check if a json file exists in dir
@@ -324,6 +388,9 @@ def list_test_data():
             test_data.append(load_test_data(d))
     for f in DATA_DIR.glob("*.yaml"):
         test_data.append(load_test_data(f))
+    test_data = _apply_filter(test_data, only_with_systems, _yields_systems)
+    test_data = _apply_filter(test_data, only_with_dhw, _has_domestic_hot_water)
+    test_data = _apply_filter(test_data, only_with_active_zones, _has_active_zones)
     return test_data
 
 
