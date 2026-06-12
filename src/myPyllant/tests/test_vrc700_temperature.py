@@ -15,8 +15,6 @@ from ..api import MyPyllantAPI
 from ..enums import ZoneOperatingModeVRC700
 from ..models import Zone
 from .utils import (
-    _mocked_api,
-    _mypyllant_aioresponses,
     load_test_data,
     get_system_or_skip,
 )
@@ -24,16 +22,6 @@ from .generate_test_data import DATA_DIR
 
 
 VRC700_TEST_DATA = load_test_data(DATA_DIR / "vrc700")
-
-
-@pytest.fixture
-def mypyllant_aioresponses():
-    return _mypyllant_aioresponses()
-
-
-@pytest.fixture
-async def mocked_api() -> MyPyllantAPI:
-    return await _mocked_api()
 
 
 async def test_vrc700_manual_mode_setpoint_uses_correct_endpoint(
