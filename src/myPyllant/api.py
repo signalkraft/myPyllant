@@ -416,7 +416,11 @@ class MyPyllantAPI:
             yield system
 
         if no_facility_error:
-            raise no_facility_error
+            logger.warning(
+                "Ambisense rooms not available for one or more systems (%s), "
+                "consider disabling the Ambisense rooms option",
+                no_facility_error,
+            )
 
     async def get_data_by_device(
         self,
