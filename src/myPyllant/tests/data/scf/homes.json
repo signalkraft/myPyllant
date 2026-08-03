@@ -1,20 +1,29 @@
 [
   {
-    "homeName": "Home",
-    "serialNumber": "0f1e2d3c4b5a69788796a5b4c3d2e1f001234567",
-    "systemId": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+    "homeName": "c1bdba047df9d4bc9d74e779114e1ed888d096d7",
+    "serialNumber": "2cca454818293f5187a69b69e298932275d782fd",
+    "systemId": "77fc7e3fc9889434be1ba41514912c0a47266bc5",
     "productMetadata": {
       "productType": "VR_NEEXT",
-      "productionYear": "24",
-      "productionWeek": "10",
-      "articleNumber": "0010047641"
+      "productionYear": "26",
+      "productionWeek": "24",
+      "articleNumber": "8000019937"
     },
     "state": "CLAIMED",
-    "migrationState": "FINISHED",
-    "firmwareVersion": "0000.00.00",
-    "nomenclature": "iQconnect",
+    "migrationState": null,
+    "migrationFinishedAt": null,
+    "onlineState": "ONLINE",
+    "firmware": {
+      "version": "3.7.7-",
+      "connectedToOldIoTPlatform": null,
+      "updateEnabled": true,
+      "updateRequired": false
+    },
+    "childDevices": [],
     "cag": false,
     "countryCode": "DE",
+    "firmwareVersion": "3.7.7-",
+    "nomenclature": "iQconnect",
     "productInformation": "VR_NEEXT"
   }
 ]

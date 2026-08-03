@@ -38,6 +38,10 @@ ANONYMIZE_ATTRIBUTES = (
     "deviceId",
     "homeName",
     "serialNumber",
+    # EEBUS/SHIP subject key identifier from /ship/{id}/self - a permanent, globally
+    # unique identifier of the contributor's appliance (it is what you pair against on
+    # the local network), so it should not end up in a public fixture verbatim.
+    "ski",
     "systemId",
 )
 

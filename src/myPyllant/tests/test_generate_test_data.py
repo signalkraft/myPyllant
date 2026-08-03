@@ -127,3 +127,29 @@ def test_anonymize_current_system():
         "solar_station": None,
         "ventilation": None,
     }
+
+
+def test_anonymize_ship_self():
+    """The EEBUS/SHIP subject key identifier is a permanent, globally unique identifier of
+    the contributor's appliance, so it must not end up in a fixture verbatim."""
+    original_ship_self_data = {
+        "ski": "PRIVATE_ski",
+        "brand": "VAILLANT",
+        "type": "HVAC System",
+        "model": "geoCOMPACT",
+        "spineEnabled": False,
+        "spineEnabledStatus": "DETERMINED",
+        "spineCapable": True,
+    }
+
+    anonymized_data = _recursive_data_anonymize(original_ship_self_data)
+
+    assert anonymized_data == {
+        "ski": "d98897500926d6f57820ceae9cbe7a68eeb5b74d",
+        "brand": "VAILLANT",
+        "type": "HVAC System",
+        "model": "geoCOMPACT",
+        "spineEnabled": False,
+        "spineEnabledStatus": "DETERMINED",
+        "spineCapable": True,
+    }

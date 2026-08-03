@@ -1,0 +1,94 @@
+{
+  "electric_backup_heater": {
+    "article_number": "8000019937",
+    "bus_coupler_address": null,
+    "data": [
+      {
+        "operation_mode": "OPERATION",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2026-07-17T07:19:37Z",
+        "to": "2026-08-02T20:16:07Z"
+      }
+    ],
+    "device_serial_number": "2cca454818293f5187a69b69e298932275d782fd",
+    "device_type": "ELECTRIC_AUXILIARY_HEATER",
+    "device_uuid": "602885c5ca95c5955b49070b7ec54439f012f4bd",
+    "ebus_id": "",
+    "emfValid": true,
+    "first_data": "2026-07-17T07:19:37Z",
+    "last_data": "2026-08-02T20:16:07Z",
+    "product_name": "geoCOMPACT exclusive",
+    "spn": -1
+  },
+  "gateway": null,
+  "has_emf_capable_devices": true,
+  "primary_heat_generator": {
+    "article_number": "8000019937",
+    "bus_coupler_address": null,
+    "data": [
+      {
+        "operation_mode": "OPERATION",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2026-07-17T07:19:37Z",
+        "to": "2026-08-02T20:16:07Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2026-07-17T07:19:37Z",
+        "to": "2026-08-02T20:16:07Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "HEAT_GENERATED",
+        "calculated": false,
+        "from": "2026-07-17T07:19:37Z",
+        "to": "2026-08-02T20:16:07Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2026-07-17T07:19:37Z",
+        "to": "2026-08-02T20:16:07Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "EARNED_ENVIRONMENT_ENERGY",
+        "calculated": false,
+        "from": "2026-07-17T07:19:37Z",
+        "to": "2026-08-02T20:16:07Z"
+      },
+      {
+        "operation_mode": "HEATING",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2026-07-17T07:19:37Z",
+        "to": "2026-08-02T20:16:07Z"
+      },
+      {
+        "operation_mode": "DOMESTIC_HOT_WATER",
+        "value_type": "CONSUMED_ELECTRICAL_ENERGY",
+        "calculated": false,
+        "from": "2026-07-17T07:19:37Z",
+        "to": "2026-08-02T20:16:07Z"
+      }
+    ],
+    "device_serial_number": "2cca454818293f5187a69b69e298932275d782fd",
+    "device_type": "HEATPUMP",
+    "device_uuid": "0cadf7d29f0424f619ac88def1efe11515c37d94",
+    "ebus_id": "",
+    "emfValid": true,
+    "first_data": "2026-07-17T07:19:37Z",
+    "last_data": "2026-08-02T20:16:07Z",
+    "product_name": "geoCOMPACT exclusive",
+    "spn": -1
+  },
+  "secondary_heat_generators": [],
+  "solar_station": null,
+  "system_type": "HEATPUMP",
+  "ventilation": null
+}

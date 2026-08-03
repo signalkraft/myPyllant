@@ -7,11 +7,11 @@ iQconnect systems report ``controlIdentifier == "scf"`` from
 ``get_control_identifier()`` and aborted the whole data fetch. These tests lock in that
 ``scf`` resolves and that the URL helpers treat it like the generic (non-tli) base.
 
-The ``data/scf`` fixture only has ``homes``/``control_identifier``/``connection_status``/
-``time_zone`` so far - it proves an scf home yields no ``System``, nothing more. A real,
-anonymized capture of an iQconnect account's state tree (``scf_state.json``, see
-``tests/generate_test_data.py``) is not committed yet - the tests below that depend on it skip
-themselves until it exists, so this file also documents the target shape for whoever captures it.
+The ``data/scf`` fixture is a real capture from an iQconnect account (geoCOMPACT VWS 52/8.1
+iQ, ``VR_NEEXT``), produced by ``tests/generate_test_data.py`` and anonymized by it - it
+includes the ``scf_state.json`` state tree, so the tests below exercise the real shape rather
+than a hand-written stub. They still skip themselves if no capture is present, so the suite
+stays green for anyone who drops the fixture.
 """
 
 import pytest
@@ -24,9 +24,8 @@ from .utils import list_test_data, load_test_data
 
 SCF_DATA_DIR = DATA_DIR / "scf"
 requires_scf_state_data = pytest.mark.skipif(
-    not (
-        SCF_DATA_DIR / "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678" / "scf_state.json"
-    ).is_file(),
+    # The system id is a per-run salted hash, so match on the shape, not a fixed id
+    not any(SCF_DATA_DIR.glob("*/scf_state.json")),
     reason=(
         "No captured scf state tree yet - run generate_test_data.py against an iQconnect "
         "account and commit the anonymized scf_state.json into tests/data/scf/"
