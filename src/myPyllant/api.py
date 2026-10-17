@@ -1186,19 +1186,34 @@ class MyPyllantAPI:
         """
         Sets the schedule for the water circulation pump
 
+        TLI controllers use `.../tli/domestic-hot-water/{index}/circulation-pump-time-windows`,
+        all other controllers (e.g. VRC700) use
+        `.../domestic-hot-water/{index}/circulation-pump/time-windows`, the same paths
+        the myVAILLANT app uses. The hyphenated path 404s on VRC700.
+
         Parameters:
             domestic_hot_water: The water heater
             time_program: The schedule
         """
+        if domestic_hot_water.control_identifier == ControlIdentifier.TLI:
+            path = "circulation-pump-time-windows"
+        else:
+            path = "circulation-pump/time-windows"
         url = (
             f"{await self.get_system_api_base(domestic_hot_water.system_id)}"
-            f"/domestic-hot-water/{domestic_hot_water.index}/circulation-pump-time-windows"
+            f"/domestic-hot-water/{domestic_hot_water.index}/{path}"
         )
-        data = asdict(time_program)
-        del data["meta_info"]
+        # The app only sends start and end time per slot
+        data = {
+            weekday: [
+                {"startTime": slot.start_time, "endTime": slot.end_time}
+                for slot in getattr(time_program, weekday)
+            ]
+            for weekday in time_program.weekday_names()
+        }
         await self.aiohttp_session.patch(
             url,
-            json=dict_to_camel_case(data),
+            json=data,
             headers=self.get_authorized_headers(),
         )
         domestic_hot_water.time_program_circulation_pump = time_program

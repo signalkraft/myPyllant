@@ -187,6 +187,7 @@ def _mypyllant_aioresponses():
                 re.compile(
                     r".*(cylinder-temperature|heating-temperature-setpoint|"
                     r"circulation-pump-time-periods|heating-time-periods|"
+                    r"circulation-pump-time-windows|circulation-pump/time-windows|"
                     r"circuit-time-periods)$"
                 ),
                 status=202,
