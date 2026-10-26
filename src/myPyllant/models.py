@@ -433,9 +433,20 @@ class Zone(MyPyllantDataClass):
             timezone=data["timezone"], **data["general"]
         )
         if circuits:
+            circuit_index = data.get("associated_circuit_index")
             data["associated_circuit"] = next(
-                c for c in circuits if c.index == data["associated_circuit_index"]
+                (c for c in circuits if c.index == circuit_index), None
             )
+            if data["associated_circuit"] is None:
+                # The API sometimes returns a zone whose associated circuit is missing
+                # from the circuit list. Don't fail the whole system update for that.
+                logger.warning(
+                    "Zone %s references circuit index %s, which is not in the "
+                    "available circuits %s",
+                    data.get("index"),
+                    circuit_index,
+                    [c.index for c in circuits],
+                )
         return super().from_api(**data)
 
     @property

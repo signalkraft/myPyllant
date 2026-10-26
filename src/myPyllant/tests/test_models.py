@@ -90,6 +90,30 @@ async def test_circuit_association(
     await mocked_api.aiohttp_session.close()
 
 
+async def test_missing_associated_circuit(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI, caplog
+) -> None:
+    """
+    A zone referencing a circuit index that isn't in the circuit list must not
+    break get_systems() (signalkraft/mypyllant-component#502)
+    """
+    test_data = load_test_data(DATA_DIR / "vrc700")
+    system_id = next(k for k in test_data if k not in ("_directory", "homes"))
+    test_data[system_id]["system"]["properties"]["zones"][0][
+        "associatedCircuitIndex"
+    ] = 99
+    with mypyllant_aioresponses(test_data) as _:
+        system = await anext(
+            mocked_api.get_systems(include_diagnostic_trouble_codes=True)
+        )
+        assert len(system.zones) == 1
+        assert system.zones[0].associated_circuit is None
+        assert system.zones[0].associated_circuit_index == 99
+        assert system.zones[0].is_cooling_allowed_circuit in (None, False)
+        assert "references circuit index 99" in caplog.text
+    await mocked_api.aiohttp_session.close()
+
+
 async def test_operating_type(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> None:
     test_data = load_test_data(DATA_DIR / "ventilation")
     with mypyllant_aioresponses(test_data) as _:
