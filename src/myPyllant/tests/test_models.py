@@ -135,6 +135,21 @@ async def test_ventilation(mypyllant_aioresponses, mocked_api: MyPyllantAPI) -> 
     await mocked_api.aiohttp_session.close()
 
 
+async def test_zone_without_is_active(
+    mypyllant_aioresponses, mocked_api: MyPyllantAPI
+) -> None:
+    """A zone that lacks the isActive key is skipped like an inactive one."""
+    test_data = load_test_data(DATA_DIR / "inactive_zone")
+    for value in test_data.values():
+        if isinstance(value, dict) and "system" in value:
+            for zone in value["system"]["properties"]["zones"]:
+                zone.pop("isActive", None)
+    with mypyllant_aioresponses(test_data) as _:
+        system = await get_system_or_skip(mocked_api)
+        assert system.zones == []
+    await mocked_api.aiohttp_session.close()
+
+
 async def test_time_program_overlap() -> None:
     # Should not raise an exception
     time_program = ZoneTimeProgram.from_api(

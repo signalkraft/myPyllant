@@ -961,7 +961,7 @@ class System(MyPyllantDataClass):
                 **z,
             )
             for z in system.merge_object("zones")
-            if z["is_active"]
+            if z.get("is_active")
         ]
         system.domestic_hot_water = [
             DomesticHotWater.from_api(
