@@ -54,6 +54,7 @@ from myPyllant.models import (
     DHWTimeProgram,
     DomesticHotWater,
     Home,
+    SeriesData,
     System,
     SystemReport,
     Ventilation,
@@ -501,6 +502,45 @@ class MyPyllantAPI:
                 )
                 apis_hit += 1
         logger.debug(f"Queried {apis_hit} API endpoints for device data")
+
+    async def get_temperatures(
+        self,
+        system: System,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        resolution: DeviceDataBucketResolution = DeviceDataBucketResolution.HOUR,
+    ) -> AsyncIterator[dict]:
+        """
+        Returns an async generator of temperature data for the given system
+
+        Parameters:
+            system: The System object
+            start: The start datetime for the query
+            end: The end datetime for the query
+            resolution: The resolution of the data
+        """
+        # ISO formatted dates in querystring require timezone information
+        if start and not start.tzinfo:
+            start = start.replace(tzinfo=system.timezone)
+        if end and not end.tzinfo:
+            end = end.replace(tzinfo=system.timezone)
+
+        async def _get_temperature(path, datatype):
+            querystring = {
+                "startDate": start.isoformat(timespec="milliseconds"),
+                "endDate": end.isoformat(timespec="milliseconds"),
+                "resolution": str(resolution),
+                "datatype": datatype,
+            }
+            url = f"{await self.get_api_base()}/daq/{system.id}/{path}?{urlencode(querystring)}"
+            async with self.aiohttp_session.get(url, headers=self.get_authorized_headers()) as response:
+                response.raise_for_status()
+                response_json = await response.json()
+                return SeriesData.from_api(timezone=system.timezone, **dict_to_snake_case(response_json))
+
+        yield await _get_temperature("system", "OUTDOOR_TEMPERATURE")
+        for zone in system.zones:
+            yield await _get_temperature(f"zones/{zone.index}/", "CURRENT_ROOM_TEMPERATURE")
 
     async def get_yearly_reports(
         self,

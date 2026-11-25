@@ -744,6 +744,28 @@ class Device(MyPyllantDataClass):
 
 
 @dataclass(config=config)
+class SeriesDataBucket(MyPyllantDataClass):
+    timestamp: datetime.datetime
+    value: float | None = None
+
+
+@dataclass(config=config)
+class SeriesData(MyPyllantDataClass):
+    start_date: datetime.datetime | None = None
+    end_date: datetime.datetime | None = None
+    resolution: DeviceDataBucketResolution | None = None
+    datatype: str | None = None
+    data: list[SeriesDataBucket] = field(default_factory=list)
+
+    @classmethod
+    def from_api(cls, **data):
+        data["data"] = [
+            SeriesDataBucket.from_api(timezone=data["timezone"], **dd) for dd in data.pop("data", [])
+        ]
+        return super().from_api(**data)
+
+
+@dataclass(config=config)
 class RoomTimeProgramDay(BaseTimeProgramDay):
     temperature_setpoint: float | None = None
 
